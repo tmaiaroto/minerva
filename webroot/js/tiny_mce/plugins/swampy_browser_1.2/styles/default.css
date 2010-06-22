@@ -1,0 +1,146 @@
+body {margin:0;padding:0;font-size:13px;font-family:sans-serif;}
+html, body {height:100%;}
+
+p.loader,p.alert,p.error,p.info,p.done {padding-left:20px;margin:5px;line-height:16px;}
+p.loader{background:url('images/loader.gif') no-repeat;}
+p.alert	{background:url('images/alert.png') no-repeat;}
+p.error	{background:url('images/error.png') no-repeat;}
+p.info	{background:url('images/info.png') no-repeat;}
+p.done	{background:url('images/done.png') no-repeat;}
+
+a {text-decoration:none;color:#555;} a:hover {color:red;}
+
+#alert {width:400px;margin-left:-200px;padding:5px 20px;position:absolute;left:50%;z-index:100;border:1px solid black;border-top:none;background:white;opacity:0.9;filter:alpha(opacity = 90);}
+
+#left_container, #right_container {height:550px;float:left;position:relative;}
+#left_container	{width:250px;}
+#right_container{width:600px;}
+
+#header, #content {float:left;position:relative;}
+#header  {width:600px;height:30px;background:#EEE;}
+#content {width:580px;height:500px;padding:10px;overflow:auto;}
+
+#content_corner,#content_top,#content_side {position:absolute;z-index:50;}
+#content_corner	{width:30px;height:30px;left:0px;top:30px;background:url('images/content_corner.png') no-repeat;}
+#content_top	{width:570px;height:10px;left:30px;top:30px;background:url('images/content_top.png') repeat-x;}
+#content_side	{width:10px;height:490px;left:0;top:60px;background:url('images/content_side.png') repeat-y;}
+
+* html #content_corner	{background:none;filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='styles/images/content_corner.png'); }
+* html #content_top	{background:none;filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='styles/images/content_top.png',sizingMethod='scale');font-size:1px;}
+* html #content_side	{background:none;filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='styles/images/content_side.png',sizingMethod='scale'); }
+
+#information,#directories,#control{width:230px;padding:10px;}
+#information	{height:160px;background:#EEE;}
+#directories	{height:228px;border-top:1px solid #CCC;border-bottom:1px solid #CCC;overflow:auto;}
+#control	{height:100px;background:#EEE;}
+
+#path, #vmode	{height:23px;padding-top:7px;font-size:10px;color:#777;}
+#path		{width:500px;float:left;text-align:center;}
+#vmode		{width:100px;float:right;}
+
+#content iframe{width:580px;height:500px;}
+#vmode img{cursor:pointer;vertical-align:middle;}
+#information p{margin:0 0 5px 0;font-size:10px;color:#777;}
+#information label, #path label{font-weight:bold;font-size:11px;color:black;}
+
+/* Directories tree  Control/Options menu */
+#directories ul, #control ul {padding:0;margin:0 0 5px 24px;font-size:12px;}
+#directories li {margin:0;padding:0 0 2px 4px;line-height:14px;height:16px;list-style-image: url('images/directory.png');}
+#control li {height:22px;line-height:18px;padding-left:5px;}
+#control li.folder_add {list-style-image:url('images/folder_add.png');}
+#control li.upload_file {list-style-image:url('images/upload_file.png');}
+#control li.upload_image {list-style-image:url('images/upload_image.png');}
+
+/* THUMB STYLE */
+#file-thumb {width:100px;height:130px;float:left;position:relative;margin:5px 10px;padding:5px;background:url('images/thumb_bg.png') no-repeat;color:#777;}
+#file-thumb.selected{background:url('images/thumb_bg_s.png') no-repeat;}
+#file-thumb.selected .name{font-weight:bold;color:black;}
+#file-thumb:hover .name{color:red;}
+
+#file-thumb .options {width:110px;height:100px;position:absolute;left:0;top:0;z-index:20;padding:6px 0;background:black;opacity:0.7;filter:alpha(opacity = 70);}
+#file-thumb .options a{margin:0 10px;display:block;padding:2px 2px;color:white;font-size:10px;}
+#file-thumb .options a:hover{background:white;color:black;}
+
+#file-thumb .image	{width:100px;height:100px;float:left;margin-bottom:6px;cursor:pointer;background:url('images/file.png') center no-repeat white;}
+#file-thumb .name	{width:76px; height:16px; float:left;}
+#file-thumb .ctrl	{width:16px; height:16px; float:right;cursor:pointer;background:url('images/options.png') center no-repeat;}
+
+#file-thumb .size, #file-thumb .dim	{display:none;}
+
+
+#file-row {width:500px;height:18px;margin:5px auto;position:relative;border-bottom:1px solid #BBB;}
+#file-row.selected{border-bottom:1px solid black;}
+#file-row.selected .name{font-weight:bold;color:black;}
+#file-row:hover .name{color:red;}
+
+#file-row .options {width:auto;height:16px;position:absolute;right:20px;bottom:0px;z-index:20;display:block;}
+#file-row .options a{margin:0;display:block;float:right;padding:2px 10px;color:white;font-size:10px;background:black;}
+#file-row .options a:hover{background:white;color:black;}
+
+#file-row .image  {width:20px;height:18px;float:left;background:url('images/file.png') center no-repeat white;}
+#file-row .name   {width:250px;height:18px;float:left;cursor:pointer;color:#777;}
+#file-row .size,#file-row .dim {width:100px;height:18px;float:left;text-align:right;color:#777;font-size:11px;}
+#file-row .ctrl   {width:20px; height:16px;float:right;cursor:pointer;background:url('images/options.png') center no-repeat;}
+
+
+#content .ext-parent{background:url('images/parent.png') center no-repeat white;}
+#content .ext-dir{background:url('images/directory.png') center no-repeat white;}
+#content .ext-3gp { background: url('images/film.png') no-repeat center white; }
+#content .ext-afp { background: url('images/code.png') no-repeat center white; }
+#content .ext-afpa { background: url('images/code.png') no-repeat center white; }
+#content .ext-asp { background: url('images/code.png') no-repeat center white; }
+#content .ext-aspx { background: url('images/code.png') no-repeat center white; }
+#content .ext-avi { background: url('images/film.png') no-repeat center white; }
+#content .ext-bat { background: url('images/application.png') no-repeat center white; }
+#content .ext-bmp { background: url('images/picture.png') no-repeat center white; }
+#content .ext-c { background: url('images/code.png') no-repeat center white; }
+#content .ext-cfm { background: url('images/code.png') no-repeat center white; }
+#content .ext-cgi { background: url('images/code.png') no-repeat center white; }
+#content .ext-com { background: url('images/application.png') no-repeat center white; }
+#content .ext-cpp { background: url('images/code.png') no-repeat center white; }
+#content .ext-css { background: url('images/css.png') no-repeat center white; }
+#content .ext-doc { background: url('images/doc.png') no-repeat center white; }
+#content .ext-exe { background: url('images/application.png') no-repeat center white; }
+#content .ext-gif { background: url('images/picture.png') no-repeat center white; }
+#content .ext-fla { background: url('images/flash.png') no-repeat center white; }
+#content .ext-h { background: url('images/code.png') no-repeat center white; }
+#content .ext-htm { background: url('images/html.png') no-repeat center white; }
+#content .ext-html { background: url('images/html.png') no-repeat center white; }
+#content .ext-jar { background: url('images/java.png') no-repeat center white; }
+#content .ext-jpg { background: url('images/picture.png') no-repeat center white; }
+#content .ext-jpeg { background: url('images/picture.png') no-repeat center white; }
+#content .ext-js { background: url('images/script.png') no-repeat center white; }
+#content .ext-lasso { background: url('images/code.png') no-repeat center white; }
+#content .ext-log { background: url('images/txt.png') no-repeat center white; }
+#content .ext-m4p { background: url('images/music.png') no-repeat center white; }
+#content .ext-mov { background: url('images/film.png') no-repeat center white; }
+#content .ext-mp3 { background: url('images/music.png') no-repeat center white; }
+#content .ext-mp4 { background: url('images/film.png') no-repeat center white; }
+#content .ext-mpg { background: url('images/film.png') no-repeat center white; }
+#content .ext-mpeg { background: url('images/film.png') no-repeat center white; }
+#content .ext-ogg { background: url('images/music.png') no-repeat center white; }
+#content .ext-pcx { background: url('images/picture.png') no-repeat center white; }
+#content .ext-pdf { background: url('images/pdf.png') no-repeat center white; }
+#content .ext-php { background: url('images/php.png') no-repeat center white; }
+#content .ext-png { background: url('images/picture.png') no-repeat center white; }
+#content .ext-ppt { background: url('images/ppt.png') no-repeat center white; }
+#content .ext-psd { background: url('images/psd.png') no-repeat center white; }
+#content .ext-pl { background: url('images/script.png') no-repeat center white; }
+#content .ext-py { background: url('images/script.png') no-repeat center white; }
+#content .ext-rb { background: url('images/ruby.png') no-repeat center white; }
+#content .ext-rbx { background: url('images/ruby.png') no-repeat center white; }
+#content .ext-rhtml { background: url('images/ruby.png') no-repeat center white; }
+#content .ext-rpm { background: url('images/linux.png') no-repeat center white; }
+#content .ext-ruby { background: url('images/ruby.png') no-repeat center white; }
+#content .ext-sql { background: url('images/db.png') no-repeat center white; }
+#content .ext-swf { background: url('images/flash.png') no-repeat center white; }
+#content .ext-tif { background: url('images/picture.png') no-repeat center white; }
+#content .ext-tiff { background: url('images/picture.png') no-repeat center white; }
+#content .ext-txt { background: url('images/txt.png') no-repeat center white; }
+#content .ext-vb { background: url('images/code.png') no-repeat center white; }
+#content .ext-wav { background: url('images/music.png') no-repeat center white; }
+#content .ext-wmv { background: url('images/film.png') no-repeat center white; }
+#content .ext-xls { background: url('images/xls.png') no-repeat center white; }
+#content .ext-xml { background: url('images/code.png') no-repeat center white; }
+#content .ext-zip { background: url('images/zip.png') no-repeat center white; }
+#content .ext-rar { background: url('images/zip.png') no-repeat center white; }
