@@ -21,8 +21,11 @@
 	?>
 		<script type="text/javascript">$.noConflict();</script>
 	<?php
-		echo $this->optimize->scripts();
-		echo $this->optimize->styles();
+                // if using li3_assets, http://rad-dev.org/li3_assets
+		//echo $this->optimize->scripts();
+		//echo $this->optimize->styles();
+                echo $this->scripts();
+                echo $this->styles();
 	?>
 </head>
 <body>
