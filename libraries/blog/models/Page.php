@@ -33,7 +33,7 @@ class Page extends \minerva\models\Page {
 			
 			// var_dump($params['options']['request']->action); // ...and this gives us the action
 			/// Set more data to the view... don't need to use "setViewData" !
-			$params['data'] += array('var' => 'some more shit', 'library_data' => 'foo2');
+			$params['data'] += array('var' => 'some more data', 'library_data' => 'foo2');
 			
 			return $chain->next($self, $params, $chain);
 		});
