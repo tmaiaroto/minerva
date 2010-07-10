@@ -1,2 +1,4 @@
 Minerva CMS
 First draft, June 22, 2010
+----
+To get started, checkout minerva into your root directory where "app" and "libraries" (the actual lithium framework) sit. Then change up your .htaccess file to point to the folder "minerva" instead of "app"
