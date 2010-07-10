@@ -1,6 +1,0 @@
-<?=$this->form->create(); ?>
-    <?php foreach($fields as $k => $v) { ?>
-    	<?=$this->form->field($k, $v);?>
-    <?php } ?>
-    <?=$this->form->submit('Add Block'); ?>
-<?=$this->form->end(); ?>
