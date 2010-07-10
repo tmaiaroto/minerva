@@ -1,0 +1,11 @@
+#defaults {
+  @width: 960px;
+  @color: black;
+}
+
+.article { color: #294366; }
+
+.comment {
+  width: #defaults[@width];
+  color: .article['color']; 
+}
