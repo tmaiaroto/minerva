@@ -83,7 +83,6 @@ while (false !== ($library = readdir($libraries_directory))) {
     }
 }
 
-/*
 Libraries::add('li3_assets', array(
                                      'config' => array(
                                         'js' => array(
@@ -105,6 +104,6 @@ Libraries::add('li3_assets', array(
                                         )
                                     )
                );
-*/
+
 
 ?>

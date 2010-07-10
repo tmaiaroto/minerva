@@ -1,0 +1,3 @@
+[submodule "libraries/li3_assets"]
+	path = libraries/li3_assets
+	url = code@rad-dev.org:li3_assets.git
