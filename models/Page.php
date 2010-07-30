@@ -14,10 +14,10 @@ class Page extends \lithium\data\Model {
 	protected $_schema = array(
 		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
 		'library' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'title' => array('type' => 'string', 'form' => array('label' => 'Title')),
+		'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
 		'created' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'modified' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),		
-		'url' => array('type' => 'string', 'form' => array())
+		'url' => array('type' => 'string', 'form' => array('wrap' => array('class' => 'minerva_url_input')))
 	);
 	
 	protected $_meta = array('locked' => true);
@@ -47,34 +47,12 @@ class Page extends \lithium\data\Model {
 		// Also append extended validation rules
 		$class::_object()->validates += static::_object()->validates;
 		
-		
-		// FILTERS
-		// First, a save filter to change created and modified dates on the record as well as ensuring a unique pretty url.
-		Page::applyFilter('save', function($self, $params, $chain) {
-			// Set the created and modified dates and pretty url (slug)
-			$now = date('Y-m-d h:i:s');
-			if (!$params['entity']->exists()) {
-				$params['data']['created'] = $now;
-				$params['data']['modified'] = $now;
-				if(empty($params['data']['url'])) {
-					$params['data']['url'] = $params['data']['title'];
-				}
-				$params['data']['url'] = Page::unique_url(Inflector::slug($params['data']['url']), $params['data'][Page::key()]);
-			} else {
-				$params['data']['url'] = Page::unique_url(Inflector::slug($params['data']['url']), $params['data'][Page::key()]);
-				$params['data']['modified'] = $now;
-			}
-			
-			//var_dump($params['data']); exit();
-			return $chain->next($self, $params, $chain);
-		});		
-		
 		// Don't forget me...
 		parent::__init();
 	}	
 	
 	public function unique_url($url=null, $id=null) {
-		if(!$url) {
+		if((!$url) || (!$id)) {
 			return null;
 		}
 		
@@ -82,7 +60,9 @@ class Page extends \lithium\data\Model {
 		$conflicts = array();
 		
 		foreach($records as $record) {
-			$conflicts[] = $record->url;
+			if($record->{Page::key()} != $id) {
+				$conflicts[] = $record->url;
+			}
 		}
 		
 		if (!empty($conflicts)) {
@@ -102,4 +82,31 @@ class Page extends \lithium\data\Model {
 	}
 
 }
+
+/* FILTERS
+ *
+ * Filters must be set down here outside the class because of the class extension by libraries.
+ * If the filter was applied within __init() it would run more than once.
+ *
+*/
+
+// First, a save filter to change created and modified dates on the record as well as ensuring a unique pretty url.
+Page::applyFilter('save', function($self, $params, $chain) {
+	// Set the created and modified dates and pretty url (slug)
+	$now = date('Y-m-d h:i:s');
+	if (!$params['entity']->exists()) {
+		$params['data']['created'] = $now;
+		$params['data']['modified'] = $now;
+		if(empty($params['data']['url'])) {
+			$params['data']['url'] = $params['data']['title'];
+		}
+		$params['data']['url'] = Page::unique_url(Inflector::slug($params['data']['url']), $params['data'][Page::key()]);
+	} else {
+		$params['data']['url'] = Page::unique_url(Inflector::slug($params['data']['url']), $params['data'][Page::key()]);
+		$params['data']['modified'] = $now;
+	}
+	
+	//var_dump($params['data']); exit();
+	return $chain->next($self, $params, $chain);
+});
 ?>

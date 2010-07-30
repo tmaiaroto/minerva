@@ -33,8 +33,8 @@ use \lithium\action\Response;
 Dispatcher::applyFilter('run', function($self, $params, $chain) {
 	$blacklist = array(
 		// uncomment to restrict access to these urls
-	//	'pages/index',
-	//	'pages'
+		'pages/index',
+		'pages'
 	);
 	//echo '<pre>'; print_r($params['request']->url); echo '</pre>';exit();
 	//$matches = in_array(Router::match($params['request']->params, $params['request']), $blacklist);

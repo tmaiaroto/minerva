@@ -31,27 +31,33 @@ class Asset extends \lithium\data\Model {
         self::$fields += static::$fields;
         self::$validate += static::$validate;
         
-        // FILTERS
-        // TODO: get checks in for file size, server errors/limits, etc.
-        Asset::applyFilter('save', function($self, $params, $chain) {
-            // First, the created and modified dates
-            if (!isset($params['entity']->{Asset::key()})) {
-              $params['entity']->created = date('Y-m-d h:i:s');
-              $params['entity']->modified = date('Y-m-d h:i:s');
-            } else {  	
-                  $params['data']['modified'] = date('Y-m-d h:i:s');  	
-            }
-            
-            return $chain->next($self, $params, $chain);
-        });
-        
-        // Second, let's get the validation rules picked up from our $validate property
-        Asset::applyFilter('validates', function($self, $params, $chain) {
-            $params['options']['rules'] = Asset::$validate;			
-            return $chain->next($self, $params, $chain);
-        });
-        
         parent::__init();
     }
-}   
+}
+
+/* FILTERS
+ *
+ * Filters must be set down here outside the class because of the class extension by libraries.
+ * If the filter was applied within __init() it would run more than once.
+ *
+*/
+
+// TODO: get checks in for file size, server errors/limits, etc.
+Asset::applyFilter('save', function($self, $params, $chain) {
+    // First, the created and modified dates
+    if (!isset($params['entity']->{Asset::key()})) {
+      $params['entity']->created = date('Y-m-d h:i:s');
+      $params['entity']->modified = date('Y-m-d h:i:s');
+    } else {  	
+	  $params['data']['modified'] = date('Y-m-d h:i:s');  	
+    }
+    
+    return $chain->next($self, $params, $chain);
+});
+
+// Second, let's get the validation rules picked up from our $validate property
+Asset::applyFilter('validates', function($self, $params, $chain) {
+    $params['options']['rules'] = Asset::$validate;			
+    return $chain->next($self, $params, $chain);
+});
 ?>

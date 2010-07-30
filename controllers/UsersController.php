@@ -53,6 +53,17 @@ class UsersController extends \lithium\action\Controller {
 		$this->set(compact('records', 'limit', 'page', 'total'));
 	}
 	
+	public function read($url) {
+	    $record = User::find('first', array('conditions' => array('url' => $url)));
+            if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {
+                $class = '\minerva\libraries\\'.$record->library.'\models\User'; 	  		
+		if(class_exists($class)) {
+                    $Library = new $class();
+                }
+            } 	
+            $this->set(compact('record'));
+	}
+	
 	public function create($library=null) {	
 		// If we are using a library, instantiate it's User model (bridge from plugin to core)
 		if((isset($library)) && ($library != 'minerva') && (!empty($library))) {		
@@ -85,6 +96,44 @@ class UsersController extends \lithium\action\Controller {
 		}
 		
 		$this->set(compact('user', 'fields'));
+	}
+	
+	/**
+	 * Update a user.
+	 *
+	*/
+	public function update($url=null) {	
+		// First, get the record
+		$record = User::find('first', array('conditions' => array('url' => $url)));
+		
+		// Next, if the record uses a library, instantiate it's User model (bridge from plugin to core)
+		if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {		
+			// Just instantiating the library's Page model will essentially "bridge" and extend the main app's User model	
+			$class = '\minerva\libraries\\'.$record->library.'\models\User';
+			if(class_exists($class)) {
+                            $Library = new $class();
+                        }
+			// var_dump(User::$fields); // debug
+			// var_dump($Library::$fields); // just the extended library's fields			
+		}
+		
+		// Get the fields so the view template can build the form
+		$fields = User::schema();                
+		
+		// Update the record
+		if ($this->request->data) {
+			unset($this->request->data['password']);
+			if((isset($this->request->data['new_password'])) && (!empty($this->request->data['new_password']))) {
+				$this->request->data['password'] = sha1($this->request->data['new_password']);
+				unset($this->request->data['new_password']);
+			}
+                        // Call save from the main app's User model
+                        if($record->save($this->request->data)) {
+                            $this->redirect(array('controller' => 'users', 'action' => 'index'));
+                        }                        
+		}
+		
+                $this->set(compact('record', 'fields'));
 	}
 	
 }

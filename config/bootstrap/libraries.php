@@ -86,7 +86,7 @@ while (false !== ($library = readdir($libraries_directory))) {
 Libraries::add('li3_assets', array(
                                      'config' => array(
                                         'js' => array(
-                                                      'compression' => 'packer', // possible values: 'jsmin', 'packer', false (true uses jsmin)
+                                                      'compression' => 'jsmin', // possible values: 'jsmin', 'packer', false (true uses jsmin)
                                                       'output_directory' => 'optimized', // directory is from webroot/css if full path is not defined
                                                       'packer_encoding' => 'Normal', // level of encoding (only used for packer), possible values: 0,10,62,95 or 'None', 'Numeric', 'Normal', 'High ASCII'
                                                       'packer_special_chars' => true

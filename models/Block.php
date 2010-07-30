@@ -39,25 +39,6 @@ class Block extends \lithium\data\Model {
 		// Also append extended validation rules
 		$class::_object()->validates += static::_object()->validates;
 		
-		// Filters		
-		Block::applyFilter('save', function($self, $params, $chain) {	
-			// Set the created and modified dates and pretty url (slug)
-			$now = date('Y-m-d h:i:s');
-			if (!$params['entity']->exists()) {
-				$params['data']['created'] = $now;
-				$params['data']['modified'] = $now;				
-				if(empty($params['data']['url'])) {
-					$params['data']['url'] = $params['data']['title'];
-				}
-				$params['data']['url'] = Block::unique_url(Inflector::slug($params['data']['url']), $params['data'][Block::key()]);
-			} else {
-				$params['data']['url'] = Block::unique_url(Inflector::slug($params['data']['url']), $params['data'][Block::key()]);
-				$params['data']['modified'] = $now;
-			}
-			
-			return $chain->next($self, $params, $chain);
-		});
-		
 		// Don't forget me...
 		parent::__init();
 	}
@@ -92,4 +73,28 @@ class Block extends \lithium\data\Model {
 	}
 	
 }
+
+/* FILTERS
+ *
+ * Filters must be set down here outside the class because of the class extension by libraries.
+ * If the filter was applied within __init() it would run more than once.
+ *
+*/
+Block::applyFilter('save', function($self, $params, $chain) {	
+	// Set the created and modified dates and pretty url (slug)
+	$now = date('Y-m-d h:i:s');
+	if (!$params['entity']->exists()) {
+		$params['data']['created'] = $now;
+		$params['data']['modified'] = $now;				
+		if(empty($params['data']['url'])) {
+			$params['data']['url'] = $params['data']['title'];
+		}
+		$params['data']['url'] = Block::unique_url(Inflector::slug($params['data']['url']), $params['data'][Block::key()]);
+	} else {
+		$params['data']['url'] = Block::unique_url(Inflector::slug($params['data']['url']), $params['data'][Block::key()]);
+		$params['data']['modified'] = $now;
+	}
+	
+	return $chain->next($self, $params, $chain);
+});
 ?>

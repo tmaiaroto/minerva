@@ -40,7 +40,6 @@ if (!Environment::is('production')) {
 	Router::connect('/test', array('controller' => '\lithium\test\Controller'));
 }
 
-
 // connect route for pages
 Router::connect('/pages/index/{:args}/page:{:page:[0-9]+}', array(
 	'controller' => 'pages', 'action' => 'index', 'page' => 1

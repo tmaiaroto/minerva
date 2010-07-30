@@ -44,36 +44,12 @@ class User extends \lithium\data\Model {
 		// Also append extended validation rules
 		$class::_object()->validates += static::_object()->validates;
 		
-		// FILTERS
-		User::applyFilter('save', function($self, $params, $chain) {
-			// Set created, modified, and pretty url (slug)
-			$now = date('Y-m-d h:i:s');
-			if (!$params['entity']->exists()) {
-				$params['data']['created'] = $now;
-				$params['data']['modified'] = $now;
-				if(empty($params['data']['url'])) {
-					$params['data']['url'] = $params['data']['username'];
-				}
-				$params['data']['url'] = User::unique_url(Inflector::slug($params['data']['url']), $params['data'][User::key()]);
-			} else {
-				$params['data']['url'] = User::unique_url(Inflector::slug($params['data']['url']), $params['data'][User::key()]);
-				$params['data']['modified'] = $now;
-			}
-			
-			//$data = array($params['entity']->file);
-			//Asset::save($data);
-			
-			var_dump($params['data']); exit();
-			
-			return $chain->next($self, $params, $chain);
-		});		
-		
 		parent::__init();
 	}
 	
 	// TODO: Move to some sort of app model?...probably a "minerva utility" class instead so other classes/libraries can utilize
 	public function unique_url($url=null, $id=null) {
-		if(!$url) {
+		if((!$url) || (!$id)) {
 			return null;
 		}
 		
@@ -81,7 +57,9 @@ class User extends \lithium\data\Model {
 		$conflicts = array();
 		
 		foreach($records as $record) {
-			$conflicts[] = $record->url;
+			if($record->{User::key()} != $id) {
+				$conflicts[] = $record->url;
+			}
 		}
 		
 		if (!empty($conflicts)) {
@@ -100,4 +78,31 @@ class User extends \lithium\data\Model {
 		return $url;
 	}
 }
+
+/* FILTERS
+ *
+ * Filters must be set down here outside the class because of the class extension by libraries.
+ * If the filter was applied within __init() it would run more than once.
+ *
+*/
+User::applyFilter('save', function($self, $params, $chain) {
+	// Set created, modified, and pretty url (slug)
+	$now = date('Y-m-d h:i:s');
+	if (!$params['entity']->exists()) {
+		$params['data']['created'] = $now;
+		$params['data']['modified'] = $now;
+		if(empty($params['data']['url'])) {
+			$params['data']['url'] = $params['data']['username'];
+		}
+		$params['data']['url'] = User::unique_url(Inflector::slug($params['data']['url']), $params['data'][User::key()]);
+	} else {
+		$params['data']['url'] = User::unique_url(Inflector::slug($params['data']['url']), $params['data'][User::key()]);
+		$params['data']['modified'] = $now;
+	}
+	
+	//$data = array($params['entity']->file);
+	//Asset::save($data);
+	
+	return $chain->next($self, $params, $chain);
+});
 ?>
