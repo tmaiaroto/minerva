@@ -8,4 +8,7 @@
 
 use \lithium\net\http\Router;
 
+// Example route for reading a blog post (note the "url" named parameter)
+Router::connect('/blog/read/{:url}', array('controller' => 'pages', 'action' => 'view'));
+
 ?>

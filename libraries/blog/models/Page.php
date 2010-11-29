@@ -20,10 +20,9 @@ class Page extends \minerva\models\Page {
 	public static function __init() {		
 		// FILTERS
 		// First, render filter to change where the pages get their templates from
-		Media::applyFilter('render', function($self, $params, $chain){
-			//var_dump($params['options']);
-			
-			// Read read method only, change the template paths. This may not always be the case. Though. Per plugin basis.
+		/*Media::applyFilter('render', function($self, $params, $chain){
+                    $params['options']['paths']['layout'] = LITHIUM_APP_PATH . '/views/layouts/{:layout}.{:type}.php';
+                	// Read read method only, change the template paths. This may not always be the case. Though. Per plugin basis.
 			// It essentially allows one to change the admin create/update pages/forms/templates if so desired.
 			// But those forms are automatically set by defining static $fields of course. So it's optional.
 			if($params['options']['request']->action == 'read') {
@@ -36,7 +35,7 @@ class Page extends \minerva\models\Page {
 			$params['data'] += array('var' => 'some more data', 'library_data' => 'foo2');
 			
 			return $chain->next($self, $params, $chain);
-		});
+		});*/
 		
 		// Second, ensure the index listing for pages show only blogs
 		// TODO: any better/cleaner way of doing this??

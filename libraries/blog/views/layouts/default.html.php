@@ -24,7 +24,7 @@
 			</h2>
 		</div>
 		<div id="content">
-			LIBRARIES/BLOG/LAYOUTS/DEFAULT ... shouldn't be used/needed<br />
+			LIBRARIES/BLOG/LAYOUTS/DEFAULT ... if this didn't exist, it would default back to Minerva's default layout<br />
 			<?php echo $this->content(); ?>
 		</div>
 	</div>

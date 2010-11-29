@@ -24,8 +24,20 @@ Router::connect('/', array('controller' => 'pages', 'action' => 'view', 'home'))
 
 /**
  * ...and connect the rest of 'Pages' controller's urls.
+ * note there's importance with naming the argument "url"
  */
-Router::connect('/page/{:args}', array('controller' => 'pages', 'action' => 'view'));
+Router::connect('/page/{:url}', array('controller' => 'pages', 'action' => 'view'));
+// and for index pages, we use "library" which is also important
+Router::connect('/pages/index/{:library}', array(
+    'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10
+));
+Router::connect('/pages/index/{:library}/page:{:page:[0-9]+}', array(
+    'controller' => 'pages', 'action' => 'index', 'page' => 1
+));
+Router::connect('/pages/index/{:library}/page:{:page}/limit:{:limit}', array(
+    'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10
+));
+
 
 /**
  * Connect the static blocks
@@ -40,13 +52,6 @@ if (!Environment::is('production')) {
 	Router::connect('/test', array('controller' => '\lithium\test\Controller'));
 }
 
-// connect route for pages
-Router::connect('/pages/index/{:args}/page:{:page:[0-9]+}', array(
-	'controller' => 'pages', 'action' => 'index', 'page' => 1
-));
-Router::connect('/pages/index/{:args}/page:{:page}/limit:{:limit}', array(
-	'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10
-));
 
 //Router::connect('/block', array('library' => 'blocks', 'controller' => 'pages', 'action' => 'view'));
 /**

@@ -59,13 +59,12 @@ class Block extends \lithium\template\Helper {
 	/** render allows you to render a view template or external URL's content inline with the template it was called from.
 	 *
 	 * @param $options array[required]
-	 * @return Mixed the html/css from the rendered page/view template or JavaScript code with an AJAX call to load local content
+	 * @return Mixed the html/css from the rendered page/view template or JavaScript code with an AJAX call to load local content or false if something went wrong
 	*/
 	public function render($options=array()) {
-		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'template' => null, 'folder' => 'blocks/static', 'layout' => 'blank', 'type' => 'html');
+		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'minerva', 'template' => null, 'folder' => 'blocks/static', 'layout' => 'blank', 'type' => 'html');
 		$options += $defaults;
 		
-				
 		/** 
 		 *  Method by default is set to php, meaning we are going to get the content for the block now and render it with the page.
 		 *  This allows us to cache the block content because the server is aware of it.
@@ -76,9 +75,14 @@ class Block extends \lithium\template\Helper {
 			// If a template was specified, we need to set the paths and our renderer becomes File.
 			if(!empty($options['template'])) { 
 				$viewOptions['renderer'] = 'File'; // Should be by default, but ensure it is.
+				$viewOptions['library'] = $options['library']; // The defaults will set this to minerva, but each library can have its own
 				$viewOptions['paths'] = array(
 			        'template' => '{:library}/views/'.$options['folder'].'/{:template}.{:type}.php',
-			        'layout'   => '{:library}/views/layouts/{:layout}.{:type}.php',
+			        //'layout'   => '{:library}/views/layouts/{:layout}.{:type}.php',
+				// This will always ensure the layout template for blocks is an empty layout and comes from the core minerva folder.
+				// This way, each library isn't required to create an empty layout template. Very convenient.
+				// Plus blocks shouldn't need anything else...IF they do, we can add another option like "layout_library" or something.
+				'layout' => LITHIUM_APP_PATH . '/views/layouts/{:layout}.{:type}.php'
 			    );			    
 			}
 			

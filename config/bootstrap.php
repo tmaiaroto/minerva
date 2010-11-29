@@ -1,14 +1,21 @@
-<?php 
+<?php
 /**
  * Lithium: the most rad php framework
  *
  * @copyright     Copyright 2010, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
+/**
+ * This is the primary bootstrap file of your application, and is loaded immediately after the front
+ * controller (`index.php`) is invoked. The code below allows you to tell Lithium where to find
+ * your application and support libraries (including the framework itself). It also includes
+ * references to other feature-specific bootstrap files that you can turn on and off to configure
+ * the services needed for your application.
+ */
 
 /**
  * This is the path to the class libraries used by your application, and must contain a copy of the
- * Lithium core.  By default, this directory is named 'libraries', and resides in the same
+ * Lithium core.  By default, this directory is named `libraries`, and resides in the same
  * directory as your application.  If you use the same libraries in multiple applications, you can
  * set this to a shared path on your server.
  */
@@ -27,9 +34,9 @@ define('LITHIUM_APP_PATH', dirname(__DIR__));
  */
 if (!include LITHIUM_LIBRARY_PATH . '/lithium/core/Libraries.php') {
 	$message  = "Lithium core could not be found.  Check the value of LITHIUM_LIBRARY_PATH in ";
-	$message .= "config/bootstrap.php.  It should point to the directory containing your ";
+	$message .= __FILE__ . ".  It should point to the directory containing your ";
 	$message .= "/libraries directory.";
-	trigger_error($message, E_USER_ERROR);
+	throw new ErrorException($message);
 }
 
 /**
@@ -41,9 +48,15 @@ if (!include LITHIUM_LIBRARY_PATH . '/lithium/core/Libraries.php') {
 require __DIR__ . '/bootstrap/libraries.php';
 
 /**
- * Include this file if your application uses a database connection.
+ * This file contains configurations for connecting to external caching resources, as well as
+ * default caching rules for various systems within your application
  */
-require __DIR__ . '/connections.php';
+require __DIR__ . '/bootstrap/cache.php';
+
+/**
+ * Include this file if your application uses one or more database connections.
+ */
+require __DIR__ . '/bootstrap/connections.php';
 
 /**
  * This file defines bindings between classes which are triggered during the request cycle, and
@@ -53,10 +66,10 @@ require __DIR__ . '/connections.php';
 require __DIR__ . '/bootstrap/action.php';
 
 /**
- * This file contains configurations for connecting to external caching resources, as well as
- * default caching rules for various systems within your application
+ * This file contains configuration for session (and/or cookie) storage, and user or web service
+ * authentication.
  */
-require __DIR__ . '/bootstrap/cache.php';
+// require __DIR__ . '/bootstrap/session.php';
 
 /**
  * This file contains your application's globalization rules, including inflections,
@@ -75,17 +88,6 @@ require __DIR__ . '/bootstrap/cache.php';
  * This file configures console filters and settings, specifically output behavior and coloring.
  */
 // require __DIR__ . '/bootstrap/console.php';
-
-/**
- * This configures your session storage. The Cookie storage adapter must be connected first, since
- * it intercepts any writes where the `'expires'` key is set in the options array.
- */
-// use \lithium\storage\Session;
-//
-// Session::config(array(
-// 	'cookie' => array('adapter' => 'Cookie', 'expire' => '+2 days'),
-// 	'default' => array('adapter' => 'Php')
-// ));
 
 // Set the date so we don't get some warnings (should be in php.ini)
 $tz = ini_get('date.timezone');

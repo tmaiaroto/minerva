@@ -21,6 +21,7 @@ require LITHIUM_LIBRARY_PATH . '/lithium/util/Inflector.php';
 require LITHIUM_LIBRARY_PATH . '/lithium/util/String.php';
 require LITHIUM_LIBRARY_PATH . '/lithium/core/Adaptable.php';
 require LITHIUM_LIBRARY_PATH . '/lithium/core/Environment.php';
+require LITHIUM_LIBRARY_PATH . '/lithium/net/Message.php';
 require LITHIUM_LIBRARY_PATH . '/lithium/net/http/Message.php';
 require LITHIUM_LIBRARY_PATH . '/lithium/net/http/Media.php';
 require LITHIUM_LIBRARY_PATH . '/lithium/net/http/Request.php';
@@ -65,6 +66,7 @@ Libraries::add('minerva', array('default' => true));
  * autoloading is not a great idea when configurations need to be passed with the library add...though i guess those can be
  * called after the autoloading part below. not sure how a double call to add() works
  */
+/*
 defined('DS') ? null : define('DS', DIRECTORY_SEPARATOR);
 $libraries_directory = opendir(LITHIUM_APP_PATH.DS.'libraries');
 $libraries = array();
@@ -82,7 +84,11 @@ while (false !== ($library = readdir($libraries_directory))) {
         break;
     }
 }
+*/
 
+Libraries::add('blog');
+
+Libraries::add('li3_flash_message');
 Libraries::add('li3_assets', array(
                                      'config' => array(
                                         'js' => array(
