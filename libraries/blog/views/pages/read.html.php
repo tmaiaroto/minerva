@@ -35,6 +35,12 @@
 			?>
 		</div>		
 	</div>
+	<div class="box">
+		<h2>Menu</h2>
+		<div class="block">
+			<?php echo $this->Menu->render(array('library' => 'blog', 'template' => 'blog_menu')); ?>
+		</div>
+	</div>
 </div>
 <!-- end left column -->
 

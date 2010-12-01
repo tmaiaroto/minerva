@@ -4,6 +4,10 @@ namespace minerva\models;
 use \lithium\util\Validator;
 use lithium\util\Inflector as Inflector;
 
+use \minerva\util\Email;
+use \minerva\util\Util;
+// use app\models\Asset;
+
 class User extends \lithium\data\Model {
 	
 	// User model also can be extended...Plugins can maybe add features like "Profile Pages" or "Twitter Feeds" etc.
@@ -13,19 +17,31 @@ class User extends \lithium\data\Model {
 		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
 		'library' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'url' => array('type' => 'string', 'form' => array('label' => 'URL')),		
-		'username' => array('type' => 'string', 'form' => array('label' => 'Username')),
+		'email' => array('type' => 'string', 'form' => array('label' => 'E-mail')),
+		'new_email' => array('type' => 'string', 'form' => array('label' => false, 'type' => 'hidden')),
+		//'username' => array('type' => 'string', 'form' => array('label' => 'Username')), // going to use e-mail for username
 		'password' => array('type' => 'string', 'form' => array('label' => 'Password')),
-		'created' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'modified' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'file' => array('type' => 'string', 'form' => array('type' => 'file'))
+		'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
+		'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
+		'profile_pics' => array('type' => 'string'),
+		'last_login_ip' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
+		'last_login_time' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
+		//'file' => array('type' => 'string', 'form' => array('type' => 'file'))
 	);
 	
-	protected $_meta = array('locked' => true);
+	//protected $_meta = array('locked' => true);
 	
 	public $validates = array(
-		'username' => array(
-                    array('notEmpty', 'message' => 'Username cannot be empty'),                  
-                )
+		'email' => array(
+                    array('notEmpty', 'message' => 'E-mail cannot be empty.'),
+		    array('email', 'message' => 'E-mail is not valid.'),
+		 //   array('uniqueEmail', 'message' => 'Sorry, this e-mail address is already registered.'),
+                ),
+		'password' => array(
+                    array('notEmpty', 'message' => 'Password cannot be empty.'),
+		    array('notEmptyHash', 'message' => 'Password cannot be empty.'),
+		    array('moreThanFive', 'message' => 'Password must be at least 6 characters long.')
+		)
 		// TODO: password confirm
 	);
 	
@@ -44,60 +60,102 @@ class User extends \lithium\data\Model {
 		// Also append extended validation rules
 		$class::_object()->validates += static::_object()->validates;
 		
+		/*
+		 * Some special validation rules
+		*/
+		Validator::add('uniqueEmail', function($value) {
+			$user = User::find('first', array('fields' => array('_id'), 'conditions' => array('email' => $value)));
+			if(!empty($user)) {
+			    return false;
+			}
+			return true;
+		});
+		
+		Validator::add('notEmptyHash', function($value) {    
+			if($value == 'da39a3ee5e6b4b0d3255bfef95601890afd80709') {	
+			    return false;
+			}
+			return true;
+		});
+		    
+		Validator::add('moreThanFive', function($value) {
+			if(strlen($value) < 5) {	
+			    return false;
+			}
+			return true;
+		});
+		
 		parent::__init();
 	}
-	
-	// TODO: Move to some sort of app model?...probably a "minerva utility" class instead so other classes/libraries can utilize
-	public function unique_url($url=null, $id=null) {
-		if((!$url) || (!$id)) {
-			return null;
-		}
-		
-		$records = User::find('all', array('fields' => array('url'), 'conditions' => array('url' => array('like' => '/'.$url.'/'))));
-		$conflicts = array();
-		
-		foreach($records as $record) {
-			if($record->{User::key()} != $id) {
-				$conflicts[] = $record->url;
-			}
-		}
-		
-		if (!empty($conflicts)) {
-			$firstSlug = $url;
-			$i = 1;
-			while($i > 0) {
-				// TODO: Maybe make separator option somewhere as a property? So it can be _ instead of -
-				if (!in_array($firstSlug . '-' . $i, $conflicts)) {					
-					$url = $firstSlug . '-' . $i;
-					$i = -1;
-				}
-                        $i++;
-			}
-		}
-		
-		return $url;
-	}
+
 }
 
-/* FILTERS
+/** FILTERS
+ * All of the filters for this model need to be placed here, outside the class.
+ * Normally, they could also be placed within the __init() method, but because
+ * of the model class extension, the filters would run twice.
  *
- * Filters must be set down here outside the class because of the class extension by libraries.
- * If the filter was applied within __init() it would run more than once.
- *
+ * That means in our case, the profile pictures would save twice.
+ * We can also put the filter to save the profile picture within the User model
+ * of the family_spoon plugin.
+ * 
 */
 User::applyFilter('save', function($self, $params, $chain) {
-	// Set created, modified, and pretty url (slug)
-	$now = date('Y-m-d h:i:s');
-	if (!$params['entity']->exists()) {
-		$params['data']['created'] = $now;
-		$params['data']['modified'] = $now;
-		if(empty($params['data']['url'])) {
-			$params['data']['url'] = $params['data']['username'];
+	//$params['data']['library'] = 'family_spoon'; // For now...
+	
+	// Do this except for those with a facebook uid, the FB PHP SDK takes care of that
+	if(!isset($params['data']['facebook_uid'])) {
+	
+		/*if(!empty($params['data']['profile_pic'])) {
+			$asset = Asset::create();
+			// Technically the 'model' field is not required because ids are universally unique, but it's easier for to code if we know which model
+			$asset->save(array('file' => $params['data']['profile_pic'], 'model' => 'User', 'parent_id' => $params['data']['_id']));
+			$asset_data = $asset->data();
+			$params['data']['profile_pics'][] = $asset_data['_id'];
+		}*/
+		
+		// Set created, modified, and pretty url (slug)
+		$now = date('Y-m-d h:i:s');
+		if (!$params['entity']->exists()) {
+			if(Validator::rule('moreThanFive', $params['data']['password']) === true) {
+				$params['data']['password'] = sha1($params['data']['password']); // must be SHA1
+			}
+			// Unique E-mail validation ONLY upon new record creation
+			if(Validator::rule('uniqueEmail', $params['data']['email']) === false) {
+				$params['data']['email'] = ''; 
+			}
+			
+			$params['data']['created'] = $now;
+			$params['data']['modified'] = $now;
+			if(empty($params['data']['url'])) {
+				//$params['data']['url'] = $params['data']['username'];
+				//$params['data']['url'] = base64_encode($params['data']['email']);
+				// By default the user's URL will be their first and last name...They can change it later.
+				$params['data']['url'] = $params['data']['first_name'] . '-' . $params['data']['last_name'];
+			}
+			$params['data']['url'] = Util::unique_url(array('url' => Inflector::slug($params['data']['url']), 'model' => '\minerva\models\User'));
+		} else {
+			$params['data']['modified'] = $now;
+			// If the fields password and password_confirm both exist, then validate the password field too
+			if((isset($params['data']['password'])) && (isset($params['data']['password_confirm']))) {
+				if(Validator::rule('moreThanFive', $params['data']['password']) === true) {
+					$params['data']['password'] = sha1($params['data']['password']); // must be SHA1
+				}
+			}
+			
+			// If the new_email field was passed, the user is requesting to update their e-mail, we will set it and send an email to allow them to confirm, once confirmed it will be changed
+			if($params['data']['new_email']) {
+				// Unique E-mail validation
+				if((Validator::rule('uniqueEmail', $params['data']['new_email']) === false) || (Validator::isEmail($params['data']['new_email']) === false)) {
+					// Invalidate
+					$params['data']['new_email'] = '';
+				} else {
+					$params['data']['approval_code'] = Util::unique_string(array('hash' => 'md5'));
+					Email::changeUserEmail(array('first_name' => $params['data']['first_name'], 'last_name' => $params['data']['last_name'], 'to' => $params['data']['new_email'], 'approval_code' => $params['data']['approval_code']));
+				}
+			}
 		}
-		$params['data']['url'] = User::unique_url(Inflector::slug($params['data']['url']), $params['data'][User::key()]);
-	} else {
-		$params['data']['url'] = User::unique_url(Inflector::slug($params['data']['url']), $params['data'][User::key()]);
-		$params['data']['modified'] = $now;
+	
 	}
 	
 	//$data = array($params['entity']->file);

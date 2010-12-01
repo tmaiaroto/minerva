@@ -8,10 +8,15 @@ class Block extends \lithium\data\Model {
 	
 	protected $_schema = array(
 		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
+		// library gets indexed
 		'library' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
+		// url possibly gets indexed
 		'url' => array('type' => 'string', 'form' => array('label' => 'URL')), 
 		'title' => array('type' => 'string', 'form' => array('label' => 'Title')),
 		'content' => array('type' => 'string', 'form' => array('label' => 'Block Content', 'type' => 'textarea', 'after' => '(you may use html code)')),	
+		// options contain all sorts of misc. data like "weight" or "position" or "is_menu" it could also contain "pubished" flags if desired, but minerva core doesn't care about publish status on blocks so no dedicated field is set for it
+		// the "is_menu" is set true if the MenusController saves the block
+		'options' => array('type' => 'array', 'form' => array('type' => 'hidden', 'label' => false)),
 		'created' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)), 
 		'modified' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))		
 	);
