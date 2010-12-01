@@ -42,10 +42,11 @@ class PagesController extends \lithium\action\Controller {
     
     /**
      * Index listing method responsible for showing lists of pages with pagination options.
-     * If $library is passed and the library has a Page model, it will be instantiated. Additional filters can be found there.
-     * Among other things, it's a good place to have a filter change the find query to only show pages using that library.
+     * If a library param is passed from the routing and the library has a Page model, it will be instantiated.
+     * Additional filters can be applied there that further control things.
+     * 
     */
-    public function index($library=null) {
+    public function index() {
 	// If we are using a library, instantiate it's Page model (bridge from plugin to core)
 	/*if((isset($library)) && ($library != 'minerva') && (!empty($library))) {		
 	    // Just instantiating the library's Page model will essentially "bridge" and extend the main app's Page model	
@@ -63,7 +64,15 @@ class PagesController extends \lithium\action\Controller {
 	}
 	list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
 	
+	// If there's a library passed, add it to the conditions.
+	if(isset($this->request->params['library'])) {
+	    $conditions = array('library' => $this->request->params['library']);
+	} else {
+	    $conditions = array();
+	}
+	
 	$records = Page::find('all', array(
+	    'conditions' => $conditions,
 	    'limit' => $params['limit'],
 	    'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
 	    //'order' => $params['order']

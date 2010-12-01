@@ -4,3 +4,4 @@
         <p><?=$record->body ?></p>
     </article>
 <?php endforeach; ?>
+<em>Template rendered from /views/pages/index.html.php (core Minerva pages index).</em>

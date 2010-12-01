@@ -65,10 +65,24 @@ Dispatcher::applyFilter('run', function($self, $params, $chain) {
 
 // Would put this in another file too if it was going to be used.
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
+	
+    // Get the library if provided from the route params
+    if(isset($params['params']['library'])) {
+	$library = $params['params']['library'];
+    } else {
+	$library = null;
+    }
+    
+    // Get the slug (we may need to use it to find the library)
+    if(isset($params['params']['url'])) {
+	$url = $params['params']['url'];
+    } else {
+	$url = null;
+    }
+    
     // If we loaded the Pages, Users, or Blocks controller and there's a "library" or "url" argument passed, meaning the routes must be set properly to use this filter
-// wtf happened?
-var_dump($params['params']['action']); exit();
-    if((($params['params']['controller'] == 'pages') || ($params['params']['controller'] == 'users') || ($params['params']['controller'] == 'blocks')) && ((!is_null($params['request']->params['library'])) || (!is_null($params['request']->params['url'])))) {
+    // NOTE: wrapping param with strtolower() because $params['params']['controller'] will be camelcase, where $params['request']->params['controller'] will not be...So just in case something changes.
+    if(((strtolower($params['params']['controller']) == 'pages') || (strtolower($params['params']['controller']) == 'users') || ($params['params']['controller'] == 'blocks')) && ((!is_null($library)) || (!is_null($url)))) {
 
 	switch($params['params']['action']) {
 	    // update, read, and delete based on database record, so they must be instantiated in the PagesController
@@ -86,11 +100,13 @@ var_dump($params['params']['action']); exit();
 	    case 'update':
 	    case 'delete':
 		// make a query to get the library
-		   var_dump($params['request']);exit();
-		    $model = Inflector::classify($params['request']->params['library']);
-		    var_dump($model); exit();
+		  // var_dump($params['request']);exit();
+		 // var_dump($params);exit();
+		   // $model = Inflector::classify($params['request']->params['library']);
+		   // var_dump($model); exit();
 			$record = Page::find('first', array('conditions' => array('url' => $params['request']->params['url']), 'fields' => 'library'));
 			$class = '\minerva\libraries\\'.$record->data('library').'\models\Page';
+			
 			// Don't load the model if it doesn't exist
 			if(class_exists($class)) {
 			    $LibraryPage = new $class();
@@ -112,7 +128,11 @@ var_dump($params['params']['action']); exit();
 // Like how "themes" worked with CakePHP
 Media::applyFilter('render', function($self, $params, $chain){
     // TODO: see if the Media class has a method to check if a template exists, but file_exists() should work too
-    $library = $params['options']['request']->params['library'];
+    if(isset($params['options']['request']->params['library'])) {
+	$library = $params['options']['request']->params['library'];
+    } else {
+	$library= null;
+    }
     $layout = $params['options']['layout'];
     $type = $params['options']['type'];
     $template = $params['options']['template'];
@@ -124,8 +144,10 @@ Media::applyFilter('render', function($self, $params, $chain){
 	$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
     }
     // always set the view template from the library (if there's a library in use)
-    if(!is_null($library)) {
+    if(!empty($library)) {
 	$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.{:type}.php';
+    } else {
+	$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.{:type}.php';
     }
     
     return $chain->next($self, $params, $chain);
