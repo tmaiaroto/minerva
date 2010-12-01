@@ -1,5 +1,9 @@
 <div class="grid_4">
 	<div class="box">
+		<h2>Box</h2>
+		<div class="block">
+			
+		</div>
 	</div>
 </div>
 
@@ -9,15 +13,13 @@
     <div class="box">
 	<?=$this->form->create(null, array('type' => 'file')); ?>
 		<fieldset>
-		<legend>Record</legend>
-	    <?php 
-	    	foreach($fields as $k => $v) {
-	    		$v['value'] = $record->$k;
-	    ?>
-	    	<?=$this->form->field($k, $v);?>
-	    <?php } ?>	    
-	    </fieldset>
-	    <?=$this->form->submit('Edit User'); ?>
+			<legend>Your Information</legend>
+		    	<?=$this->form->field('first_name', array('label' => 'First Name', 'value' => $record->first_name));?>
+			<?=$this->form->field('last_name', array('label' => 'Last Name', 'value' => $record->last_name));?>
+			<?=$this->form->field('url', array('label' => 'Profile URL', 'value' => $record->url));?>
+			<?=$this->form->field('email', array('label' => 'E-Mail', 'value' => $record->email));?>
+		</fieldset>
+	    <?=$this->form->submit('Update'); ?>
 	<?=$this->form->end(); ?>
 	</div>
 	
@@ -25,10 +27,9 @@
 
 <div class="grid_4">
 	<div class="box">
-		<h2>Data Set by Filter From Library</h2>
+		<h2>Box</h2>
 		<div class="block">
-			<p>Just running a var_dump() on $library_data ... It was set by applyFilter('setViewData') in the Page model of the library. This is another bridge between the core page view templates and any add-ons. It's selective too; within the filter, the name of the method is passed so you can send data to specific view templates.</p>
-			<?php var_dump($library_data); ?>
+			
 		</div>
 	</div>
 </div>
