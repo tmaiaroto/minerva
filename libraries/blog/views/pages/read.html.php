@@ -24,7 +24,7 @@
 			<?php echo $this->Block->render(array('template' => 'example')); ?>
 		</div>
 	</div>
-	<div class="box">
+	<!--<div class="box">
 		<h2>Block Using cURL</h2> 
 		<div class="block" style="overflow: hidden">
 			<?php 
@@ -34,7 +34,7 @@
 			//echo $this->Block->render(array('url' => 'http://www.youtube.com/watch?v=829L0Fx0y6U&feature=fvhl', 'curl_options' => array()));			
 			?>
 		</div>		
-	</div>
+	</div>-->
 	<div class="box">
 		<h2>Menu</h2>
 		<div class="block">
@@ -94,6 +94,7 @@ Created: <?=$record->created; ?> (modified: <?=$record->modified; ?>)<br /><br /
 <div class="grid_4">
 	<div class="box">
 		<h2>Static Block Using AJAX</h2>
+		<p>(note: jQuery has to be included of course)</p>
 		<div class="block" id="result">
 			<?php echo $this->Block->render(array('method' => 'ajax', 'url' => '/blocks/view/foo'));  ?>
 		</div>
@@ -103,14 +104,6 @@ Created: <?=$record->created; ?> (modified: <?=$record->modified; ?>)<br /><br /
 		<div class="block">
 			<p>Just running a var_dump() on the data returned from another controller/action.</p>
 			<?php var_dump($this->Block->requestAction(array('controller' => 'blocks', 'action' => 'foo'))); ?>
-		</div>
-	</div>
-	<div class="box">
-		<h2>Data Set by Filter From Library</h2>
-		<div class="block">
-			<p>Just running a var_dump() on $library_data ... It was set by applyFilter('setViewData') in the Page model of the library. This is another bridge between the core page view templates and any add-ons. It's selective too; within the filter, the name of the method is passed so you can send data to specific view templates.</p>
-			<?php var_dump($library_data); ?>
-			<?php var_dump($var); ?>
 		</div>
 	</div>
 </div>

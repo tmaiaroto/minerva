@@ -12,6 +12,7 @@
 	<?php echo $this->html->charset();?>
 	<title>Application > <?php echo $this->title(); ?></title>
 	<?php echo $this->html->style(array('debug', 'lithium')); ?>
+	<?php echo $this->html->script(array('jquery/jquery-1.4.4.min.js', 'jquery/jquery-ui-1.8.6.custom.min.js', 'jquery-fluid16.js'), array('inline' => false)); ?>
 	<?php echo $this->scripts(); ?>
 	<?php echo $this->html->link('Icon', null, array('type' => 'icon')); ?>
 </head>

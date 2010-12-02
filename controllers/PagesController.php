@@ -46,16 +46,7 @@ class PagesController extends \lithium\action\Controller {
      * Additional filters can be applied there that further control things.
      * 
     */
-    public function index() {
-	// If we are using a library, instantiate it's Page model (bridge from plugin to core)
-	/*if((isset($library)) && ($library != 'minerva') && (!empty($library))) {		
-	    // Just instantiating the library's Page model will essentially "bridge" and extend the main app's Page model	
-	    $class = '\minerva\libraries\\'.$library.'\models\Page'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }
-	}*/
-	
+    public function index() {	
 	// Default options for pagination, merge with URL parameters
 	$defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
 	$params = Set::merge($defaults, $this->request->params);
@@ -65,6 +56,7 @@ class PagesController extends \lithium\action\Controller {
 	list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
 	
 	// If there's a library passed, add it to the conditions.
+	// TODO: OBVIOUSLY add an index to library field (also url for other actions' needs, not this one)
 	if(isset($this->request->params['library'])) {
 	    $conditions = array('library' => $this->request->params['library']);
 	} else {
@@ -84,7 +76,10 @@ class PagesController extends \lithium\action\Controller {
     }
 
     /**
-     * Create a page. The "library" decides which library to use when creating the page (optional).
+     * Create a page.
+     *
+     * The "library" decides which library to use when creating the page (optional).
+     * Again, the "library" name string value has to be passed in as a request param (easily set in the routes).
      * A library can change the fields displayed in the form so that different data can be saved to the page among other things.
      * 
      * A "library" (or plugin) can be thought of like a "content type" in Drupal, but much more too. It's on steroids.
@@ -93,16 +88,7 @@ class PagesController extends \lithium\action\Controller {
      * and download at will additional libraries that will extend the CMS.
      *
     */
-    public function create($library=null) {	
-	// If we are using a library, instantiate it's Page model (bridge from plugin to core)
-	if((isset($library)) && ($library != 'minerva') && (!empty($library))) {		
-	    // Just instantiating the library's Page model will essentially "bridge" and extend the main app's Page model	
-	    $class = '\minerva\libraries\\'.$library.'\models\Page'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }			
-	}	
-    
+    public function create() {	
 	// Get the fields so the view template can iterate through them and build the form
 	$fields = Page::schema();
 	// Don't need to have these fields in the form
@@ -130,22 +116,14 @@ class PagesController extends \lithium\action\Controller {
     
     /**
      * Update a page.
-     *
+     * Unlike index() and create(), this action deals with a record. The record itself will contain the
+     * library value. An additional query is made first to get this value from the record and then the
+     * "Page" model class will be instantiated. In other words, there doesn't need to be a route setup
+     * that passes the "library" param.
     */
-    public function update($url=null) {	
+    public function update($url=null) {
 	// First, get the record
 	$record = Page::find('first', array('conditions' => array('url' => $url)));
-	
-	// Next, if the record uses a library, instantiate it's Page model (bridge from plugin to core)
-	if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {		
-	    // Just instantiating the library's Page model will essentially "bridge" and extend the main app's Page model	
-	    $class = '\minerva\libraries\\'.$record->library.'\models\Page'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }
-	    // var_dump(Page::$fields); // debug
-	    // var_dump($Library::$fields); // just the extended library's fields
-	}
 	
 	// Get the fields so the view template can build the form
 	$fields = Page::schema();                
@@ -169,17 +147,13 @@ class PagesController extends \lithium\action\Controller {
      * Also, like other methods, extra data is bridged in from an optional associated library on the record itself.
      *
     */
-    public function read($url) {
-
+    public function read($url=null) {
+	// We can get the URL from the named parameter or from the arg passed
+	if((isset($this->request->params['url'])) && (empty($url))) {
+	    $url = $this->request->params['url'];
+	}
 	// get the page record (also within this record contains the library used, which is important)
 	$record = Page::find('first', array('conditions' => array('url' => $url)));
-	/*if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {
-	    // Just instantiating the library's Page model will essentially "bridge" and extend the main app's Page model	
-	    $class = '\minerva\libraries\\'.$record->library.'\models\Page'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }
-	} */	
 	$this->set(compact('record'));
     }
     
@@ -191,15 +165,6 @@ class PagesController extends \lithium\action\Controller {
     public function delete($url=null) {
 	if(!$url) {
 	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
-	}
-	
-	// Instantiate the library's model if one was used
-	$record = Page::find('first', array('conditions' => array('url' => $url)));		
-	if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {	  		
-	    $class = '\minerva\libraries\\'.$record->library.'\models\Page'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }
 	}
 	
 	if($record->delete()) {

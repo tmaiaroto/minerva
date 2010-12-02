@@ -97,4 +97,7 @@ if(!$tz) {
 date_default_timezone_set($tz); 
 
 require __DIR__ . '/bootstrap/auth.php';
+
+// This file sets some filters required for the CMS.
+require __DIR__ . '/bootstrap/minerva_bootstrap.php';
 ?>
