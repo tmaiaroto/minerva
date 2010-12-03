@@ -6,7 +6,7 @@ use lithium\net\http\Media;
 class Page extends \minerva\models\Page {
 	
 	static $_protected_methods = array(
-		'read',
+		//'read',
 		'create'
 	);
 	

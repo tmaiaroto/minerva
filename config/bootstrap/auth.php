@@ -30,6 +30,7 @@ use \lithium\action\Dispatcher;
 use \lithium\net\http\Router;
 use \lithium\action\Response;
 
+/*
 Dispatcher::applyFilter('run', function($self, $params, $chain) {
     
 	$blacklist = array(
@@ -47,5 +48,5 @@ Dispatcher::applyFilter('run', function($self, $params, $chain) {
 	}
 	return $chain->next($self, $params, $chain);
 });
-
+*/
 ?>
