@@ -30,7 +30,7 @@ class Email {
         $defaults = array('transport' => array(
                                                'method' => 'Swift_SmtpTransport',
                                                'username' => 'tom.maiaroto@gmail.com',
-                                               'password' => '19maiar82',
+                                               'password' => '12345',
                                                'server' => 'smtp.gmail.com',
                                                'port' => 465,
                                                'encryption' => 'ssl'
