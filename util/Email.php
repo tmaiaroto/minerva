@@ -1,6 +1,6 @@
 <?php
 /*
- * A general e-mail utility class for familyspoon.com. This includes several useful methods for sending e-mails.
+ * A general e-mail utility class. This includes several useful methods for sending e-mails.
  * There isn't much sense in a "wrapper" class since SwiftMailer can be used very easily and directly by any class.
  * However, this class has some methods that will keep things a little more modular leaving other classes cleaner.
  *
@@ -29,7 +29,7 @@ class Email {
         */
         $defaults = array('transport' => array(
                                                'method' => 'Swift_SmtpTransport',
-                                               'username' => 'tom.maiaroto@gmail.com',
+                                               'username' => 'youremail@gmail.com',
                                                'password' => '12345',
                                                'server' => 'smtp.gmail.com',
                                                'port' => 465,
@@ -68,10 +68,10 @@ class Email {
               ->setSubject('Test Message')
             
               //Set the From address with an associative array
-              ->setFrom(array('tom@shift8creative.com' => 'Tom'))
+              ->setFrom(array('youremail@gmail.com' => 'Tom'))
             
               //Set the To addresses with an associative array
-              ->setTo(array('tom.maiaroto@gmail.com'))
+              ->setTo(array('youremail@gmail.com'))
             
               //Give it a body
               ->setBody('Here is the message itself.')
@@ -101,7 +101,7 @@ class Email {
      * @return Boolean Whether the e-mail was sent or not.
     */
     public function message($options=array()) {
-        $defaults = array('to' => array('tom.maiaroto@gmail.com'), 'from' => array('tom@shift8creative.com' => 'Tom'), 'body' => 'Default e-mail copy.', 'subject' => 'Default Subject', 'format' => 'text/html');
+        $defaults = array('to' => array('youremail@gmail.com'), 'from' => array('youremail@gmail.com' => 'Tom'), 'body' => 'Default e-mail copy.', 'subject' => 'Default Subject', 'format' => 'text/html');
         $options += $defaults;
         
         // Shorthand options
@@ -159,13 +159,9 @@ class Email {
     public function newUserRegistration($options=array()) {
         Email::message(array(
            'to' => $options['to'],
-           'from' => array('tom@shift8creative.com' => 'Family Spoon'),
-           'subject' => 'Confirm your regirstration to FamilySpoon.com',
+           'from' => array('youremail@gmail.com' => 'Tom'),
+           'subject' => 'Confirm your regirstration',
            'body' => '<p>' . $options['first_name'] . ' ' . $options['last_name'] . ',</p>' .
-                        '<p>Thank you for joining Family Spoon! We\'re all ready with your account, but we\'ll need ' .
-                        'to ensure that you are a real person and confirm your request. If you did not request an ' .
-                        'account, then someone else using your e-mail address has. Please notify admin@familyspoon.com ' .
-                        'if this is the case and if you are concerned. Otherwise, you can simply ignore this e-mail.</p>' .
                         '<p>Please go to the following URL to confirm your registration: ' .
                         '<a href="http://' . $_SERVER['HTTP_HOST'] . '/confirm-registration/' . $options['approval_code'] . '">http://' . $_SERVER['HTTP_HOST'] . '/users/confirm/' . $options['approval_code'] . '</a>' .
                         '</p><p>Thank you, <br />The Family Spoon Team</p>'
@@ -186,13 +182,12 @@ class Email {
     public function changeUserEmail($options=array()) {
         Email::message(array(
            'to' => $options['to'],
-           'from' => array('tom@shift8creative.com' => 'Family Spoon'),
-           'subject' => 'Confirm your new e-mail address for FamilySpoon.com',
+           'from' => array('yourmail@gmail.com' => 'Tom'),
+           'subject' => 'Confirm your new e-mail address',
            'body' => '<p>' . $options['first_name'] . ' ' . $options['last_name'] . ',</p>' .
                         '<p>We received your request to change your e-mail address, but before we do we want to make sure you entered everything properly. So you will need to confirm this change by clicking the following link: ' .
                         '<a href="http://' . $_SERVER['HTTP_HOST'] . '/confirm-email-change/' . $options['approval_code'] . '">http://' . $_SERVER['HTTP_HOST'] . '/users/confirm/' . $options['approval_code'] . '</a>' .
-                        '</p></p>Once you confirm the change, the change will become active and you will need to login using this new e-mail address.</p>'.
-                        '<p>Thank you, <br />The Family Spoon Team</p>'
+                        '</p></p>Once you confirm the change, the change will become active and you will need to login using this new e-mail address.</p>'
         ));
         
     }
