@@ -13,6 +13,8 @@ use lithium\net\http\Media;
 use minerva\models\Page;
 use minerva\models\User;
 use minerva\models\Block;
+use \lithium\security\Auth;
+use \lithium\action\Response;
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 	
@@ -37,12 +39,13 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
         'blocks'
     );
     
+    // This should convert the controller name (lowercase or not) into the model name
+    $model = Inflector::classify(Inflector::singularize($params['params']['controller']));
+    $modelClass = $LibraryBridgeModel = 'minerva\models\\'.$model;
+
     // If we loaded the Pages, Users, or Blocks controller and there's a "library" or "url" argument passed, meaning the routes must be set properly to use this filter
     // NOTE: wrapping controller param with strtolower() because $params['params']['controller'] will be camelcase, where $params['request']->params['controller'] will not be...So just in case something changes.
     if((in_array(strtolower($params['params']['controller']), $bridgeable_controllers)) && ((!is_null($library)) || (!is_null($url)))) {
-
-        // This should convert the controller name (lowercase or not) into the model name
-        $model = Inflector::classify(Inflector::singularize($params['params']['controller']));
 
 	switch($params['params']['action']) {
 	    // update, read, and delete based on database record, so they must be instantiated in the PagesController
@@ -52,7 +55,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		$class = '\minerva\libraries\\'.$params['request']->params['library'].'\models\\'.$model;
 		// Don't load the model if it doesn't exist
 		if(class_exists($class)) {
-		    $LibraryPage = new $class();
+		    $LibraryBridgeModel = new $class();
 		}
 	    break;
 	    case 'read':
@@ -78,14 +81,32 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
                 
                 // Load the model if it exists
 		if(class_exists($class)) {
-		    $LibraryPage = new $class();
+		    $LibraryBridgeModel = new $class();
 		}
 		break;
 	    default:
-		// Don't load the library's Page model by default
+                // Don't load the library's Page model by default
 	    break;
 	}
 	
+        // Authentication
+        if($LibraryBridgeModel) {
+            $matches = in_array($params['params']['action'], $LibraryBridgeModel::$_protected_methods);		
+            if($matches && !Auth::check('user')) {
+                // Change the params so it redirects to login page
+                // TODO: figure this out. it kinda works. it still wants to render a read template. but the controller changed
+                $params['params']['controller'] = 'Users';
+                $params['params']['template'] = 'login';
+                $params['params']['action'] = 'login';
+                /*
+                $params['params']['url'] =  false;
+                //$params['options']['template'] = 'login';
+                //$params['params']['library'] = false;
+                $params['request']->url = '/users/login';
+             var_dump($params);   */
+            }
+        }
+        
     }
     
     return $chain->next($self, $params, $chain);	
@@ -95,6 +116,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 // We'll first look in the library's views and then fall back to Minerva's views
 // Like how "themes" worked with CakePHP
 Media::applyFilter('render', function($self, $params, $chain){
+    var_dump($params);
     // TODO: see if the Media class has a method to check if a template exists, but file_exists() should work too
     if(isset($params['options']['request']->params['library'])) {
 	$library = $params['options']['request']->params['library'];

@@ -5,6 +5,11 @@ use lithium\net\http\Media;
 
 class Page extends \minerva\models\Page {
 	
+	static $_protected_methods = array(
+		'read',
+		'create'
+	);
+	
 	// Add new fields here
 	protected $_schema = array(
 		'title' => array('label' => 'Blog Title'), // this won't overwrite the main app's page models' $fields title key

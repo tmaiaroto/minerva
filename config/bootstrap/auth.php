@@ -13,17 +13,16 @@ Session::config(array(
 
 Auth::config(array(
 	'user' => array(
-		'adapter' => 'Form',
-		'model'  => 'User',
-		//'fields' => array('username', 'password'),
-		///'scope'  => array('is_active' => 1),
-		/*'filters' => array(
-			//'password' => 'app\models\User::hashPassword'
-		),*/
-		'session' => array(
-			'options' => array('name' => 'default')
-		),
-		
+	    'adapter' => 'Form',
+	    'model'  => 'User',
+	    //'fields' => array('username', 'password'),
+	    ///'scope'  => array('is_active' => 1),
+	    /*'filters' => array(
+		//'password' => 'app\models\User::hashPassword'
+	    ),*/
+	    'session' => array(
+	    	'options' => array('name' => 'default')
+	    )	
 	)
 ));
 
@@ -32,6 +31,7 @@ use \lithium\net\http\Router;
 use \lithium\action\Response;
 
 Dispatcher::applyFilter('run', function($self, $params, $chain) {
+    
 	$blacklist = array(
 		// uncomment to restrict access to these urls
 		//'pages/index',
@@ -47,4 +47,5 @@ Dispatcher::applyFilter('run', function($self, $params, $chain) {
 	}
 	return $chain->next($self, $params, $chain);
 });
+
 ?>
