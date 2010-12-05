@@ -1,9 +1,8 @@
 <?php
 namespace minerva\util;
 
-use \lithium\security\Auth;
 use \lithium\util\Set;
-use lithium\core\ConfigException;
+use \lithium\core\ConfigException;
 
 class Access extends \lithium\core\Adaptable {
     
