@@ -24,6 +24,13 @@ use minerva\util\Access;
 
 class PagesController extends \lithium\action\Controller {
     
+    /*
+     * Rules used by Access::check() at the Dispatcher level.
+     * The rules set here will be passed the Request object, but since
+     * called at the Dispatcher level, document level access control isn't possible.
+     * See the $document_access property below... All rules requiring document data
+     * should be defined there.
+    */
     static $access = array(
 		// 'login_redirect' could be 'http://www.google.com' for all the system cares, it'll go there
 		'create' => array(),
@@ -31,15 +38,44 @@ class PagesController extends \lithium\action\Controller {
 		
 		'read' => array(
 		    array('rule' => 'allowAll', 'message' => 'allow all message'),
-		    array('rule' => 'someotherrule')
+		    //array('rule' => 'someotherrule')
 		)
 		
 		//'read' => array('rule' => 'allowAll', 'message' => 'allow all message')
 		
 		// * is a shortcut. all other method name keys here will be ignored, the login_redirect by default is "/" so if using this on PagesController, it has to redirect somewhere else because "/" is the view method.
-		// '*' => array('rule' => 'denyAll', 'login_redirect' => '/users/login')
-		
+		// '*' => array('rule' => 'denyAll', 'login_redirect' => '/users/login')	
     );
+    
+    /*
+     * Access::check() can be called in the controller as well.
+     * The reason Minerva calls it in the Dispatcher (with rules from $access)
+     * is so that on a broader level, users can be redirected before the
+     * controller executes and, better yet, before a query to the database is made.
+     *
+     * However, if access can only be determined by the data within a document
+     * from the database, then the Access::check() must be called at the
+     * controller level. So a second property, $document_access, will set the
+     * rules that get checked against at that point.
+     *
+     * Note, two checks are called for this performance reason, but also so
+     * 3rd party libraries can utilize the filter on the Dispatcher.
+     * 
+     * The filter on the Dispatcher makes it very easy for all libraries
+     * to use the Access class just by setting an $access property.
+     * It could increase development speed and it provides some sort of
+     * consistency with Access checks.
+     * 
+     * If the 3rd party library needs greater control, Access::check() calls
+     * can be made at some other point or even this convention can be used.
+     * The reason there are properties is so that libraries with a Page model
+     * can control these rules. The /libaries/yourlibrary/models/Page.php file
+     * can simply set its own $document_access which will overwrite this one.
+     * That way the core PagesController here doesn't have to be modified.
+     * See the Minerva bootstrap process for more information.
+    */
+    static $document_access = array();
+    
     
     /**
      * The default method here is changed. First off, the Router class now uses this view method if the URL is /page/{:args}
@@ -173,17 +209,26 @@ class PagesController extends \lithium\action\Controller {
 	// get the page document (also within this record contains the library used, which is important)
 	$record = Page::find('first', array('conditions' => array('url' => $url)));
 	
-	/* // the new hotness, coming soon
-	Access::add('denyForFirstBlogPost', function($user, $options) {
-			if($options['url'] == 'First-Blog-Entry') {
-			    return false;
-			}
-			return true;
-		    });
+	// example
+	/*Access::add('denyForFirstBlogPost', function($user, $request, $options) {
+	    if($options['document']['url'] == 'First-Blog-Entry') {
+		return false;
+	    }
+	    return true;
+	});
+	Access::add('denyForSunday', function($user, $request, $options) {
+	    return (date('w') != 0);
+	});
 	
-	$access = Access::check('minerva', array('rule' => 'denyForFirstBlogPost'), $record->data());
+	$rules = array(
+	    array('rule' => 'allowAll'),
+	    // array('rule' => 'denyForFirstBlogPost', 'message' => 'Custom overridden default access error message.'),
+	    array('rule' => 'denyForSunday')
+	);
+	
+	$access = Access::check('minerva', $rules, array('document' => $record->data()));
 	var_dump($access);
-	*/
+	exit();*/
 	
 	$this->set(compact('record'));
 	

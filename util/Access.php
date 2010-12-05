@@ -42,7 +42,12 @@ class Access extends \lithium\core\Adaptable {
         return $config;
     }
         
-    // Adds an Access rule.
+    /*
+     * Adds an Access rule. This works much like the Validator class.
+     * All rules should be anonymous functions and will be passed
+     * $user, $request, and $options which will contain any data
+     * passed to the check() call's $options argument.
+    */
     public static function add($name, $rule = null, array $options = array()) {
         if (!is_array($name)) {
             $name = array($name => $rule);
@@ -55,33 +60,19 @@ class Access extends \lithium\core\Adaptable {
         }
     }
     
-    /** TODO: add this ?? Will there be arbitrary Access::check() calls??
-     * 
-     * Maps method calls to validation rule names.  For example, a validation rule that would
-     * normally be called as `Validator::rule('email', 'foo@bar.com')` can also be called as
-     * `Validator::isEmail('foo@bar.com')`.
-     *
-     * @param string $method The name of the method called, i.e. `'isEmail'` or `'isCreditCard'`.
-     * @param array $args
-     * @return boolean
-     */
-    /*public static function __callStatic($method, $args = array()) {
-            if (!isset($args[0])) {
-                    return false;
-            }
-            $args += array(1 => 'any', 2 => array());
-            $rule = preg_replace("/^is([A-Z][A-Za-z0-9]+)$/", '$1', $method);
-            $rule[0] = strtolower($rule[0]);
-            return static::rule($rule, $args[0], $args[1], $args[2]);
-    }*/
-    
     /**
      * Check the access rules for the given configuration.
      * Similar to validation, new rules can be created with Access::add() to be used in this check.
      *
+     * NOTE: It's important to key the data in the $options array.
+     * If it's keyed as "user" it will replace the user data that comes from the config and is sent
+     * to each rule. If there's a "request" key, it will be passed as the request to the rule.
+     * Rules will be able to make checks against $user and $request if available. It's also possible
+     * that those value are not always available.
+     * 
      * @param string $name The name of the `Access` configuration to check against.
      * @param $rule Array The access rule.
-     * @param $options Array Extra options that will be available to each rule closure that can be useful in determining access.
+     * @param $options Array Data that will be available to each rule closure that can be useful in determining access.
      * @return Miaxed Boolean true if access is permitted, array if access is denied. The array will contain a redirect url along with a message for why access was denied.
     */
     public function check($name=null, array $rules = array(), array $options = array()) {
@@ -92,48 +83,11 @@ class Access extends \lithium\core\Adaptable {
             throw new ConfigException("Configuration '{$name}' has not been defined.");
             return $access_response = array('allowed' => false, 'message' => 'You are not permitted to access this area.', 'login_redirect' => '/');
         }
-       
-        // If there was a login redirect in the rule, use that, otherwise use the configuration's value
-        /*if(isset($rule['login_redirect'])) {
-           $config['login_redirect'] = $rule['login_redirect'];
-        }*/
-        
-        // If there was a custom message in the rule, use that
-        /*if(isset($rule['message'])) {
-           $config['message'] = $rule['message'];
-        }*/
-        
-        // TODO: Should an entire Access object of some sort be return instead of an array??
-        /*$access_response = array(
-            'login_redirect' => $config['login_redirect'],
-            'allowed' => false,
-            'message' => $config['message']
-        );*/
-        
-        /*
-         * If the rule is empty (null, '', 0, false, or array()) then we can only check for a valid user in the config.
-         * What's a "valid" user? Basically anything other than empty() ... Auth::check() return false and what can
-         * an empty array or string or 0 tell us about the user? If the user data is empty, then we're assuming there
-         * is no authenticated user making the request. So it will be denied access.
-         *
-         * What if the user is retrieved from some other system and all it does is return true/false loggedin or not?
-         * Then we want to allow access, even if there's no user record. So we have a very lenient rule called
-         * "allowAnyAuthenticated" which is almost as lenient as "allowAll."
-         *
-         * Also note that there can be multiple rules defined, so first make sure $rule isn't an array of rules.
-        */
-       /* if(isset($rules[0]['rule'])) {
-            foreach($rules as $rule) {
-                
-            }
-        } else if((empty($rules)) || (!isset($rules['rule'])) || (empty($rules['rule']))) {
-            $rules['rule'] = 'allowAnyAuthenticated';
-        }*/
-        
         
         // Return the results and run any filters that were applied
         $params = compact('config', 'options');
         
+        // static can't be used if calling Access::check() from a controller.
         // $_rules = static::$_rules;
         // return static::_filter(__FUNCTION__, $params, function($self, $params) use ($_rules, $rule, $access_response) {
         
@@ -149,10 +103,20 @@ class Access extends \lithium\core\Adaptable {
                     $rules
                 );
             }
-            
+        
             foreach($rules as $rule) {
                 // make sure the rule is set and is a string to check for a closure to call or a closure itself
                 if((isset($rule['rule'])) && ((is_string($rule['rule'])) || (is_callable($rule['rule'])))) {
+                    
+                    // the user data is likely to come from the configuration, but may be overridden by options on each check() call
+                    if(!isset($params['options']['user'])) {
+                        $params['options']['user'] = $params['config']['user'];
+                    }
+                    
+                    // the request is not always available, but is always passed as an argument
+                    if(!isset($params['options']['request'])) {
+                        $params['options']['request'] = false;
+                    }
                 
                     // The added rule closure will be passed the user data
                     if(in_array($rule['rule'], array_keys($_rules))) {
@@ -169,11 +133,11 @@ class Access extends \lithium\core\Adaptable {
                          * 
                          * TODO: what if it was passed the request object too maybe??
                         */
-                        $rule_result = call_user_func($_rules[$rule['rule']], $params['config']['user'], $params['options']);
+                        $rule_result = call_user_func($_rules[$rule['rule']], $params['options']['user'], $params['options']['request'], $params['options']);
                         $access_response['allowed'] = (is_bool($rule_result)) ? $rule_result:false;
                     } elseif(is_callable($rule['rule'])) {
                         // The rule can be defined as a closure on the fly, no need to call add()
-                        $rule_result = call_user_func($rule['rule'], $params['config']['user'], $params['options']);
+                        $rule_result = call_user_func($rule['rule'], $params['options']['user'], $params['options']['request'], $params['options']);
                         $access_response['allowed'] = (is_bool($rule_result)) ? $rule_result:false;
                     } else {
                         // If the rule requested does not have a function to call, deny access.
@@ -187,7 +151,7 @@ class Access extends \lithium\core\Adaptable {
                 }
                 
                 // Now that we have true/false, set the rest of the response
-                $access_response['name'] = (is_string($rule['rule'])) ? $rule['rule']:'closure';
+                $access_response['name'] = $rule['rule'];
                 $access_response['message'] = (isset($rule['message'])) ? $rule['message']:$params['config']['message'];
                 $access_response['login_redirect'] = (isset($rule['login_redirect'])) ? $rule['login_redirect']:$params['config']['login_redirect'];
             
@@ -196,8 +160,6 @@ class Access extends \lithium\core\Adaptable {
                 }
             }
             
-            //return $access_response;
-            // maybe don't return a response array  if nothing failed. we don't need the login redirect nor the error message...
             return true;
             
         }, $config['filters']);

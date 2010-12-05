@@ -4,15 +4,44 @@
  * Notably, this gives libraries (or plugins) developer for the CMS the ability
  * to hook into the core Page model.
  *
+ * With a CMS, altering the core code is generally never advisable for upgrade
+ * reasons and compatibility with other 3rd party add-ons. Also security issues.
+ * So Minerva uses models to control quite a bit when it comes to core features
+ * like pages, users, and bocks. The methods within Pages, Users, and Blocks
+ * controllers are locked down. They can't and shouldn't be changed. They assume
+ * a certain functionality that's common for a CMS. If they don't contain the
+ * functionality desired, a new library can simply be made.
  *
+ * This bootstrap process will take properties within the library's matching model
+ * classes and apply it to the core Minerva model and respective controller classes.
+ * These models need to be instaniated of course so that also allows them to apply
+ * filters to various things in Minerva's core. For example, you can't changed
+ * the read() method on the PagesController, but you could apply a filter to the
+ * find() method, which the read() method uses to retrieve data from the database.
+ * So there are a few clever tricks that can be used to change core functionality
+ * without changing core code.
+ *
+ * How does Minerva know which libraries to use?
+ * The routes file for each library will help determine that as well as the
+ * documents from the database. Each document has a field that says which
+ * library it depends on. So for read, update, and delete method calls,
+ * an additional find() is performed first to see which library's model
+ * class should be instantiated. Yes, it is an extra query, but it's for
+ * a good cause and Minerva uses MongoDB, so no sweat =)
+ *
+ * The last thing this bootstrap process does is sets the templates to use.
+ * Of course since we're using the core controllers, the default course of
+ * action is to render the templates from /minerva/views/... but if a
+ * library is being used for the page, then we want to render the templates
+ * from /minerva/libraries/library_name/views/... Unless of course the
+ * templates don't exist there, then the default templates will be used.
+ * This is again so that core code (including templates) doesn't isn't altered.
+ * 
 */
 
 use \lithium\action\Dispatcher;
 use \lithium\util\Inflector;
 use lithium\net\http\Media;
-//use minerva\models\Page;
-//use minerva\models\User;
-//use minerva\models\Block;
 use \lithium\security\Auth;
 use minerva\util\Access;
 
