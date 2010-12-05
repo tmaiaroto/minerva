@@ -19,6 +19,8 @@ use \lithium\util\Set;
 
 class MenusController extends BlocksController {
     
+    static $access = array();
+    
     // TODO: add caching
     public function read($url) {
         $record = Block::find('first', array('conditions' => array('url' => $url, 'options.is_menu' => true)));	  	

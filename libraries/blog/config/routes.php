@@ -15,6 +15,8 @@ Router::connect('/blog/read/{:url}', array('controller' => 'pages', 'action' => 
 // just ensure "library" is set. Templates from: /libraries/blog/views/pages/static/template-name.html.php
 Router::connect('/blog/view/{:url}', array('controller' => 'pages', 'action' => 'view', 'library' => 'blog'));
 
+Router::connect('/blog/create', array('controller' => 'pages', 'action' => 'create', 'library' => 'blog'));
+
 // Route for listing all blog entries
 Router::connect('/blog', array('controller' => 'pages', 'action' => 'index', 'library' => 'blog'));
 

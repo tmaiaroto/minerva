@@ -8,6 +8,8 @@ use li3_flash_message\extensions\storage\FlashMessage;
 
 class UsersController extends \lithium\action\Controller {
 
+   // static $access = array();
+
     /*
      * A simple method to check if the e-mail is already in use or not.
     */

@@ -23,6 +23,15 @@ use li3_flash_message\extensions\storage\FlashMessage;
 
 class PagesController extends \lithium\action\Controller {
     
+    static $access = array(
+		// 'login_redirect' could be 'http://www.google.com' for all the system cares, it'll go there
+		'create' => array(),
+		'view' => array('rule' => 'allowAll'),
+		// * is a shortcut. all other method name keys here will be ignored, the login_redirect by default is "/" so if using this on PagesController, it has to redirect somewhere else because "/" is the view method.
+		// '*' => array('rule' => 'denyAll', 'login_redirect' => '/users/login')
+		
+    );
+    
     /**
      * The default method here is changed. First off, the Router class now uses this view method if the URL is /page/{:args}
      * It changes the URL convention from pluralized controller, but since we're talking about static pages, I felt that was ok.

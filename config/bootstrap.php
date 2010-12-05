@@ -100,4 +100,7 @@ require __DIR__ . '/bootstrap/auth.php';
 
 // This file sets some filters required for the CMS.
 require __DIR__ . '/bootstrap/minerva_bootstrap.php';
+
+// This sets up minerva's access system. Don't use it if you don't want.
+require __DIR__ . '/bootstrap/access.php';
 ?>

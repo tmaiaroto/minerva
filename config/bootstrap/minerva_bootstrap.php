@@ -10,11 +10,29 @@
 use \lithium\action\Dispatcher;
 use \lithium\util\Inflector;
 use lithium\net\http\Media;
-use minerva\models\Page;
-use minerva\models\User;
-use minerva\models\Block;
+//use minerva\models\Page;
+//use minerva\models\User;
+//use minerva\models\Block;
 use \lithium\security\Auth;
-use \lithium\action\Response;
+use minerva\util\Access;
+
+Access::config(array(
+	'minerva' => array(
+            // a true setting is like saying EVERYONE, every request is a logged in user. but there's no data so any check for things like "group" etc. in the rules wouldn't work (null, false, '', 0, or array() would say the user is NOT logged in and if there was an empty rule, access would be denied - restrictive by default)
+            'user' => true,
+            // optional filters applied for each configuration
+            'filters' => array(
+                /*function($self, $params, $chain) {
+                    // Any config can have filters that get applied
+                    var_dump('filter on check, applied from Access::confg() in minerva_boostrap.php');
+                    exit();
+                    return $chain->next($self, $params, $chain);
+                }*/
+            ),
+	    //'user' => Auth::check('user')
+	    //'login_redirect'  => '/users/login',
+	)
+));
 
 Dispatcher::applyFilter('_call', function($self, $params, $chain) {
 	
@@ -32,21 +50,24 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
 	$url = null;
     }
     
-    // Controllers that can be "bridged" or hooked into from plugins
-    $bridgeable_controllers = array(
+    // Controllers that can be "bridged" or hooked into from plugins..don't need this anymore
+   /* $bridgeable_controllers = array(
         'pages',
         'users',
         'blocks'
-    );
+    );*/
     
     // This should convert the controller name (lowercase or not) into the model name
     $model = Inflector::classify(Inflector::singularize($params['callable']->request->params['controller']));
     $modelClass = $LibraryBridgeModel = 'minerva\models\\'.$model;
-
+    
     // If we loaded the Pages, Users, or Blocks controller and there's a "library" or "url" argument passed, meaning the routes must be set properly to use this filter
     // NOTE: wrapping controller param with strtolower() because $params['params']['controller'] will be camelcase, where $params['request']->params['controller'] will not be...So just in case something changes.
-    if((in_array(strtolower($params['callable']->request->params['controller']), $bridgeable_controllers)) && ((!is_null($library)) || (!is_null($url)))) {
+    // if((in_array(strtolower($params['callable']->request->params['controller']), $bridgeable_controllers)) && ((!is_null($library)) || (!is_null($url)))) {
 
+    // edit: i think this is a better way of doing the check, rather than setting the "bridgeable_controllers" above... but this means ALL minerva's controllers (that have models) are bridgeable
+    if((class_exists($LibraryBridgeModel)) && ((!is_null($library)) || (!is_null($url)))) {
+        
 	switch($params['callable']->request->params['action']) {
 	    // update, read, and delete based on database record, so they must be instantiated in the PagesController
 	    case 'create':
@@ -89,14 +110,11 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
 	    break;
 	}
 	
-        //var_dump($params['callable']->request->params);exit();
-        // Authentication
-        if($LibraryBridgeModel) {
-            $matches = in_array($params['callable']->request->params['action'], $LibraryBridgeModel::$_protected_methods);		
-            if($matches && !Auth::check('user')) {
-                // TODO: make this configurable somewhere
-                return new Response(array('location' => '/users/login'));
-            }
+        // Authentication & Access Check for Core Minerva Controllers
+        // (properties set in model for core controllers) ... transfer those settings to the controller
+        $controllerClass = get_class($params['callable']);
+        if(isset($LibraryBridgeModel::$access)) {
+            $controllerClass::$access = $LibraryBridgeModel::$access;
         }
         
     }
@@ -124,8 +142,8 @@ Media::applyFilter('render', function($self, $params, $chain){
     } else {
 	$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
     }
-    // always set the view template from the library (if there's a library in use)
-    if(!empty($library)) {
+    // set the view template from the library if there's a library in use and if the template exists, oterhwise fall back to core minerva templates and if it doesn't exist then there'll be a missing template error
+    if((!empty($library)) && (file_exists(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.' . $type . '.php'))) {
 	$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.{:type}.php';
     } else {
 	$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.{:type}.php';

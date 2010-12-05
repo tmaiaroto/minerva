@@ -58,16 +58,6 @@ use lithium\util\Inflector as Inflector;
 
 class Page extends \lithium\data\Model {
     
-    /**
-     * Default list of protected methods.
-     * The controller methods that use this model will trigger an authentication check.
-     * This property can be overwritten by defining it in the library's Page model.
-    */
-    static $_protected_methods = array(
-	'create',
-	'update',
-	'delete'
-    );
     
     /**
      * $_schema gets appended to with the libary Page model's protected $_schema property.

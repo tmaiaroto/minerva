@@ -20,7 +20,7 @@ use minerva\models\Block;
 use \lithium\util\Set;
 
 class BlocksController extends \lithium\action\Controller {
-	
+
     public function view() {		
 	if (empty($path)) {
 	    $path = array('static', 'example');
