@@ -28,7 +28,7 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
         if(in_array('*', array_keys($controllerClass::$access))) {
             $access = Access::check('minerva', $controllerClass::$access['*']);
             // The access check should always return an array and the 'allowed' key is what we're after
-            if($access['allowed'] === false) {
+            if($access !== true) {
                 // can set a flash message here with $access['message']
                 return new Response(array('location' => $access['login_redirect']));
             }
@@ -37,7 +37,7 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
                 if($action == $k) {
                     $access = Access::check('minerva', $v);
                     // The access check should always return an array and the 'allowed' key is what we're after
-                    if($access['allowed'] === false) {
+                    if($access !== true) {
                         // can set a flash message here with $access['message']
                         return new Response(array('location' => $access['login_redirect']));
                     }

@@ -20,6 +20,7 @@ namespace minerva\controllers;
 use minerva\models\Page;
 use \lithium\util\Set;
 use li3_flash_message\extensions\storage\FlashMessage;
+use minerva\util\Access;
 
 class PagesController extends \lithium\action\Controller {
     
@@ -27,6 +28,14 @@ class PagesController extends \lithium\action\Controller {
 		// 'login_redirect' could be 'http://www.google.com' for all the system cares, it'll go there
 		'create' => array(),
 		'view' => array('rule' => 'allowAll'),
+		
+		'read' => array(
+		    array('rule' => 'allowAll', 'message' => 'allow all message'),
+		    array('rule' => 'someotherrule')
+		)
+		
+		//'read' => array('rule' => 'allowAll', 'message' => 'allow all message')
+		
 		// * is a shortcut. all other method name keys here will be ignored, the login_redirect by default is "/" so if using this on PagesController, it has to redirect somewhere else because "/" is the view method.
 		// '*' => array('rule' => 'denyAll', 'login_redirect' => '/users/login')
 		
@@ -161,9 +170,23 @@ class PagesController extends \lithium\action\Controller {
 	if((isset($this->request->params['url'])) && (empty($url))) {
 	    $url = $this->request->params['url'];
 	}
-	// get the page record (also within this record contains the library used, which is important)
+	// get the page document (also within this record contains the library used, which is important)
 	$record = Page::find('first', array('conditions' => array('url' => $url)));
+	
+	/* // the new hotness, coming soon
+	Access::add('denyForFirstBlogPost', function($user, $options) {
+			if($options['url'] == 'First-Blog-Entry') {
+			    return false;
+			}
+			return true;
+		    });
+	
+	$access = Access::check('minerva', array('rule' => 'denyForFirstBlogPost'), $record->data());
+	var_dump($access);
+	*/
+	
 	$this->set(compact('record'));
+	
     }
     
     /** 

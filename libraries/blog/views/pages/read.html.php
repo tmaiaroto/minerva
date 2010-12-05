@@ -1,44 +1,9 @@
 <!-- start left column -->
-<div class="grid_4">
-	<div class="box">
-		<h2>Block Using Request</h2> 
-		<div class="block">
-			<?php 
-			/* if the following is pulling a block bridged by a library, it may be best to make the calls in a view template
-			 * within the /views/blocks/static folder (or a folder underneath) and called by Block->render().
-			 * This way all the code that may look through data returend from the dynamic block can be kept separate.
-			 * Or....If the library was clever and saved final HTML output in the "content" field of the block...Then maybe just print it here.
-			 * Two different approaches, one allows for a template to change easily and the other keeps the html in the database, leaving
-			 * fewer template files sitting around.
-			 * OR a third option of course....just put the template code here and loop through records, etc.
-			 * TODO: Allow libraries to apply filters...So that way final HTML output could be put into the content field "beforeSave"
-			 */
-			?>
-			<?php $dynamic_block = $this->Block->request('example_dynamic_block'); // load a dynamic block record from the db ?>
-			<?=$dynamic_block['record']->content; ?><?php // render it's content ?>
-		</div>
-	</div>
-	<div class="box">
-		<h2>Static Block From Template</h2>
-		<div class="block">			
-			<?php echo $this->Block->render(array('template' => 'example')); ?>
-		</div>
-	</div>
-	<!--<div class="box">
-		<h2>Block Using cURL</h2> 
-		<div class="block" style="overflow: hidden">
-			<?php 
-			// Some favorite options of mine:
-			// CURLOPT_CONNECTTIMEOUT_MS => 3000   -- skips the block output if the response time isn't fast enough! or CURLOPT_CONNECTTIMEOUT for seconds
-			// CURLOPT_LOW_SPEED_TIME and CURLOPT_LOW_SPEED_LIMIT to help with load
-			//echo $this->Block->render(array('url' => 'http://www.youtube.com/watch?v=829L0Fx0y6U&feature=fvhl', 'curl_options' => array()));			
-			?>
-		</div>		
-	</div>-->
+<div class="grid_4">	
 	<div class="box">
 		<h2>Menu</h2>
 		<div class="block">
-			<?php echo $this->Menu->render(array('library' => 'blog', 'template' => 'blog_menu')); ?>
+			<?php echo $this->menu->render(array('library' => 'blog', 'template' => 'blog_menu')); ?>
 		</div>
 	</div>
 </div>
@@ -92,19 +57,7 @@ Created: <?=$record->created; ?> (modified: <?=$record->modified; ?>)<br /><br /
 
 <!-- right column -->
 <div class="grid_4">
-	<div class="box">
-		<h2>Static Block Using AJAX</h2>
-		<p>(note: jQuery has to be included of course)</p>
-		<div class="block" id="result">
-			<?php echo $this->Block->render(array('method' => 'ajax', 'url' => '/blocks/view/foo'));  ?>
-		</div>
-	</div>
-	<div class="box">
-		<h2>Block Using requestAction</h2>
-		<div class="block">
-			<p>Just running a var_dump() on the data returned from another controller/action.</p>
-			<?php var_dump($this->Block->requestAction(array('controller' => 'blocks', 'action' => 'foo'))); ?>
-		</div>
+	<div class="box">		
 	</div>
 </div>
 <div class="clear"></div>

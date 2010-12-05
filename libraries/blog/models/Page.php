@@ -41,13 +41,45 @@ class Page extends \minerva\models\Page {
 	);
 	
 	public static function __init() {
-		Access::add('allowTom', function($user) {
+		/*Access::add('allowTom', function($user) {
 		    //var_dump($user);
 		    if($user['username'] == 'Tom')  {
 			return true;   
 		    }
 		    return false;
 		});
+		
+		\minerva\models\Page::applyFilter('find', function($self, $params, $chain) {
+		    $record = $chain->next($self, $params, $chain);
+		    //var_dump($record);
+		    
+		    Access::add('denyForFirstBlogPost', function($user, $options) {
+			if($options['url'] == 'First-Blog-Entry') {
+			    return false;
+			}
+			return true;
+		    });
+		    $access = Access::check('minerva', array(
+			'rule' => function($user, $options) {
+			    if($options['url'] == 'First-Blog-Entry') {
+			        return false;
+			    }
+			    return true;
+			},
+			'login_redirect' => '/blog',
+			'message' => 'You are not allowed to read this post.'
+		    ), $record->data());
+		    
+		    
+		    if($access['allowed'] === false) {
+			var_dump($access['message']);
+			exit();
+		    }
+		    
+		});*/
+		
+		
+		
 		
 		// Put any desired filters here
 		

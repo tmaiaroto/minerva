@@ -164,7 +164,6 @@ Page::applyFilter('save', function($self, $params, $chain) {
 		$params['data']['url'] = Page::unique_url(Inflector::slug($params['data']['url']), $params['data'][Page::key()]);
 		$params['data']['modified'] = $now;
 	}
-	
 	//var_dump($params['data']); exit();
 	return $chain->next($self, $params, $chain);
 });

@@ -81,33 +81,34 @@ class Access extends \lithium\core\Adaptable {
      *
      * @param string $name The name of the `Access` configuration to check against.
      * @param $rule Array The access rule.
-     * @param $options Array
-     * @return Array The access response array will hold a boolean if the user is allowed or not as well as other data like a message for why and a login redirect url.
+     * @param $options Array Extra options that will be available to each rule closure that can be useful in determining access.
+     * @return Miaxed Boolean true if access is permitted, array if access is denied. The array will contain a redirect url along with a message for why access was denied.
     */
-    public function check($name=null, array $rule = array(), array $options = array()) {
+    public function check($name=null, array $rules = array(), array $options = array()) {
         // set by Access::config(); somewhere in the bootstrap most likely. Then use invokeMethod() to get it (setting default values along the way, see _initConfig() above).
-        $config = static::invokeMethod('_config', array($name));
+        $config = Access::invokeMethod('_config', array($name));
+        //$config = static::invokeMethod('_config', array($name));
         if(!$config) {
             throw new ConfigException("Configuration '{$name}' has not been defined.");
             return $access_response = array('allowed' => false, 'message' => 'You are not permitted to access this area.', 'login_redirect' => '/');
         }
        
         // If there was a login redirect in the rule, use that, otherwise use the configuration's value
-        if(isset($rule['login_redirect'])) {
+        /*if(isset($rule['login_redirect'])) {
            $config['login_redirect'] = $rule['login_redirect'];
-        }
+        }*/
         
         // If there was a custom message in the rule, use that
-        if(isset($rule['message'])) {
+        /*if(isset($rule['message'])) {
            $config['message'] = $rule['message'];
-        }
+        }*/
         
         // TODO: Should an entire Access object of some sort be return instead of an array??
-        $access_response = array(
+        /*$access_response = array(
             'login_redirect' => $config['login_redirect'],
             'allowed' => false,
             'message' => $config['message']
-        );
+        );*/
         
         /*
          * If the rule is empty (null, '', 0, false, or array()) then we can only check for a valid user in the config.
@@ -117,46 +118,87 @@ class Access extends \lithium\core\Adaptable {
          *
          * What if the user is retrieved from some other system and all it does is return true/false loggedin or not?
          * Then we want to allow access, even if there's no user record. So we have a very lenient rule called
-         * "allowAnyAuthenticated" which is almost as lenient as "allowAll." 
+         * "allowAnyAuthenticated" which is almost as lenient as "allowAll."
+         *
+         * Also note that there can be multiple rules defined, so first make sure $rule isn't an array of rules.
         */
-        if((empty($rule)) || (!isset($rule['rule'])) || (empty($rule['rule']))) {
-            $rule['rule'] = 'allowAnyAuthenticated';
-        }
+       /* if(isset($rules[0]['rule'])) {
+            foreach($rules as $rule) {
+                
+            }
+        } else if((empty($rules)) || (!isset($rules['rule'])) || (empty($rules['rule']))) {
+            $rules['rule'] = 'allowAnyAuthenticated';
+        }*/
+        
         
         // Return the results and run any filters that were applied
         $params = compact('config', 'options');
-        $_rules = static::$_rules;
-        return static::_filter(__FUNCTION__, $params, function($self, $params) use ($_rules, $rule, $access_response) {
+        
+        // $_rules = static::$_rules;
+        // return static::_filter(__FUNCTION__, $params, function($self, $params) use ($_rules, $rule, $access_response) {
+        
+        $_rules = Access::$_rules;
+        return Access::_filter(__FUNCTION__, $params, function($self, $params) use ($_rules, $rules) {
            // var_dump($params);
-           // var_dump($_rules);
-           // var_dump($rule['rule'] . ' requested');
-           // var_dump($access_response);exit();
-           
-            // The added rule closure will be passed the user data
-            // TODO: Allow multiple rules to be checked instead of just one.
-            if(($rule['rule'] !== false) && (in_array($rule['rule'], array_keys($_rules)))) {
-                /*
-                 * The rule closure will be passed the user and options passed to check()
-                 * The user could likely contain a user record.
-                 * The options passed could contain extra data useful in evaluating access.
-                 * For example, if Access::check() was called after a Model::find() call,
-                 * then the options may contain a record from the database that can be
-                 * factored into the decision to allow access or not. For instance, maybe
-                 * users can only read records that they created.
-                 * This allows the Access class to protect not just controller methods, but
-                 * also protect very specific records.
-                 * 
-                 * TODO: what if it was passed the request object too maybe??
-                */
-                $rule_result = call_user_func($_rules[$rule['rule']], $params['config']['user'], $params['options']);
-                $access_response['allowed'] = (is_bool($rule_result)) ? $rule_result:false;
-            } else {
-                // If the rule requested does not have a function to call, deny access.
-                // This also protects against typos or code changes, if it can't be figured out. Deny.
-                $access_response['allowed'] = false;
+           // var_dump($_rules); 
+           // var_dump($rules);
+            
+            // If a single rule was passed, wrap it in an array so it can be iterated as if there were multiple
+            if(isset($rules['rule'])) {
+                $rules = array(
+                    $rules
+                );
             }
             
-            return $access_response;
+            foreach($rules as $rule) {
+                // make sure the rule is set and is a string to check for a closure to call or a closure itself
+                if((isset($rule['rule'])) && ((is_string($rule['rule'])) || (is_callable($rule['rule'])))) {
+                
+                    // The added rule closure will be passed the user data
+                    if(in_array($rule['rule'], array_keys($_rules))) {
+                        /*
+                         * The rule closure will be passed the user and options passed to check()
+                         * The user could likely contain a user record.
+                         * The options passed could contain extra data useful in evaluating access.
+                         * For example, if Access::check() was called after a Model::find() call,
+                         * then the options may contain a record from the database that can be
+                         * factored into the decision to allow access or not. For instance, maybe
+                         * users can only read records that they created.
+                         * This allows the Access class to protect not just controller methods, but
+                         * also protect very specific records.
+                         * 
+                         * TODO: what if it was passed the request object too maybe??
+                        */
+                        $rule_result = call_user_func($_rules[$rule['rule']], $params['config']['user'], $params['options']);
+                        $access_response['allowed'] = (is_bool($rule_result)) ? $rule_result:false;
+                    } elseif(is_callable($rule['rule'])) {
+                        // The rule can be defined as a closure on the fly, no need to call add()
+                        $rule_result = call_user_func($rule['rule'], $params['config']['user'], $params['options']);
+                        $access_response['allowed'] = (is_bool($rule_result)) ? $rule_result:false;
+                    } else {
+                        // If the rule requested does not have a function to call, deny access.
+                        // This also protects against typos or code changes, if it can't be figured out. Deny.
+                        $access_response['allowed'] = false;
+                    }
+                    
+                } else {
+                    // If the rule wasn't set or was empty, deny access.
+                    $access_response['allowed'] = false;
+                }
+                
+                // Now that we have true/false, set the rest of the response
+                $access_response['name'] = (is_string($rule['rule'])) ? $rule['rule']:'closure';
+                $access_response['message'] = (isset($rule['message'])) ? $rule['message']:$params['config']['message'];
+                $access_response['login_redirect'] = (isset($rule['login_redirect'])) ? $rule['login_redirect']:$params['config']['login_redirect'];
+            
+                if($access_response['allowed'] === false) {
+                    return $access_response;
+                }
+            }
+            
+            //return $access_response;
+            // maybe don't return a response array  if nothing failed. we don't need the login redirect nor the error message...
+            return true;
             
         }, $config['filters']);
     }

@@ -85,7 +85,7 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
 		// make a query to get the library if it wasn't passed by the routes (we can get it from the record)
 		if(!isset($params['callable']->request->params['library'])) {
                     $modelClass = 'minerva\models\\'.$model;
-                    $record = $modelClass::find('first', array('conditions' => array('url' => $params['callable']->request->params['url']), 'fields' => 'library'));
+                    $record = $modelClass::first(array('conditions' => array('url' => $params['callable']->request->params['url']), 'fields' => 'library'));
                     
                     if($record) {
                         $library = $record->data('library');
