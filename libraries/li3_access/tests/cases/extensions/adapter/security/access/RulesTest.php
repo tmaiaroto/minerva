@@ -7,7 +7,7 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
 */
 
-namespace li3_access\tests\cases\security\access\adapter;
+namespace li3_access\tests\cases\extensions\adapter\security\access;
 
 use \li3_access\security\Access;
 use \lithium\net\http\Request;
