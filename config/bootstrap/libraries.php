@@ -88,6 +88,8 @@ while (false !== ($library = readdir($libraries_directory))) {
 
 Libraries::add('blog');
 
+Libraries::add('li3_access');
+
 Libraries::add('li3_flash_message');
 Libraries::add('li3_assets', array(
                                      'config' => array(

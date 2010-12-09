@@ -64,7 +64,12 @@ Access::config(array(
 ));
 
 Dispatcher::applyFilter('_call', function($self, $params, $chain) {
-	
+    
+    // Don't apply this for test cases
+    if($params['request']->params['controller'] == '\lithium\test\Controller') {
+	return $chain->next($self, $params, $chain);	
+    }
+    
     // Get the library if provided from the route params
     if(isset($params['callable']->request->params['library'])) {
 	$library = $params['callable']->request->params['library'];
