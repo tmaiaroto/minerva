@@ -2,7 +2,6 @@
 
 namespace li3_access\extensions\adapter\security\access;
 
-use \lithium\core\Libraries;
 use \lithium\util\Set;
 
 class Rules extends \lithium\core\Object {

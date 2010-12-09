@@ -10,16 +10,15 @@
 namespace li3_access\tests\cases\security;
 
 use \li3_access\security\Access;
+use \lithium\net\http\Request;
 
 class AccessTest extends \lithium\test\Unit {
 
     public function setUp() {
         Access::config(array(
             'test_access' => array(
-            )
-        ));
-        
-        Access::config(array(
+                'adapter' => 'Simple'
+            ),
             'test_access_with_filters' => array(
                 'filters' => array(
                     function($self, $params, $chain) {
@@ -33,9 +32,17 @@ class AccessTest extends \lithium\test\Unit {
         ));
     }
 
+    public function tearDown() {}
+    
     public function testCheck() {
-        $expected = array('value' => true);
-        $result = array('value' => false);
+        $request = new Request();
+        
+        $expected = array();
+        $result = Access::check('test_access', array('username' => 'Tom'), $request);
+        $this->assertEqual($expected, $result);
+        
+        $expected = array('message' => 'You are not permitted to access this area.', 'redirect' => '/');
+        $result = Access::check('test_access', false, $request);
         $this->assertEqual($expected, $result);
     }
     
