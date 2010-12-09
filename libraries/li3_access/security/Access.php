@@ -80,21 +80,23 @@ class Access extends \lithium\core\Adaptable {
      * @return Array An empty array if access is allowed and an array with reasons for denial if denied.
     */
     public static function check($name, $user = array(), $request = null, array $options = array()) {
-	$defaults = array(
-            'message' => 'You are not permitted to access this area.',
-            'redirect' => '/'
-        );
+	$defaults = array('message' => 'You are not permitted to access this area.', 'redirect' => '/');
         $options += $defaults;
+	
+	$config = self::invokeMethod('_config', array($name));     
+	if ($config === null) {
+	    throw new ConfigException("Configuration '{$name}' has not been defined.");
+	}
+	
+	// Apply any filters that were defined in the config
+	foreach($config['filters'] as $filter) {
+	    self::applyFilter('check', $filter);
+	}
 	
         $params = compact('name', 'user', 'request', 'options');
         return static::_filter(__FUNCTION__, $params, function($self, $params) {
 	    extract($params);
-	    $config = $self::invokeMethod('_config', array($name));
-            
-            if (!$config) {
-		throw new ConfigException("Configuration '{$name}' has not been defined.");
-            }
-            
+	    
             if((is_object($request)) && ($user)) {
 		return $self::adapter($name)->check($user, $request, $options);
             }

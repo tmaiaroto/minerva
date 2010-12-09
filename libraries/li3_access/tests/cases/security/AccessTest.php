@@ -20,12 +20,18 @@ class AccessTest extends \lithium\test\Unit {
                 'adapter' => 'Simple'
             ),
             'test_access_with_filters' => array(
+                'adapter' => 'Simple',
                 'filters' => array(
                     function($self, $params, $chain) {
-                        // Any config can have filters that get applied
-                        var_dump('filter on check, applied from Access::confg() in minerva_boostrap.php');
-                        exit();
+                        // Do something, maybe log something, then continue on.
                         return $chain->next($self, $params, $chain);
+                    },
+                    function($self, $params, $chain) {
+                        if (!$params['user']) {
+                            return array('message' => 'Access denied.', 'redirect' => $params['options']['redirect']);
+                        } else {
+                            return $chain->next($self, $params, $chain);
+                        }
                     }
                 )
             )
@@ -41,10 +47,24 @@ class AccessTest extends \lithium\test\Unit {
         $result = Access::check('test_access', array('username' => 'Tom'), $request);
         $this->assertEqual($expected, $result);
         
-        $expected = array('message' => 'You are not permitted to access this area.', 'redirect' => '/');
-        $result = Access::check('test_access', false, $request);
+        $expected = array('message' => 'Access denied.', 'redirect' => '/login');
+        $result = Access::check('test_access', false, $request, array('redirect' => '/login', 'message' => 'Access denied.'));
         $this->assertEqual($expected, $result);
     }
     
+    public function testFilters() {
+        $request = new Request();
+        
+        $expected = array('message' => 'Access denied.', 'redirect' => '/login');
+        $result = Access::check('test_access_with_filters', false, $request, array('redirect' => '/login'));
+        $this->assertEqual($expected, $result);
+    }
+    
+    public function testNoConfigurations() {
+        Access::reset();
+        $this->assertIdentical(array(), Access::config());
+        $this->expectException("Configuration 'test_no_config' has not been defined.");
+        Access::check('test_no_config');
+    }
 }    
 ?>
