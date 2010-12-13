@@ -47,7 +47,7 @@ class RulesTest extends \lithium\test\Unit {
 	
 	// Single rule (single array), but it should fail because user is an empty array
 	$rules = array('rule' => 'allowAnyUser', 'message' => 'You must be logged in.');
-        $expected = array('message' => 'You are not permitted to access this area.', 'redirect' => '/');
+        $expected = array('rule' => 'allowAnyUser', 'message' => 'You must be logged in.', 'redirect' => '/');
         $result = Access::check('test_rulebased', array(), $request, array('rules' => $rules));
         $this->assertEqual($expected, $result);
 	// and if false instead of an empty array (because one might typically run Auth:check() which could return false)
@@ -57,7 +57,7 @@ class RulesTest extends \lithium\test\Unit {
 	// No rules
 	$expected = array('rule' => false, 'message' => 'You are not permitted to access this area.', 'redirect' => '/');
         $result = Access::check('test_rulebased', array('username' => 'Tom'), $request);
-        $this->assertEqual($expected, $result);
+	$this->assertEqual($expected, $result);
     
 	// Adding a rule "on the fly" by passing a closure, this rule should pass
 	$rules = array(
