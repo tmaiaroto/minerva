@@ -1,4 +1,12 @@
 <?php
+/**
+ * Minerva's Authentication Configuration
+ * In this file you can specifcy the settings for the Auth class.
+ * If you need to use a different or additional adapter, you can
+ * do so by configuring it here.
+ *
+*/
+
 use \lithium\storage\Session;
 use \lithium\security\Auth;
 
@@ -12,7 +20,7 @@ Session::config(array(
 ));
 
 Auth::config(array(
-	'user' => array(
+	'minerva_user' => array(
 	    'adapter' => 'Form',
 	    'model'  => 'User',
 	    //'fields' => array('username', 'password'),
@@ -29,24 +37,4 @@ Auth::config(array(
 use \lithium\action\Dispatcher;
 use \lithium\net\http\Router;
 use \lithium\action\Response;
-
-/*
-Dispatcher::applyFilter('run', function($self, $params, $chain) {
-    
-	$blacklist = array(
-		// uncomment to restrict access to these urls
-		//'pages/index',
-		//'pages'
-	);
-	//echo '<pre>'; print_r($params['request']->url); echo '</pre>';exit();
-	//$matches = in_array(Router::match($params['request']->params, $params['request']), $blacklist);
-	//var_dump($params['request']);
-
-	$matches = in_array((string)$params['request']->url, $blacklist);		
-	if($matches && !Auth::check('user')) {
-	 	return new Response(array('location' => '/users/login'));	 	
-	}
-	return $chain->next($self, $params, $chain);
-});
-*/
 ?>

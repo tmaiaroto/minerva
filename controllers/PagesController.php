@@ -20,7 +20,7 @@ namespace minerva\controllers;
 use minerva\models\Page;
 use \lithium\util\Set;
 use li3_flash_message\extensions\storage\FlashMessage;
-use minerva\util\Access;
+//use minerva\util\Access;
 
 class PagesController extends \lithium\action\Controller {
     

@@ -97,7 +97,7 @@ class Access extends \lithium\core\Adaptable {
         return static::_filter(__FUNCTION__, $params, function($self, $params) {
 	    extract($params);
 	    
-            if((is_object($request)) && ($user)) {
+            if(is_object($request)) {
 		return $self::adapter($name)->check($user, $request, $options);
             }
 	    

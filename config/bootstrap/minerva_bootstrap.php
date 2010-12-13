@@ -43,25 +43,6 @@ use \lithium\action\Dispatcher;
 use \lithium\util\Inflector;
 use lithium\net\http\Media;
 use \lithium\security\Auth;
-use minerva\util\Access;
-
-Access::config(array(
-	'minerva' => array(
-            // a true setting is like saying EVERYONE, every request is a logged in user. but there's no data so any check for things like "group" etc. in the rules wouldn't work (null, false, '', 0, or array() would say the user is NOT logged in and if there was an empty rule, access would be denied - restrictive by default)
-            'user' => true,
-            // optional filters applied for each configuration
-            'filters' => array(
-                /*function($self, $params, $chain) {
-                    // Any config can have filters that get applied
-                    var_dump('filter on check, applied from Access::confg() in minerva_boostrap.php');
-                    exit();
-                    return $chain->next($self, $params, $chain);
-                }*/
-            ),
-	    //'user' => Auth::check('user')
-	    //'login_redirect'  => '/users/login',
-	)
-));
 
 Dispatcher::applyFilter('_call', function($self, $params, $chain) {
     
