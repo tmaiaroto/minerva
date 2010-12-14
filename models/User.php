@@ -16,11 +16,13 @@ class User extends \lithium\data\Model {
 	protected $_schema = array(
 		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
 		'library' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'url' => array('type' => 'string', 'form' => array('label' => 'URL')),		
 		'email' => array('type' => 'string', 'form' => array('label' => 'E-mail')),
 		'new_email' => array('type' => 'string', 'form' => array('label' => false, 'type' => 'hidden')),
 		//'username' => array('type' => 'string', 'form' => array('label' => 'Username')), // going to use e-mail for username
 		'password' => array('type' => 'string', 'form' => array('label' => 'Password')),
+		'role' => array('type' => 'string', 'form' => array('type' => 'select', 'label' => 'User Role')),
+		'active' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'label' => 'Active')),
+		'approval_code' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
 		'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
 		'profile_pics' => array('type' => 'string'),
@@ -29,7 +31,13 @@ class User extends \lithium\data\Model {
 		//'file' => array('type' => 'string', 'form' => array('type' => 'file'))
 	);
 	
-	//protected $_meta = array('locked' => true);
+	protected $_meta = array('locked' => true);
+	
+	protected $_user_roles = array(
+		'administrator' => 'Administrator',
+		'content_editor' => 'Content Editor',
+		'registered_user' => 'Registered User'
+	);
 	
 	public $validates = array(
 		'email' => array(
@@ -59,6 +67,24 @@ class User extends \lithium\data\Model {
 		$class::_object()->_schema += $extended_schema;
 		// Also append extended validation rules
 		$class::_object()->validates += static::_object()->validates;
+		
+		/**
+		 * ROLES
+		 * Note: You don't need to use Minerva's role based access system.
+		 * It's a very lightweight system designed to provide basic coverage.
+		 * Your needs may fall within the scope of it and you can feel free to
+		 * create new roles and access rules using the Access class. However, you
+		 * may not find it meeting your needs. You can create your own access
+		 * system and simply ignore the "role" field on the User model and/or
+		 * always set it to "administrator" and use a different field.
+		 * If you don't want to use Minerva's basic role system, you'll need to
+		 * adjust the access rules for each controller (which can be done in
+		 * your library's Page/User/Block model).
+		*/
+		// Replace user roles
+		$class::_object()->_user_roles = static::_object()->_user_roles;
+		// Fill form with role options
+		$class::_object()->_schema['role']['form']['options'] = $class::_object()->_user_roles;
 		
 		/*
 		 * Some special validation rules
@@ -127,13 +153,6 @@ User::applyFilter('save', function($self, $params, $chain) {
 			
 			$params['data']['created'] = $now;
 			$params['data']['modified'] = $now;
-			if(empty($params['data']['url'])) {
-				//$params['data']['url'] = $params['data']['username'];
-				//$params['data']['url'] = base64_encode($params['data']['email']);
-				// By default the user's URL will be their first and last name...They can change it later.
-				$params['data']['url'] = $params['data']['first_name'] . '-' . $params['data']['last_name'];
-			}
-			$params['data']['url'] = Util::unique_url(array('url' => Inflector::slug($params['data']['url']), 'model' => '\minerva\models\User'));
 		} else {
 			$params['data']['modified'] = $now;
 			// If the fields password and password_confirm both exist, then validate the password field too

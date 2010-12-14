@@ -2,6 +2,7 @@
 namespace minerva\controllers;
 use minerva\models\User;
 use \lithium\security\Auth;
+use \lithium\storage\Session;
 use \lithium\util\Set;
 
 use li3_flash_message\extensions\storage\FlashMessage;
@@ -74,15 +75,7 @@ class UsersController extends \lithium\action\Controller {
     }
 
     public function login() {
-        $library = 'minerva';
-        if((isset($library)) && ($library != 'app') && (!empty($library))) {		
-            $class = '\\'.$library.'\models\User';
-            if(class_exists($class)) {
-                $Library = new $class();
-            }
-        }
-        
-        $user = Auth::check('user', $this->request);		
+        $user = Auth::check('minerva_user', $this->request);		
         if ($user) {
             // TODO: Put in a $redirectURL property so it can be controlled and option for the following redirect true/false for taking a user back to the page they first requested.
             // Also TODO: Make flash messages set in some sort of config, possibly even the model properties too
@@ -93,7 +86,9 @@ class UsersController extends \lithium\action\Controller {
             }
             // Save last login IP and time
             $user_record = User::find('first', array('conditions' => array('_id' => new \MongoId($user['_id']))));
-            $user_record->save(array('last_login_ip' => $_SERVER['REMOTE_ADDR'], 'last_login_time' => date('Y-m-d h:i:s')));
+            if($user_record) {
+		$user_record->save(array('last_login_ip' => $_SERVER['REMOTE_ADDR'], 'last_login_time' => date('Y-m-d h:i:s')));
+	    }
             
             FlashMessage::set('You\'ve successfully logged in.');
             $this->redirect($url);
@@ -108,20 +103,13 @@ class UsersController extends \lithium\action\Controller {
     }
 
     public function logout() {
-        Auth::clear('user');
+        Auth::clear('minerva_user');
+	FlashMessage::set('You\'ve successfully logged out.');
         $this->redirect(array('action' => 'login'));
     }
     
-    public function index($library=null) {
+    public function index() {
         $this->redirect('/');
-        
-        // If we are using a library, instantiate it's User model (bridge from plugin to core)
-        if((isset($library)) && ($library != 'app') && (!empty($library))) {		
-            $class = '\\'.$library.'\models\User'; 	  		
-            if(class_exists($class)) {
-                $Library = new $class();
-            }
-        }
         
         // Default options for pagination, merge with URL parameters
         $defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
@@ -140,40 +128,26 @@ class UsersController extends \lithium\action\Controller {
         $this->set(compact('records', 'limit', 'page', 'total'));
     }
 	
-	public function read($url) {
-	    $record = User::find('first', array('conditions' => array('url' => $url)));
-            if((isset($record->library)) && ($record->library != 'app') && (!empty($record->library))) {
-                $class = '\\'.$record->library.'\models\User'; 	  		
-		if(class_exists($class)) {
-                    $Library = new $class();
-                }
-            } 	
+	public function read($id=null) {
+	    if((isset($this->request->params['id'])) && (empty($id))) {
+		$id = $this->request->params['id'];
+	    }
+	    
+	    $record = User::find('first', array('conditions' => array('_id' => $id)));
+	    
+	    if(!$record) {
+		FlashMessage::set('The user could not be found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+		$this->redirect('/');
+	    }
+	    
             $this->set(compact('record'));
 	}
     
-    public function create($library=null) {
-        // If we are using a library, instantiate it's User model (bridge from plugin to core)
-        if((isset($library)) && ($library != 'app') && (!empty($library))) {		
-            $class = '\\'.$library.'\models\User'; 	  		
-            if(class_exists($class)) {
-                $Library = new $class();
-            }
-        }	
-        
+    public function create() {
         // Get the fields so the view template can iterate through them and build the form
         $fields = User::schema();
         // Don't need to have these fields in the form
-        /* // Not looping in the view anymore, so don't need to unset anything
         unset($fields[User::key()]);
-        unset($fields['url']);
-        unset($fields['created']);
-        unset($fields['modified']);
-        unset($fields['library']);
-        unset($fields['families']);
-        unset($fields['profile_pics']);
-        unset($fields['new_password']); // don't have one yet, so this is pointless
-        unset($fields['bio']); // let the user do this later, make registration fast
-        */
         
         $rules = array(
             'email' => array(
@@ -213,7 +187,7 @@ class UsersController extends \lithium\action\Controller {
 		// First, get the record
 		$record = User::find('first', array('conditions' => array('url' => $url)));
 		
-		$user = Auth::check('user');
+		$user = Auth::check('minerva_user');
 		if(!$user) {
 			// TODO Flash message
 			$this->redirect('/');
@@ -263,7 +237,7 @@ class UsersController extends \lithium\action\Controller {
 		// First, get the record
 		$record = User::find('first', array('conditions' => array('url' => $url)));
 		
-		$user = Auth::check('user');
+		$user = Auth::check('minerva_user');
 		if(!$user) {
 			// TODO Flash message
 			$this->redirect('/');
@@ -275,17 +249,6 @@ class UsersController extends \lithium\action\Controller {
 			// TODO Flash message
 			$this->redirect('/');
 			exit();
-		}
-		
-		// Next, if the record uses a library, instantiate it's User model (bridge from plugin to core)
-		if((isset($record->library)) && ($record->library != 'app') && (!empty($record->library))) {		
-			// Just instantiating the library's Page model will essentially "bridge" and extend the main app's User model	
-			$class = '\\'.$record->library.'\models\User';
-			if(class_exists($class)) {
-                            $Library = new $class();
-                        }
-			// var_dump(User::$fields); // debug
-			// var_dump($Library::$fields); // just the extended library's fields			
 		}
 		
 		// Update the record
@@ -320,7 +283,7 @@ class UsersController extends \lithium\action\Controller {
 			return array('error' => true, 'response' => 'User record not found.');
 		}
 		
-		$user = Auth::check('user');
+		$user = Auth::check('minerva_user');
 		if(!$user) {
 			//$this->redirect('/');
 			return array('error' => true, 'response' => 'You must be logged in to change your password.');
@@ -362,16 +325,7 @@ class UsersController extends \lithium\action\Controller {
 		if(!$url) {
 			$this->redirect(array('controller' => 'users', 'action' => 'index'));
 		}
-                
-                // Instantiate the library's model if one was used
-		$record = User::find('first', array('conditions' => array('url' => $url)));		
-                if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {	  		
-			$class = '\\'.$record->library.'\models\User'; 	  		
-			if(class_exists($class)) {
-                            $Library = new $class();
-                        }
-		}
-		
+               
                 // TODO: should messages like this be done with a filter on delete??
 		// Delete the record TODO: put in some kinda flash messages (like cake has) to notify the user things deleted or didn't
 		// http://rad-dev.org/li3_flash_message

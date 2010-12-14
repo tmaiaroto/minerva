@@ -72,7 +72,9 @@ class Page extends \lithium\data\Model {
 	'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
 	'created' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 	'modified' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),		
-	'url' => array('type' => 'string', 'form' => array('wrap' => array('class' => 'minerva_url_input')))
+	'url' => array('type' => 'string', 'form' => array('wrap' => array('class' => 'minerva_url_input'))),
+	'published' => array('type' => 'boolean', 'form' => array('type' => 'checkbox')),
+	'owner_id' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
 	// add options field?? to all models?? libraries can store various data within this options field that contains array data.
 	// it's useful...BUT, it won't have validation. it's still good to store simple data that isn't harmful if left unvalidated or data that's set programatically so it's known and doesn't need to be validated.
     );

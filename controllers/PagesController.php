@@ -20,7 +20,8 @@ namespace minerva\controllers;
 use minerva\models\Page;
 use \lithium\util\Set;
 use li3_flash_message\extensions\storage\FlashMessage;
-//use minerva\util\Access;
+use li3_access\security\Access;
+use \lithium\security\Auth;
 
 class PagesController extends \lithium\action\Controller {
     
@@ -32,16 +33,24 @@ class PagesController extends \lithium\action\Controller {
      * should be defined there.
     */
     static $access = array(
-		// 'login_redirect' could be 'http://www.google.com' for all the system cares, it'll go there
-		'create' => array(),
-		'view' => array('rule' => 'allowAll'),
-		
+		'create' => array(
+		    array('rule' => 'allowAnyUser')
+		),
+		'update' => array(
+		    array('rule' => 'allowAnyUser')
+		),
+		'delete' => array(
+		    array('rule' => 'allowAnyUser')
+		),
+		'view' => array(
+		    array('rule' => 'allowAll')
+		),
 		'read' => array(
-		    array('rule' => 'allowAll', 'message' => 'allow all message'),
-		    //array('rule' => 'someotherrule')
-		)
-		
-		//'read' => array('rule' => 'allowAll', 'message' => 'allow all message')
+		    array('rule' => 'allowAll')
+		),
+		'index' => array(
+		    array('rule' => 'allowAll')
+		),
 		
 		// * is a shortcut. all other method name keys here will be ignored, the login_redirect by default is "/" so if using this on PagesController, it has to redirect somewhere else because "/" is the view method.
 		// '*' => array('rule' => 'denyAll', 'login_redirect' => '/users/login')	
@@ -60,6 +69,10 @@ class PagesController extends \lithium\action\Controller {
      *
      * Note, two checks are called for this performance reason, but also so
      * 3rd party libraries can utilize the filter on the Dispatcher.
+     *
+     * 3rd party libraries (using this PagesController) can set the $document_access
+     * property in their Page model (which gets merged to this one here) so they
+     * can also control access based on document conditions.
      * 
      * The filter on the Dispatcher makes it very easy for all libraries
      * to use the Access class just by setting an $access property.
@@ -74,7 +87,9 @@ class PagesController extends \lithium\action\Controller {
      * That way the core PagesController here doesn't have to be modified.
      * See the Minerva bootstrap process for more information.
     */
-    static $document_access = array();
+    static $document_access = array(
+	array('rule' => 'publishStatus', 'message' => 'You must be logged in to see unpublished content.', 'redirect' => '/')
+    );
     
     
     /**
@@ -100,7 +115,7 @@ class PagesController extends \lithium\action\Controller {
      * Additional filters can be applied there that further control things.
      * 
     */
-    public function index() {	
+    public function index() {
 	// Default options for pagination, merge with URL parameters
 	$defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
 	$params = Set::merge($defaults, $this->request->params);
@@ -209,26 +224,19 @@ class PagesController extends \lithium\action\Controller {
 	// get the page document (also within this record contains the library used, which is important)
 	$record = Page::find('first', array('conditions' => array('url' => $url)));
 	
-	// example
-	/*Access::add('denyForFirstBlogPost', function($user, $request, $options) {
-	    if($options['document']['url'] == 'First-Blog-Entry') {
-		return false;
+	Access::adapter('minerva_access')->add('publishStatus', function($user, $request, $options) {
+	    if(($options['document']['published'] == true) || (($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor'))) {
+		return true;
 	    }
-	    return true;
-	});
-	Access::add('denyForSunday', function($user, $request, $options) {
-	    return (date('w') != 0);
+	    return false;
 	});
 	
-	$rules = array(
-	    array('rule' => 'allowAll'),
-	    // array('rule' => 'denyForFirstBlogPost', 'message' => 'Custom overridden default access error message.'),
-	    array('rule' => 'denyForSunday')
-	);
-	
-	$access = Access::check('minerva', $rules, array('document' => $record->data()));
-	var_dump($access);
-	exit();*/
+	$rules = static::$document_access;
+	$access = Access::check('minerva_access', Auth::check('minerva_user'), $this->request, array('rules' => $rules, 'document' => $record->data()));
+	if(!empty($access)) {
+	    FlashMessage::set($access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
+	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
+	}
 	
 	$this->set(compact('record'));
 	
