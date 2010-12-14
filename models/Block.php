@@ -8,8 +8,7 @@ class Block extends \lithium\data\Model {
 	
 	protected $_schema = array(
 		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
-		// library gets indexed
-		'library' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
+		'block_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		// url possibly gets indexed
 		'url' => array('type' => 'string', 'form' => array('label' => 'URL')), 
 		'title' => array('type' => 'string', 'form' => array('label' => 'Title')),

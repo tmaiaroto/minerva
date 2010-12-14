@@ -48,13 +48,6 @@ class UsersController extends \lithium\action\Controller {
         }
         $record = User::find('first', array('conditions' => array('approval_code' => $approval_code)));
         
-        // May need to load the library to be able to save if additional schema has been set
-        if((isset($record->library)) && ($record->library != 'app') && (!empty($record->library))) {		
-            $class = '\\'.$record->library.'\models\User'; 	  		
-            if(class_exists($class)) {
-                $Library = new $class();
-            }
-        }
         // Save the confirmed field as true and set the approval_code to empty string just in case, I know they are supposed to be unique strings but maybe that dart thrown from outerspace will hit my house.
         $data = array('confirmed' => true, 'approval_code' => '');
         

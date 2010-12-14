@@ -15,7 +15,7 @@ class User extends \lithium\data\Model {
 	// I get appended to with the plugin's User model.
 	protected $_schema = array(
 		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
-		'library' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
+		'user_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'email' => array('type' => 'string', 'form' => array('label' => 'E-mail')),
 		'new_email' => array('type' => 'string', 'form' => array('label' => false, 'type' => 'hidden')),
 		//'username' => array('type' => 'string', 'form' => array('label' => 'Username')), // going to use e-mail for username

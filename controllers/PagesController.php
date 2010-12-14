@@ -111,9 +111,8 @@ class PagesController extends \lithium\action\Controller {
     
     /**
      * Index listing method responsible for showing lists of pages with pagination options.
-     * If a library param is passed from the routing and the library has a Page model, it will be instantiated.
+     * If a "page_type" param (a library) is passed from the routing and the library has a Page model, it will be instantiated.
      * Additional filters can be applied there that further control things.
-     * 
     */
     public function index() {
 	// Default options for pagination, merge with URL parameters
@@ -124,10 +123,10 @@ class PagesController extends \lithium\action\Controller {
 	}
 	list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
 	
-	// If there's a library passed, add it to the conditions.
-	// TODO: OBVIOUSLY add an index to library field (also url for other actions' needs, not this one)
-	if(isset($this->request->params['library'])) {
-	    $conditions = array('library' => $this->request->params['library']);
+	// If there's a page_type passed, add it to the conditions.
+	// TODO: OBVIOUSLY add an index to "page_type" field (also url for other actions' needs, not this one)
+	if(isset($this->request->params['page_type'])) {
+	    $conditions = array('page_type' => $this->request->params['page_type']);
 	} else {
 	    $conditions = array();
 	}
@@ -147,26 +146,21 @@ class PagesController extends \lithium\action\Controller {
     /**
      * Create a page.
      *
-     * The "library" decides which library to use when creating the page (optional).
-     * Again, the "library" name string value has to be passed in as a request param (easily set in the routes).
+     * The "page_type" decides which library to use when creating the page (optional).
+     * Again, the "page_type" name string value has to be passed in as a request param (easily set in the routes).
      * A library can change the fields displayed in the form so that different data can be saved to the page among other things.
-     * 
-     * A "library" (or plugin) can be thought of like a "content type" in Drupal, but much more too. It's on steroids.
-     * Even more insane, we can bundle these as phars so that distribution even easier. 
-     * Since it's so modular and transportable...an online registry of libraries can be created so the CMS can browse
-     * and download at will additional libraries that will extend the CMS.
-     *
+     * The page type library doesn't touch this controller, but can alter a few things within it by having a Page model.
     */
-    public function create() {	
+    public function create() {
 	// Get the fields so the view template can iterate through them and build the form
 	$fields = Page::schema();
 	// Don't need to have these fields in the form
 	unset($fields[Page::key()]);
+	// If a page type was passed in the params, we'll need it to save to the page document.
+	$fields['page_type']['form']['value'] = (isset($this->request->params['page_type'])) ? $this->request->params['page_type']:null;
 	
 	// Save
 	if ($this->request->data) {
-	    $this->request->data['library'] = $library; // Set the library to be saved with the record, saving null is ok too
-	    
 	    $page = Page::create();
 	    if($page->save($this->request->data)) {
 		FlashMessage::set('The content has been created successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
@@ -186,9 +180,9 @@ class PagesController extends \lithium\action\Controller {
     /**
      * Update a page.
      * Unlike index() and create(), this action deals with a record. The record itself will contain the
-     * library value. An additional query is made first to get this value from the record and then the
+     * "page_type" value. An additional query is made first to get this value from the record and then the
      * "Page" model class will be instantiated. In other words, there doesn't need to be a route setup
-     * that passes the "library" param.
+     * that passes the "page_type" param.
     */
     public function update($url=null) {
 	// First, get the record
@@ -213,17 +207,20 @@ class PagesController extends \lithium\action\Controller {
 
     /**
      * Read a page (like "view()" but retrieves page data from the database).
-     * Also, like other methods, extra data is bridged in from an optional associated library on the record itself.
-     *
+     * Also, like other methods, extra data is bridged in from an optional associated page type library on the record itself.
     */
     public function read($url=null) {
 	// We can get the URL from the named parameter or from the arg passed
 	if((isset($this->request->params['url'])) && (empty($url))) {
 	    $url = $this->request->params['url'];
 	}
-	// get the page document (also within this record contains the library used, which is important)
 	$record = Page::find('first', array('conditions' => array('url' => $url)));
-	
+	if(!$record) {
+	    FlashMessage::set('Page not found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
+	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
+	}
+
+	// Add a base access rule to check against
 	Access::adapter('minerva_access')->add('publishStatus', function($user, $request, $options) {
 	    if(($options['document']['published'] == true) || (($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor'))) {
 		return true;
@@ -239,7 +236,6 @@ class PagesController extends \lithium\action\Controller {
 	}
 	
 	$this->set(compact('record'));
-	
     }
     
     /** 

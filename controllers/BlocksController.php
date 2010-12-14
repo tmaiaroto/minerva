@@ -35,46 +35,29 @@ class BlocksController extends \lithium\action\Controller {
 	// get the page record (also within this record contains the library used, which is important)
 	// TODO: make read conditions??
 	$record = Block::find('first', array('conditions' => array('url' => $url)));	  	
-	
-	if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {
-	    // Just instantiating the library's Page model will essentially "bridge" and extend the main app's Page model	
-	    $class = '\minerva\libraries\\'.$record->library.'\models\Block'; 	  		
-	    if(class_exists($class)) {
-	    	$Library = new $class();
-	    }
-	    
-	    // Bridge the optional render options (default uses the plugin's /views/pages/read.html.php template)
-	    //$renderOptions = $Library->renderOptions;
-	    //$renderOptions = array('template' => 'read', 'type' => 'html', 'layout' => 'default', 'library' => $record->library);
-	    
-	}
 	// Return an array. No rendering.
 	return array('record' => $record);	
     }
-	
-    // Lists all blocks, or filters blocks by plugin (libraries can influence blocks)
-    public function index($library=null) {
-	// If we are using a library, instantiate it's Page model (bridge from plugin to core)
-	if((isset($library)) && ($library != 'minerva') && (!empty($library))) {		
-	    // Just instantiating the library's Page model will essentially "bridge" and extend the main app's Page model	
-	    $class = '\minerva\libraries\\'.$library.'\models\Block'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }
-	} 	
-	
+    
+    public function index() {
 	// Default options for pagination
 	$defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
 	$params = Set::merge($defaults, $this->request->params);
 	if((isset($params['page'])) && ($params['page'] == 0)) { $params['page'] = 1; }
 	list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
 	
+	if(isset($this->request->params['page_type'])) {
+	    $conditions = array('page_type' => $this->request->params['page_type']);
+	} else {
+	    $conditions = array();
+	}
+	
 	$records = Block::find('all', array(
 	    'limit' => $params['limit'],
 	    'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
 	    //'order' => $params['order']
 	    'order' => array('_id' => 'asc'),
-	    //'conditions' => $conditions
+	    'conditions' => $conditions
 	));
 
 	$total = Block::count();
@@ -108,21 +91,12 @@ class BlocksController extends \lithium\action\Controller {
      * they all have to work together to pull off this flexibility.
      * 
     */
-    public function create($library=null) {	
-	// If we are using a library, instantiate it's Block model (bridge from plugin to core)
-	if((isset($library)) && ($library != 'minerva') && (!empty($library))) {		
-	    $class = '\minerva\libraries\\'.$library.'\models\Block'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }
-	}
-	
+    public function create() {	
 	// Get the fields so the view template can iterate through them and build the form
 	$fields = Block::$fields;	 
     
 	// Save
 	if ($this->request->data) {
-	    $this->request->data['library'] = $library; 
 	    $block = Block::create($this->request->data);	    
 	    if($block->save()) {		
 		$this->redirect(array('controller' => 'blocks', 'action' => 'index'));
@@ -143,18 +117,9 @@ class BlocksController extends \lithium\action\Controller {
     public function update($url=null) {	
 	$record = Block::find('first', array('conditions' => array('url' => $url)));
 	
-	// Next, if the record uses a library, instantiate it's Block model (bridge from plugin to core)
-	if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {		
-	    // Just instantiating the library's Block model will essentially "bridge" and extend the main app's Block model	
-	    $class = '\minerva\libraries\\'.$record->library.'\models\Block'; 	  		
-	    if(class_exists($class)) {
-		$Library = new $class();
-	    }
-	}
-	
 	$fields = Block::$fields;
 	$fields[Block::key()] = array('type' => 'hidden', 'label' => false);
-	$fields['library'] = array('type' => 'hidden', 'label' => false);
+	//$fields['block_type'] = array('type' => 'hidden', 'label' => false);
 	
 	// Update the record
 	if ($this->request->data) {
@@ -174,14 +139,6 @@ class BlocksController extends \lithium\action\Controller {
 	    $this->redirect(array('controller' => 'blocks', 'action' => 'index'));
 	}
 	$record = Block::find('first', array('conditions' => array('url' => $url)));
-	
-	// We don't need $renderOptions, $fields, etc. but we will instantiate the model to take advantage of any delete filters
-	if((isset($record->library)) && ($record->library != 'minerva') && (!empty($record->library))) {	  		
-	    $class = '\minerva\libraries\\'.$record->library.'\models\Block'; 	  		
-	    if(class_exists($class)) {
-	    	$Library = new $class();
-	    }
-	}
 	
 	// Delete the record TODO: put in some kinda flash messages (like cake has) to notify the user things deleted or didn't
 	// http://rad-dev.org/li3_flash_message

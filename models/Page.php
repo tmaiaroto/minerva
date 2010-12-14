@@ -8,7 +8,7 @@
  * be data loaded from external sites or services as well as "block" content.
  *
  * Each Page must have a title, url, created date, modified date, and then a special
- * library field that tells the system which library created the page. This is how
+ * "page_type" field that tells the system which library created the page. This is how
  * 3rd party add-ons will hook into the CMS without altering Minerva's core code
  * in order to extend functionality. For example, a "blog" library.
  * 
@@ -68,7 +68,7 @@ class Page extends \lithium\data\Model {
     */
     protected $_schema = array(
 	'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
-	'library' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
+	'page_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 	'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
 	'created' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 	'modified' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),		

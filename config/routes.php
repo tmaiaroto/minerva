@@ -28,13 +28,13 @@ Router::connect('/', array('controller' => 'pages', 'action' => 'view', 'home'))
  */
 Router::connect('/page/{:url}', array('controller' => 'pages', 'action' => 'view'));
 // and for index pages, we use "library" which is also important
-Router::connect('/pages/index/{:library}', array(
+Router::connect('/pages/index/{:page_type}', array(
     'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10
 ));
-Router::connect('/pages/index/{:library}/page:{:page:[0-9]+}', array(
+Router::connect('/pages/index/{:page_type}/page:{:page:[0-9]+}', array(
     'controller' => 'pages', 'action' => 'index', 'page' => 1
 ));
-Router::connect('/pages/index/{:library}/page:{:page}/limit:{:limit}', array(
+Router::connect('/pages/index/{:page_type}/page:{:page}/limit:{:limit}', array(
     'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10
 ));
 

@@ -12,12 +12,12 @@ use \lithium\net\http\Router;
 Router::connect('/blog/read/{:url}', array('controller' => 'pages', 'action' => 'read'));
 
 // Yes, you can render "static" pages from the library as well by using the "view" action,
-// just ensure "library" is set. Templates from: /libraries/blog/views/pages/static/template-name.html.php
-Router::connect('/blog/view/{:url}', array('controller' => 'pages', 'action' => 'view', 'library' => 'blog'));
+// just ensure "page_type" is set. Templates from: /libraries/blog/views/pages/static/template-name.html.php
+Router::connect('/blog/view/{:url}', array('controller' => 'pages', 'action' => 'view', 'page_type' => 'blog'));
 
-Router::connect('/blog/create', array('controller' => 'pages', 'action' => 'create', 'library' => 'blog'));
+Router::connect('/blog/create', array('controller' => 'pages', 'action' => 'create', 'page_type' => 'blog'));
 
 // Route for listing all blog entries
-Router::connect('/blog', array('controller' => 'pages', 'action' => 'index', 'library' => 'blog'));
+Router::connect('/blog', array('controller' => 'pages', 'action' => 'index', 'page_type' => 'blog'));
 
 ?>
