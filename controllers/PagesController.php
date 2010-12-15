@@ -208,10 +208,22 @@ class PagesController extends \lithium\action\Controller {
 	
 	// Update the record
 	if ($this->request->data) {
+	    $now = date('Y-m-d h:i:s');
+	    $this->request->data['modified'] = $now;
+	    $this->request->data['url'] = Util::unique_url(array(
+		'url' => Inflector::slug($this->request->data['title']),
+		'model' => 'minerva\models\Page',
+		'id' => $this->request->data['_id']
+	    ));
+	    
 	    // Call save from the main app's Page model
 	    if($record->save($this->request->data)) {
 		FlashMessage::set('The content has been updated successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
-		$this->redirect(array('controller' => 'pages', 'action' => 'index'));
+		if(!empty($this->request->data['page_type'])) {
+		    $this->redirect(array('controller' => 'pages', 'action' => 'index', 'page_type' => $this->request->data['page_type']));
+		} else {
+		    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
+		}
 	    } else {
 		FlashMessage::set('The content could not be updated, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
 	    }
