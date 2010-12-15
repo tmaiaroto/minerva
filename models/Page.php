@@ -140,33 +140,11 @@ class Page extends \lithium\data\Model {
 
 }
 
-/* FILTERS
+/* FILTERS GO HERE
  *
- * Filters must be set down here outside the class because of the class extension by libraries.
+ * Any core filters must be set down here outside the class because of the class extension by libraries.
  * If the filter was applied within __init() it would run more than once.
  *
 */
 
-// TODO: move to controller and get rid of this filter for performance reasons.
-// Filters are great for the "hook" system and when there's no other choice...
-// But in this case, it's a little silly.
-
-// First, a save filter to change created and modified dates on the record as well as ensuring a unique pretty url.
-Page::applyFilter('save', function($self, $params, $chain) {
-	// Set the created and modified dates and pretty url (slug)
-	$now = date('Y-m-d h:i:s');
-	if (!$params['entity']->exists()) {
-		$params['data']['created'] = $now;
-		$params['data']['modified'] = $now;
-		if(empty($params['data']['url'])) {
-			$params['data']['url'] = $params['data']['title'];
-		}
-		$params['data']['url'] = Page::unique_url(Inflector::slug($params['data']['url']), $params['data'][Page::key()]);
-	} else {
-		$params['data']['url'] = Page::unique_url(Inflector::slug($params['data']['url']), $params['data'][Page::key()]);
-		$params['data']['modified'] = $now;
-	}
-	//var_dump($params['data']); exit();
-	return $chain->next($self, $params, $chain);
-});
 ?>

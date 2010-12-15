@@ -35,6 +35,7 @@ class RulesTest extends \lithium\test\Unit {
         );
         $expected = array();
         $result = Access::check('test_rulebased', array('username' => 'Tom'), $request, array('rules' => $rules));
+      var_dump($result);
         $this->assertEqual($expected, $result);
 	
 	// Single rule in multi-demnsional array

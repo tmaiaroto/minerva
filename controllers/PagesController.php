@@ -22,6 +22,8 @@ use \lithium\util\Set;
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_access\security\Access;
 use \lithium\security\Auth;
+use minerva\util\Util;
+use lithium\util\Inflector;
 
 class PagesController extends \lithium\action\Controller {
     
@@ -131,7 +133,7 @@ class PagesController extends \lithium\action\Controller {
 	    $conditions = array();
 	}
 	
-	$records = Page::find('all', array(
+	$documents = Page::find('all', array(
 	    'conditions' => $conditions,
 	    'limit' => $params['limit'],
 	    'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
@@ -140,7 +142,7 @@ class PagesController extends \lithium\action\Controller {
 	));	
 	$total = Page::count();
 	
-	$this->set(compact('records', 'limit', 'page', 'total'));
+	$this->set(compact('documents', 'limit', 'page', 'total'));
     }
 
     /**
@@ -162,9 +164,22 @@ class PagesController extends \lithium\action\Controller {
 	// Save
 	if ($this->request->data) {
 	    $page = Page::create();
+	    
+	    $now = date('Y-m-d h:i:s');
+	    $this->request->data['created'] = $now;
+	    $this->request->data['modified'] = $now;
+	    $this->request->data['url'] = Util::unique_url(array(
+		'url' => Inflector::slug($this->request->data['title']),
+		'model' => 'minerva\models\Page'
+	    ));
+	    
 	    if($page->save($this->request->data)) {
 		FlashMessage::set('The content has been created successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
-		$this->redirect(array('controller' => 'pages', 'action' => 'index'));
+		if(!empty($this->request->data['page_type'])) {
+		    $this->redirect(array('controller' => 'pages', 'action' => 'index', 'page_type' => $this->request->data['page_type']));
+		} else {
+		    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
+		}
 	    } else {
 		FlashMessage::set('The content could not be saved, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
 	    }
@@ -214,25 +229,38 @@ class PagesController extends \lithium\action\Controller {
 	if((isset($this->request->params['url'])) && (empty($url))) {
 	    $url = $this->request->params['url'];
 	}
-	$record = Page::find('first', array('conditions' => array('url' => $url)));
-	if(!$record) {
+	$document = Page::find('first', array('conditions' => array('url' => $url)));
+	if(!$document) {
 	    FlashMessage::set('Page not found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
 	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
 	}
 
 	// Add a base access rule to check against
 	Access::adapter('minerva_access')->add('publishStatus', function($user, $request, $options) {
-	    if(($options['document']['published'] == true) || (($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor'))) {
+	    if($options['document']['published'] === true) {
+		return true;
+	    }
+	    if(($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor')) {
 		return true;
 	    }
 	    return false;
 	});
 	
 	$rules = static::$document_access;
-	$access = Access::check('minerva_access', Auth::check('minerva_user'), $this->request, array('rules' => $rules, 'document' => $record->data()));
+	// Add the document data to each rule so it can be checked
+	$i=0;
+	foreach($rules as $rule) {
+	    $rules[$i]['document'] = $document->data();
+	    $i++;
+	}
+	$access = Access::check('minerva_access', Auth::check('minerva_user'), $this->request, array('rules' => $rules));
 	if(!empty($access)) {
 	    FlashMessage::set($access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
-	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
+	    if((isset($document->page_type)) && (!empty($document->page_type))) {
+		$this->redirect(array('controller' => 'pages', 'action' => 'index', 'page_type' => $document->page_type));
+	    } else {
+		$this->redirect(array('controller' => 'pages', 'action' => 'index'));
+	    }
 	}
 	
 	$this->set(compact('record'));

@@ -8,6 +8,8 @@
 
 namespace li3_flash_message\extensions\helper;
 
+use lithium\template\View;
+
 /**
  * Helper to output flash messages.
  *
@@ -45,12 +47,24 @@ class FlashMessage extends \lithium\template\Helper {
 			'type' => 'element',
 			'template' => 'flash_message',
 			'data' => array(),
-			'options' => array()
+			'options' => array(),
+			'paths' => array(
+				'layout' => 'blank'
+			)
 		);
 		$options += $defaults;
 		
 		$storage = $this->_classes['storage'];
-		$view = $this->_context->view();
+		//$view = $this->_context->view();
+		// need a new view because the one from context will already have its paths changed
+		$view = new View(array(
+			'paths' => array(
+			    'template' => '{:library}/views/elements/{:template}.{:type}.php',
+			    'layout'   => '{:library}/views/layouts/{:layout}.{:type}.php',
+			)
+		));
+
+		
 		$output = '';
 		$type = array($options['type'] => $options['template']);
 		$flash = $storage::get($key);

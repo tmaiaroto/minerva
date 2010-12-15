@@ -51,7 +51,7 @@ class Util {
         }
     }
     
-    /*
+    /**
      * Generate a unique pretty url for the model's record.
      * 
      * @params $options Array

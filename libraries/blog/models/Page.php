@@ -30,7 +30,7 @@ class Page extends \minerva\models\Page {
 	protected $_schema = array(
 		'title' => array('label' => 'Blog Title'), // this won't overwrite the main app's page models' $fields title key
 		'author' => array('type' => 'string'),
-		'body' => array('type' => 'string', 'form' => array('label' => 'Page Copy', 'type' => 'textarea'))
+		'body' => array('type' => 'string', 'form' => array('label' => 'Body Copy', 'type' => 'textarea'))
 	);
 	
 	// Add validation rules for new fields here
