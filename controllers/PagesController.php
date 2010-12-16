@@ -33,29 +33,31 @@ class PagesController extends \lithium\action\Controller {
      * called at the Dispatcher level, document level access control isn't possible.
      * See the $document_access property below... All rules requiring document data
      * should be defined there.
+     *
+     * By default we're restricting everything to managers.
+     * This leaves the core PagesController to administrative purposes.
+     * The "public" library will hold basic pages for anonymous visitors.
+     * 
     */
     static $access = array(
-		'create' => array(
-		    array('rule' => 'allowAnyUser')
-		),
-		'update' => array(
-		    array('rule' => 'allowAnyUser')
-		),
-		'delete' => array(
-		    array('rule' => 'allowAnyUser')
-		),
-		'view' => array(
-		    array('rule' => 'allowAll')
-		),
-		'read' => array(
-		    array('rule' => 'allowAll')
-		),
-		'index' => array(
-		    array('rule' => 'allowAll')
-		),
-		
-		// * is a shortcut. all other method name keys here will be ignored, the login_redirect by default is "/" so if using this on PagesController, it has to redirect somewhere else because "/" is the view method.
-		// '*' => array('rule' => 'denyAll', 'login_redirect' => '/users/login')	
+	'index' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'create' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'update' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'delete' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'read' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'view' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	)
     );
     
     /*
@@ -90,9 +92,8 @@ class PagesController extends \lithium\action\Controller {
      * See the Minerva bootstrap process for more information.
     */
     static $document_access = array(
-	array('rule' => 'publishStatus', 'message' => 'You must be logged in to see unpublished content.', 'redirect' => '/')
+	array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
     );
-    
     
     /**
      * The default method here is changed. First off, the Router class now uses this view method if the URL is /page/{:args}
@@ -103,10 +104,11 @@ class PagesController extends \lithium\action\Controller {
      *
     */
     public function view() {
+	$path = func_get_args();
 	if (empty($path)) {
 	    $path = array('static', 'home');
 	} else {
-	    $path = array('static', func_get_args());
+	    array_unshift($path, 'static');
 	}
 	$this->render(array('template' => join('/', $path)));
     }	

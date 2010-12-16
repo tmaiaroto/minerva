@@ -39,6 +39,13 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
     
     if(isset($params['callable']::$access)) {
         
+        Access::adapter('minerva_access')->add('allowManagers', function($user, $request, $options) {
+	    if(($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor')) {
+		return true;
+	    }
+	    return false;
+	});
+        
         /*
          * The * key is a convenience if the controller wishes to apply the same rule(s) to all methods.
          * If used, the other keys in $access will be checked last. Be careful if setting it on the

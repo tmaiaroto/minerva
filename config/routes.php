@@ -21,12 +21,14 @@ use \lithium\core\Environment;
  * to use (in this case, /app/views/pages/home.html.php)...
  */
 Router::connect('/', array('controller' => 'pages', 'action' => 'view', 'home'));
+// and this is for the other static pages
+Router::connect('/page/{:args}', array('controller' => 'pages', 'action' => 'view'));
 
 /**
  * ...and connect the rest of 'Pages' controller's urls.
  * note there's importance with naming the argument "url"
  */
-Router::connect('/page/{:url}', array('controller' => 'pages', 'action' => 'view'));
+Router::connect('/page/read/{:url}', array('controller' => 'pages', 'action' => 'read'));
 // and for index pages, we use "library" which is also important
 Router::connect('/pages/index/{:page_type}', array(
     'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10

@@ -13,18 +13,25 @@
 
 namespace minerva\libraries\blog\models;
 
-use minerva\util\Access;
-
 class Page extends \minerva\models\Page {
 	
-	// Completely override the core settings for which PagesController methods are protected and/or how they are protected
-	/*static $access = array(
-		// 'login_redirect' could be 'http://www.google.com' for all the system cares, it'll go there
-		//'read' => array('rule' => 'allowTom', 'login_redirect' => '/users/login'),
-		'create' => array(),
-		'*' => array('rule' => 'allowTom'),
-		'view' => array('rule' => 'allowAll')
-	);*/
+	// This $access property will take priority oer the core PagesController's. Rather than needing to redefine each method's rules. So "view" for example can be left out and the default access rules will apply.
+	// Blogs different in that we want to allow access to index. However we also apply a filter below that will limit the documents displayed in the index action to just those that are published.
+	static $access = array(
+	    // Don't need to redfine all these...We only need index changed
+	    /*'create' => array(
+		array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	    ),
+	    'update' => array(
+		array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	    ),
+	    'delete' => array(
+		array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	    ),*/
+	    'index' => array(
+		array('rule' => 'allowAll')
+	    )
+	);
 	
 	// Add new fields here
 	protected $_schema = array(
@@ -37,46 +44,25 @@ class Page extends \minerva\models\Page {
 	public $validates = array(
 		'body' => array(
                     array('notEmpty', 'message' => 'Body cannot be empty'),
-                )
+                ),
+		'title' => array(
+		    array('notEmpty', 'message' => 'It can\'t be empty foo!')
+		)
 	);
 	
 	public static function __init() {
-		/*Access::add('allowTom', function($user) {
-		    //var_dump($user);
-		    if($user['username'] == 'Tom')  {
-			return true;   
-		    }
-		    return false;
-		});
 		
 		\minerva\models\Page::applyFilter('find', function($self, $params, $chain) {
-		    $record = $chain->next($self, $params, $chain);
+		    
+		    $params['options']['conditions']['published'] = true;
+		    return $chain->next($self, $params, $chain);
+		    
+		    // NOTE: could be applying access rules here and checking against them
+		    //$record = $chain->next($self, $params, $chain);
+		    // Here would be an "afterFind" don't forget to return $record; instead of to the chain
 		    //var_dump($record);
 		    
-		    Access::add('denyForFirstBlogPost', function($user, $options) {
-			if($options['url'] == 'First-Blog-Entry') {
-			    return false;
-			}
-			return true;
-		    });
-		    $access = Access::check('minerva', array(
-			'rule' => function($user, $options) {
-			    if($options['url'] == 'First-Blog-Entry') {
-			        return false;
-			    }
-			    return true;
-			},
-			'login_redirect' => '/blog',
-			'message' => 'You are not allowed to read this post.'
-		    ), $record->data());
-		    
-		    
-		    if($access['allowed'] === false) {
-			var_dump($access['message']);
-			exit();
-		    }
-		    
-		});*/
+		});
 		
 		
 		

@@ -33,6 +33,7 @@ require dirname(__DIR__) . '/config/bootstrap.php';
  * @see lithium\action\Dispatcher
  * @see lithium\net\http\Router
  */
-echo lithium\action\Dispatcher::run(new lithium\action\Request());
+// echo lithium\action\Dispatcher::run(new lithium\action\Request());
+echo lithium\action\Dispatcher::run(new lithium\action\Request(array('base' => '')));
 
 ?>

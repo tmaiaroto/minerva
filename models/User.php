@@ -65,8 +65,8 @@ class User extends \lithium\data\Model {
 		}
 		// Append extended schema
 		$class::_object()->_schema += $extended_schema;
-		// Also append extended validation rules
-		$class::_object()->validates += static::_object()->validates;
+		// Also append extended validation rules (giving priroity to the library for overriding)
+		$class::_object()->validates = static::_object()->validates += $class::_object()->validates;
 		
 		/**
 		 * ROLES

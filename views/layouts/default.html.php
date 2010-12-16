@@ -33,23 +33,11 @@
 			<h1 id="branding">
 				<a href="/">Minerva</a>
 			</h1>
-			<div id="main_menu">
-				<ul>
-					<li><a href="#">Pages</a></li>
-					<li><a href="#">Blocks</a></li>
-					<li><a href="#">Users</a></li>
-				</ul>				
-			</div>
-			
+			<?php echo $this->menu->render(array('template' => 'main_administration')); ?>
 		</div>
-		<div class="clear"></div>
-		<div class="grid_16">
-			 <?php //echo $this->element('admin/main_menu'); ?>
-		</div>
-		
-		<div class="clear" style="height: 10px; width: 100%;"></div>
+		<div class="clear" style="height: 10px;"></div>
 
-			<?php echo $this->content(); ?>		
+		<?php echo $this->content(); ?>		
 		
 		<div class="clear"></div>
 		<div class="grid_16">

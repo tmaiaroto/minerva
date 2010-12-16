@@ -1,170 +1,83 @@
 <?php
 /**
- * Lithium: the most rad php framework
+ * Typically we want the controller to send data to the view (meaning it will call the find() method),
+ * but in this case since this is a static page we'll make the call to the model instead. This breaks MVC.
+ * However, this doesn't require an extra controller method special for this page and it doesn't require
+ * the database queries to be in the view() method, which would be called for every static page.
+ * That would defeat the purpose of a "static" page (one that doesn't required a database)...And while
+ * making the query here also kinda defeats the purpose, the data that's returned from the query (or not)
+ * isn't vital to this page. It's optional data.
  *
- * @copyright     Copyright 2010, Union of RAD (http://union-of-rad.org)
- * @license       http://opensource.org/licenses/bsd-license.php The BSD License
- */
-
-use \lithium\data\Connections;
-
-$checkName = null;
-$checkStatus = $solutions = array();
-
-$notify = function($status, $message, $solution = null) use (&$checkName, &$checkStatus, &$solutions) {
-	$checkStatus[$checkName] = $status === true;
-
-	if (!is_string($status)) {
-		$status = $status ? 'success' : 'fail';
-	}
-
-	$message = is_array($message) ? join("\n<br />", $message) : $message;
-
-	if (!empty($solution)) {
-		$default = array(
-			'id' => 'help-' . $checkName,
-			'title' => $checkName,
-			'content' => null
-		);
-		if (is_array($solution['content'])) {
-			$solution['content'] = join("\n<br />", $solution['content']);
-		}
-		$solutions[$checkName] = $solution += $default;
-
-	}
-	return "<div class=\"test-result test-result-{$status}\">{$message}</div>";
-};
-
-$sanityChecks = array(
-	'resourcesWritable' => function() use ($notify) {
-		if (is_writable($path = LITHIUM_APP_PATH . '/resources')) {
-			return $notify(true, 'Resources directory is writable.');
-		}
-		return $notify(false, array(
-			"Your resource path (<code>$path</code>) is not writeable. " .
-			"To fix this on *nix and Mac OSX, run the following from the command line:",
-			"<code>chmod -R 0777 {$path}</code>"
-		));
-	},
-	'database' => function() use ($notify) {
-		$config = Connections::config();
-		if (empty($config)) {
-			return $notify('notice', array('No database connections defined.'), array(
-				'title' => 'Database Connections',
-				'content' => array(
-					'To create a database connection, edit the file <code>' . LITHIUM_APP_PATH .
-					'/config/bootstrap.php</code>, and uncomment the following line:',
-					'<pre><code>require __DIR__ . \'/connections.php\';</code></pre>',
-					'Then, edit the file <code>' . LITHIUM_APP_PATH . '/config/connections.php</code>.'
-				)
-			));
-		}
-		return $notify(true, 'Database connection(s) configured.');
-	},
-	// 'databaseEnabled' => function() use ($notify, &$checkStatus) {
-	// 	if (!$checkStatus['database']) {
-	// 		return;
-	// 	}
-	// 	$results = array();
-	// 	$config = Connections::config();
-	// 	foreach ($config as $name => $options) {
-	// 		$enabled = Connections::enabled($name);
-	// 		if (!$enabled) {
-	// 			$results[] = $notify('exception', "Database for <code>{$options}</code> is not enabled.");
-	// 		}
-	// 	}
-	// 	if (empty($results)) {
-	// 		$results[] = $notify(true, "Database(s) enabled.");
-	// 	}
-	// 	return implode("\n", $results);
-	// },
-	// 'databaseConnected' => function() use ($notify, &$checkStatus) {
-	// 	if (!$checkStatus['database']) {
-	// 		return;
-	// 	}
-	// 	$results = array();
-	// 	$config = Connections::config();
-	// 	foreach ($config as $name => $options) {
-	// 		$enabled = Connections::enabled($name);
-	// 		if ($enabled) {
-	// 			$connection = Connections::get($name)->connect();
-	// 			if ($connection) {
-	// 				$results[] = $notify(
-	// 					true, "Connection to <code>{$name}</code> database verified."
-	// 				);
-	// 			} else {
-	// 				$results[] = $notify(
-	// 					false, "Could not connect to <code>{$name}</code> database."
-	// 				);
-	// 			}
-	// 		}
-	// 	}
-	// 	return implode("\n", $results);
-	// },
-	'magicQuotes' => function() use ($notify) {
-		if (get_magic_quotes_gpc() === 0) {
-			return;
-		}
-		return $notify(false, array(
-			"Magic quotes are enabled in your PHP configuration. Please set <code>" .
-			"magic_quotes_gpc = Off</code> in your <code>php.ini</code> settings."
-		));
-	},
-	'registerGlobals' => function() use ($notify) {
-		if (!ini_get('register_globals')) {
-			return;
-		}
-		return $notify(false, array(
-			'Register globals is enabled in your PHP configuration. Please set <code>' .
-			'register_globals = Off</code> in your <code>php.ini</code> settings.'
-		));
-	},
-);
-
+ * Alternatively we would make another controller to access the model and return say JSON to a view.
+ * From here we would use JavaScript to display that data. That would be more "proper" from an MVC
+ * point of view.
+ *
+ * TODO: Perhaps make a library for "AJAX API" or something to that affect...OR simply a new controller
+ * for it all (or several controllers, or put the methods within each Pages, Blocks, and Users controller)
+ * and not a library.
+*/
+use minerva\models\Page;
 ?>
+<div class="grid_16">
+	<h2 id="page-heading">Dashboard</h2>
+	<p>
+		Welcome to the Minerva dashboard. From here you can access all the administrative areas of your site. The dashboard provides you with a quick overview for information about your site.
+	</p>
+</div>
+<div class="clear"></div>
 
-<?php
+<div class="grid_8">
+	<div class="box">
+		<h2>Recently Created Pages</h2>
+		<div class="block">
+			<table>
+				<thead>
+					<tr>
+						<th>Page Title</th>
+						<th>Page Type</th>
+					</tr>
+				</thead>
+				<?php
+				$recent_pages = Page::getLatestPages();
+				if($recent_pages) {
+					foreach($recent_pages as $page) {
+				?>
+				<tr>
+					<td>
+						<a href="/page/read/<?=$page->url; ?>"><?=$page->title; ?></a>
+					</td>
+					<td>
+						<?php if(!empty($page->page_type)) {
+							echo '<em>(' . $page->page_type . ')</em>';
+						} else {
+							echo '<em>(page)</em>';
+						} ?>
+					</td>
+				</tr>
+				<?php
+					}
+				}
+				?>
+			</table>
+		</div>
+	</div>
+</div>
 
-foreach ($sanityChecks as $checkName => $check) {
-	echo $check();
-}
+<div class="grid_8">
+	<div class="box">
+		<h2>Recent User Actions</h2>
+		<div class="block">
+			<table>
+				<thead>
+					<tr>
+						<th>User</th>
+						<th>Action</th>
+						<th>Time</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</div>
 
-?>
-<h3>Getting Started</h3>
-<p>
-	This is your application's default home page. To change this template, edit the file
-	<code><?php echo LITHIUM_APP_PATH . '/views/pages/home.html.php'; ?></code>.
-</p>
-
-<h4>Layout</h4>
-<p>
-	To change the application's <em>layout</em> (the file containing the
-	header, footer and default styles), edit the file
-	<code><?php echo LITHIUM_APP_PATH . '/views/layouts/default.html.php'; ?></code>.
-</p>
-
-<h4>Routing</h4>
-<p>
-	To change the <em><a href="http://lithify.me/docs/lithium/net/http/Router">routing</a></em> of
-	the application's default page, edit the file
-	<code><?php echo LITHIUM_APP_PATH . '/config/routes.php'; ?></code>.
-</p>
-
-<?php
-if (!empty($solutions)) {
-	foreach ($solutions as $solution) { ?>
-
-<h4 id="<?php echo $solution['id']; ?>"><?php echo $solution['title']; ?></h4>
-<p><?php echo $solution['content']; ?></p>
-
-<?php	}
-}
-?>
-
-<h4>Additional Resources</h4>
-<ul>
-	<li><a href="http://lithify.me/docs/lithium">Lithium API</a></li>
-	<li><a href="http://rad-dev.org/lithium/wiki">Lithium Development Wiki</a></li>
-	<li><a href="http://rad-dev.org/lithium">Lithium Source</a></li>
-	<li><a href="irc://irc.freenode.net/#li3">#li3 irc channel</a></li>
-</ul>
+<div class="clear"></div>

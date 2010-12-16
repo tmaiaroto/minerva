@@ -9,10 +9,60 @@ use li3_flash_message\extensions\storage\FlashMessage;
 
 class UsersController extends \lithium\action\Controller {
 
-   // static $access = array();
-
     /*
+     * Rules used by Access::check() at the Dispatcher level.
+     * The rules set here will be passed the Request object, but since
+     * called at the Dispatcher level, document level access control isn't possible.
+     * See the $document_access property below... All rules requiring document data
+     * should be defined there.
+     *
+    */
+    static $access = array(
+	'login' => array(
+	    array('rule' => 'allowAll')
+	),
+	'logout' => array(
+	    array('rule' => 'allowAll')
+	),
+	'confirm' => array(
+	    array('rule' => 'allowAll')
+	),
+	'register' => array(
+	    array('rule' => 'allowAll')
+	),
+	'is_email_in_use' => array(
+	    array('rule' => 'allowAll')
+	),
+	'index' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'create' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'update' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'delete' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'read' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	)
+    );
+    
+    /*
+     * This works the same way as the pages controller.
+     * TODO: add for updating user record actions (password, etc) so only managers or the owner can change things.
+    */
+    static $document_access = array(
+    );
+    
+    
+    /**
      * A simple method to check if the e-mail is already in use or not.
+     *
+     * @param string $email The e-mail address to check for.
+     * @return boolean True or false
     */
     public function is_email_in_use($email=null) {
         if(!$email) {
@@ -32,15 +82,17 @@ class UsersController extends \lithium\action\Controller {
     }
     
     /*
-     * Yes, this is duplicate, but routing it simply isn't enough. If there's validation errors, it redirects
-     * back to the /users/create/minerva URL which isn't desireable to see.
+     * Register is basically the same as create. It just lets us use a separeate "register" template in addition to a "create" one.
     */
     public function register() {
         $this->create('minerva');
     }
 	
-    /*
-     * Confirm the user account. 
+    /**
+     * Confirm the user account.
+     *
+     * @param string $approval_code The approval code.
+     * @return
     */
     public function confirm($approval_code=null) {
         if(empty($approval_code)) {
@@ -67,6 +119,7 @@ class UsersController extends \lithium\action\Controller {
         }
     }
 
+    
     public function login() {
         $user = Auth::check('minerva_user', $this->request);		
         if ($user) {
@@ -102,8 +155,6 @@ class UsersController extends \lithium\action\Controller {
     }
     
     public function index() {
-        $this->redirect('/');
-        
         // Default options for pagination, merge with URL parameters
         $defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
         $params = Set::merge($defaults, $this->request->params);
@@ -121,20 +172,20 @@ class UsersController extends \lithium\action\Controller {
         $this->set(compact('records', 'limit', 'page', 'total'));
     }
 	
-	public function read($id=null) {
-	    if((isset($this->request->params['id'])) && (empty($id))) {
-		$id = $this->request->params['id'];
-	    }
-	    
-	    $record = User::find('first', array('conditions' => array('_id' => $id)));
-	    
-	    if(!$record) {
-		FlashMessage::set('The user could not be found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
-		$this->redirect('/');
-	    }
-	    
-            $this->set(compact('record'));
+    public function read($id=null) {
+	if((isset($this->request->params['id'])) && (empty($id))) {
+	    $id = $this->request->params['id'];
 	}
+	
+	$record = User::find('first', array('conditions' => array('_id' => $id)));
+	
+	if(!$record) {
+	    FlashMessage::set('The user could not be found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+	    $this->redirect('/');
+	}
+	
+	$this->set(compact('record'));
+    }
     
     public function create() {
         // Get the fields so the view template can iterate through them and build the form

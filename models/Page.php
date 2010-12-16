@@ -91,7 +91,9 @@ class Page extends \lithium\data\Model {
     public static function __init() {		
 	/**
 	 * The following code will append a library Page model's $_schema and
-	 * $validates properites to this Page model.
+	 * $validates properites to this Page model. $_schema can never be changed,
+	 * only extended. $validates can be changed and extended, but if default
+	 * field rules are left out, they will be used from this parent model.
 	*/
 	$class =  __CLASS__;
 	$extended_schema = static::_object()->_schema;
@@ -101,8 +103,8 @@ class Page extends \lithium\data\Model {
 	}
 	// Append extended schema
 	$class::_object()->_schema += $extended_schema;
-	// Also append extended validation rules
-	$class::_object()->validates += static::_object()->validates;
+	// Use the library Page model's validation rules combined with the default (but the library gets priority) this way the default rules can be changed, but if left out will still be used (to help make things nicer)
+	$class::_object()->validates = static::_object()->validates += $class::_object()->validates;
 	
 	// Don't forget me...
 	parent::__init();
@@ -136,6 +138,14 @@ class Page extends \lithium\data\Model {
 	}
 	
 	return $url;
+    }
+    
+    public function getLatestPages($options=array()) {
+	$defaults = array('conditions' => array(), 'limit' => 10);
+	$options += $defaults;
+	
+	return Page::find('all', array('limit' => $options['limit'], 'conditions' => $options['conditions']));
+    
     }
 
 }

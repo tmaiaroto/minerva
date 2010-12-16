@@ -21,6 +21,40 @@ use \lithium\util\Set;
 
 class BlocksController extends \lithium\action\Controller {
 
+    /*
+     * Rules used by Access::check() at the Dispatcher level.
+     * The rules set here will be passed the Request object, but since
+     * called at the Dispatcher level, document level access control isn't possible.
+     * See the $document_access property below... All rules requiring document data
+     * should be defined there.
+     *
+     * By default we're restricting all manipulation and index listing to managers.
+     * Everyone should be able to view blocks.
+     * 
+    */
+    static $access = array(
+	'index' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'create' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'update' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'delete' => array(
+	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	),
+	'read' => array(
+	    array('rule' => 'allowAll')
+	),
+	'view' => array(
+	    array('rule' => 'allowAll')
+	)
+    );
+    
+    static $document_access = array();
+
     public function view() {		
 	if (empty($path)) {
 	    $path = array('static', 'example');

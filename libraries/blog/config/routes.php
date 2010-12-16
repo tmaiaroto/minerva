@@ -9,7 +9,7 @@
 use \lithium\net\http\Router;
 
 // Route for reading a blog post (note the "url" named parameter)
-Router::connect('/blog/read/{:url}', array('controller' => 'pages', 'action' => 'read'));
+Router::connect('/blog/read/{:url}', array('controller' => 'pages', 'action' => 'read', 'page_type' => 'blog'));
 
 // Yes, you can render "static" pages from the library as well by using the "view" action,
 // just ensure "page_type" is set. Templates from: /libraries/blog/views/pages/static/template-name.html.php

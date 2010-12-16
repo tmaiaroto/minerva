@@ -50,6 +50,22 @@ use \lithium\security\Auth;
 
 Dispatcher::applyFilter('_call', function($self, $params, $chain) {
     
+    /*
+     * So the problem with redirects and building requests is that since the "app" folder was changed to "minerva"
+     * the "_base" property is not set properly. In the Request class there's a method called base() that sets it.
+     * It basically does a string replace on "app/webroot" ... But we have "minerva/webroot" So we can change the
+     * /minerva/webroot/index.php file and pass in an empty base key of "" to fix the issue.
+     * I would rather set it here in the filter since that's where all the major changes are taking place.
+     * I'd like to limit changes to a specific area to avoid complexity...But _base is protected as well as base().
+     * So we can't set it here. It can only be set by instantiation.
+     * Alternatively we can write a new class (extending Request) and use that instead...
+     * TODO: Look into that and in general a sub dispatcher that might avoid several issues and clean up this code.
+     *
+     * For now the index.php file has been changed, but that may cause problems elsewhere. Not sure yet.
+     * Now all the redirects don't show a URL of site.com/minerva/blog it will be the expected site.com/blog
+     * Both work though.
+    */
+    
     // Don't apply this for test cases
     if($params['request']->params['controller'] == '\lithium\test\Controller') {
 	return $chain->next($self, $params, $chain);	
@@ -142,9 +158,10 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
         // (properties set in model for core controllers) ... transfer those settings to the controller
         $controllerClass = get_class($params['callable']);
         if(isset($LibraryBridgeModel::$access)) {
-            $controllerClass::$access = $LibraryBridgeModel::$access;
+	    // Don't overwrite core Minerva controller with new access rules, but append them (giving the library model's access property priority)
+	    $controllerClass::$access = $LibraryBridgeModel::$access += $controllerClass::$access;
         }
-        
+	
     }
     
     return $chain->next($self, $params, $chain);	
