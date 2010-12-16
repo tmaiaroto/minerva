@@ -1,3 +1,7 @@
+<?php
+// TODO: perhaps set the user data somewhere in the bootstrap so it's always available...Even though it's cached, it's an extra method call here.
+use lithium\security\Auth;
+if(Auth::check('minerva_user')) { ?>
 <ul id="main_administration_menu" class="nav main">
     <li class="menu_first"><a href="/">Dashboard</a></li>
     <li>
@@ -33,3 +37,4 @@
         <a href="/users/logout">Logout</a>
     </li>
 </ul>
+<?php } ?>

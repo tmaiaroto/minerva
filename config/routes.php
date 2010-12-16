@@ -19,7 +19,7 @@ use \lithium\core\Environment;
  * Here, we are connecting '/' (base path) to controller called 'Pages',
  * its action called 'view', and we pass a param to select the view file
  * to use (in this case, /app/views/pages/home.html.php)...
- */
+*/
 Router::connect('/', array('controller' => 'pages', 'action' => 'view', 'home'));
 // and this is for the other static pages
 Router::connect('/page/{:args}', array('controller' => 'pages', 'action' => 'view'));
@@ -27,7 +27,7 @@ Router::connect('/page/{:args}', array('controller' => 'pages', 'action' => 'vie
 /**
  * ...and connect the rest of 'Pages' controller's urls.
  * note there's importance with naming the argument "url"
- */
+*/
 Router::connect('/page/read/{:url}', array('controller' => 'pages', 'action' => 'read'));
 // and for index pages, we use "library" which is also important
 Router::connect('/pages/index/{:page_type}', array(
@@ -40,10 +40,17 @@ Router::connect('/pages/index/{:page_type}/page:{:page}/limit:{:limit}', array(
     'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10
 ));
 
+/**
+ * Connect the user stuff
+*/
+Router::connect('/register', array('controller' => 'users', 'action' => 'register'));
+Router::connect('/login', array('controller' => 'users', 'action' => 'login'));
+Router::connect('/logout', array('controller' => 'users', 'action' => 'logout'));
+
 
 /**
  * Connect the static blocks
- */
+*/
 Router::connect('/block/{:args}', array('controller' => 'blocks', 'action' => 'view'));
 
 /**

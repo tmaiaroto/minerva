@@ -210,6 +210,15 @@ class UsersController extends \lithium\action\Controller {
         // Save
         if ($this->request->data) {
             $user = User::create();
+	    $this->request->data['role'] = 'registered_user'; // set basic user
+	    
+	    // IF this is the first user ever created, then they will be an administrator
+	    // TODO: make a wizard that will set this so there's no chance of some user registering and becoming an admin
+	    $users = User::find('count');
+	    if(empty($users)) {
+		$this->request->data['role'] = 'administrator';
+	    }
+	    
             if($user->save($this->request->data, array('validate' => $rules))) {
                 //$this->redirect(array('controller' => 'users', 'action' => 'index'));
                 $this->redirect('/');

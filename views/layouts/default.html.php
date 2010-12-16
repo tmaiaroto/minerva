@@ -19,7 +19,7 @@
 		echo '<!--[if IE 7]>'.$this->html->style('ie').'<![endif]-->';
 		echo $this->html->script(array('jquery/jquery-1.4.4.min.js', 'jquery/jquery-ui-1.8.6.custom.min.js', 'jquery-fluid16.js'), array('inline' => false));
 	?>
-		<script type="text/javascript">$.noConflict();</script>
+		
 	<?php
 		//echo $this->optimize->scripts();
 		//echo $this->optimize->styles();
