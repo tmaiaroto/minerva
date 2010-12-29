@@ -16,14 +16,14 @@
 <br />
 <p>The template being rendered is from /libraries/blog/views/pages/read.html.php
 <br />
-Library used (bridged): <?=$record->library; ?></p>
+Library used (bridged): <?=$document->library; ?></p>
 <br />
-<h1><?=$record->title; ?></h1>
+<h1><?=$document->title; ?></h1>
 <p>
-Created: <?=$record->created; ?> (modified: <?=$record->modified; ?>)<br /><br />
-<?=$record->body; ?>
+Created: <?=$document->created; ?> (modified: <?=$document->modified; ?>)<br /><br />
+<?=$document->body; ?>
 </p>
-<?=$record->image; ?>
+<?=$document->image; ?>
 
 <?php 
 /** <?=$this->view()->render(array('element' => 'example_element'), compact('variable', 'names')); ?>

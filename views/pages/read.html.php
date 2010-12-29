@@ -1,7 +1,7 @@
 <?php //$this->optimize->images(); ?>
-<h1><a href="/pages/read/<?=$record->url ?>"><?=$record->title ?></a></h1>
-<p style="font-size: 10px;">Created: <?=$record->created ?> (modified: <?=$record->modified ?>)</p>
-<p><?=$record->body ?></p>
+<h1><a href="/pages/read/<?=$document->url ?>"><?=$document->title ?></a></h1>
+<p style="font-size: 10px;">Created: <?=$document->created ?> (modified: <?=$document->modified ?>)</p>
+<p><?=$document->body ?></p>
 <?php echo $this->Html->image('arnold.jpg', array('alt' => 'blah & blah \' " stuf " ')); ?>
 <?php 
 

@@ -192,12 +192,21 @@ Media::applyFilter('render', function($self, $params, $chain){
 	$library = null;
     }
     
+    // TODO: keep this? it allows libraries to use the core layouts... call it something different?
+    // so now, http://minerva.local/blog/create would show its layout and view template, while...
+    // http://minerva.local/pages/create/blog would show the core default minerva layout and view... or the "admin" layout
+    if(isset($params['options']['request']->params['admin'])) {
+	$admin = $params['options']['request']->params['admin'];
+    } else {
+	$admin = false;
+    }
+    
     $layout = $params['options']['layout'];
     $type = (isset($params['options']['type'])) ? $params['options']['type']:'html';
     $template = $params['options']['template'];
     $controller = $params['options']['controller'];
     // If using a library, change template paths (if that library has templates, else default back)
-    if(!empty($library)) {
+    if((!empty($library)) && (!$admin)) {
 	// set the layout template from Minerva's layouts if the library doesn't have it (will eliminate missing layout template errors completely, but the default template won't really match up in terms of design)
 	if(!isset($params['options']['paths']['layout'])) {
 	    if(file_exists(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . $layout . '.' . $type . '.php')) {

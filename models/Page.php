@@ -70,10 +70,10 @@ class Page extends \lithium\data\Model {
 	'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
 	'page_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 	'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
-	'created' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-	'modified' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),		
-	'url' => array('type' => 'string', 'form' => array('wrap' => array('class' => 'minerva_url_input'))),
-	'published' => array('type' => 'boolean', 'form' => array('type' => 'checkbox')),
+	'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
+	'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),		
+	'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this page (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
+	'published' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'position' => 'options')),
 	'owner_id' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
 	// add options field?? to all models?? libraries can store various data within this options field that contains array data.
 	// it's useful...BUT, it won't have validation. it's still good to store simple data that isn't harmful if left unvalidated or data that's set programatically so it's known and doesn't need to be validated.
@@ -88,6 +88,9 @@ class Page extends \lithium\data\Model {
 	)
     );
     
+    // So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
+    public $display_name = 'Page';
+    
     public static function __init() {		
 	/**
 	 * The following code will append a library Page model's $_schema and
@@ -99,16 +102,35 @@ class Page extends \lithium\data\Model {
 	$extended_schema = static::_object()->_schema;
 	// Loop through and ensure no one forgot to set the form key		
 	foreach($extended_schema as $k => $v) {
-		$extended_schema[$k] += array('form' => array());
+		$extended_schema[$k] += array('form' => array('position' => 'default'));
 	}
 	// Append extended schema
 	$class::_object()->_schema += $extended_schema;
 	// Use the library Page model's validation rules combined with the default (but the library gets priority) this way the default rules can be changed, but if left out will still be used (to help make things nicer)
 	$class::_object()->validates = static::_object()->validates += $class::_object()->validates;
 	
+	// Replace any set display name for context
+	$class::_object()->display_name = static::_object()->display_name;
+	
 	// Don't forget me...
 	parent::__init();
     }	
+    
+    /**
+     * Get the display name for a page.
+     * This helps to add a little bit of context for users.
+     * For example, the create action template has a title "Create Page"
+     * but if another page type uses that admin template, it would need
+     * to be changed to something like "Create Blog Entry" for example.
+     * The "display_name" property of each Page model changes that and
+     * this method gets the value.
+     *
+     * @return String
+    */
+    public function display_name() {
+	$class =  __CLASS__;
+	return $class::_object()->display_name;
+    }
     
     public function unique_url($url=null, $id=null) {
 	if((!$url) || (!$id)) {

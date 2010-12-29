@@ -1,7 +1,11 @@
 <div class="grid_16">
     <h2 id="page-heading">Page Content</h2>
     <p>From here you should be able to manage all of the dynamic (served from the database) pages on your site.<br />
-    <?=$this->html->link('Create New Page', '/pages/create'); ?></p>
+    <?=$this->html->link('Create New Page', '/pages/create', array('id' => 'create_new_page')); ?>
+    <div id="new_page_type" style="display: none;">
+	<?=$this->html->link('Blog Entry', '/pages/create/' . 'blog'); ?>
+    </div>
+    </p>
     <!-- TODO: instead of linking to create a new basic page....have the link something you can hover and then popup a lightbox type thing that has all the page types listed. so when you hover you get a popup and then in that popup are these icons that when you click one of those....THEN it goes to make a page and it's making a page for the proper page type. Or maybe its not lightbox and just a little slide in under the "Create New Page" link. text, icons, both, whatever. -->
 </div>
 
@@ -22,7 +26,7 @@
         <?php foreach($documents as $page) { ?>
         <tr>
             <td>
-                <a href="/page/read/<?=$page->url; ?>"><?=$page->title; ?></a>
+                <?=$this->html->link($page->title, array('controller' => 'pages', 'action' => 'read', 'url' => $page->url)); ?>
             </td>
             <td>
                 <?php if(!empty($page->page_type)) {
@@ -41,7 +45,7 @@
                 <?=$page->created; ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', array('controller' => 'pages', 'action' => 'update', 'page_type' => $page->page_type, 'url' => $page->url)); ?>
+                <?=$this->html->link('Edit', '/pages/update/' . $page->page_type . '/' . $page->url); ?>
             </td>
         </tr>
         <?php } ?>
@@ -59,3 +63,11 @@
 </div>
 
 <div class="clear"></div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+	$('#create_new_page').live('hover', function() {
+	    $('#new_page_type').show();
+	});
+    });
+</script>

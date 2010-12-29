@@ -28,7 +28,12 @@ Router::connect('/page/{:args}', array('controller' => 'pages', 'action' => 'vie
  * ...and connect the rest of 'Pages' controller's urls.
  * note there's importance with naming the argument "url"
 */
-Router::connect('/page/read/{:url}', array('controller' => 'pages', 'action' => 'read'));
+// "view" is static
+Router::connect('/page/{:url}', array('controller' => 'pages', 'action' => 'view'));
+// "read" is from the database
+Router::connect('/pages/read/{:url}', array('controller' => 'pages', 'action' => 'read'));
+Router::connect('/pages/create/{:page_type}', array('admin' => true, 'controller' => 'pages', 'action' => 'create'));
+Router::connect('/pages/update/{:page_type}/{:url}', array('admin' => true, 'controller' => 'pages', 'action' => 'update'));
 // and for index pages, we use "library" which is also important
 Router::connect('/pages/index/{:page_type}', array(
     'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10

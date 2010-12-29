@@ -156,6 +156,9 @@ class PagesController extends \lithium\action\Controller {
      * The page type library doesn't touch this controller, but can alter a few things within it by having a Page model.
     */
     public function create() {
+	// Get the name for the page, so if another page type library uses the "admin" (core) templates for this action, it will be shown
+	$display_name = Page::display_name();
+	
 	// Get the fields so the view template can iterate through them and build the form
 	$fields = Page::schema();
 	// Don't need to have these fields in the form
@@ -174,14 +177,17 @@ class PagesController extends \lithium\action\Controller {
 		'url' => Inflector::slug($this->request->data['title']),
 		'model' => 'minerva\models\Page'
 	    ));
+	    $user = Auth::check('minerva_user');
+	    if($user) {
+		$this->request->data['owner_id'] = $user['_id'];
+	    } else {
+		// TODO: possible for anonymous users to create things? do we need to put in any value here?
+		$this->request->data['owner_id'] = '';
+	    }
 	    
 	    if($page->save($this->request->data)) {
 		FlashMessage::set('The content has been created successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
-		if(!empty($this->request->data['page_type'])) {
-		    $this->redirect(array('controller' => 'pages', 'action' => 'index', 'page_type' => $this->request->data['page_type']));
-		} else {
-		    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
-		}
+		$this->redirect(array('controller' => 'pages', 'action' => 'index'));
 	    } else {
 		FlashMessage::set('The content could not be saved, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
 	    }
@@ -191,22 +197,36 @@ class PagesController extends \lithium\action\Controller {
 	    $page = Page::create(); // Create an empty page object
 	}
 	
-	$this->set(compact('page', 'fields'));
+	$this->set(compact('page', 'fields', 'display_name'));
     }
     
     /**
      * Update a page.
-     * Unlike index() and create(), this action deals with a record. The record itself will contain the
-     * "page_type" value. An additional query is made first to get this value from the record and then the
-     * "Page" model class will be instantiated. In other words, there doesn't need to be a route setup
-     * that passes the "page_type" param.
     */
-    public function update($url=null) {
+    public function update() {
+	if(isset($this->request->params['page_type'])) {
+	    $conditions = array('page_type' => $this->request->params['page_type']);
+	} else {
+	    $conditions = array();
+	}
+	
+	if(isset($this->request->params['url'])) {
+	    $conditions += array('url' => $this->request->params['url']);
+	}
+	
+	// Get the name for the page, so if another page type library uses the "admin" (core) templates for this action, it will be shown
+	$display_name = Page::display_name();
+	
 	// First, get the record
-	$record = Page::find('first', array('conditions' => array('url' => $url)));
+	$page = Page::find('first', array('conditions' => $conditions));
 	
 	// Get the fields so the view template can build the form
 	$fields = Page::schema();                
+	// Don't need to have these fields in the form
+	unset($fields[Page::key()]);
+	// If a page type was passed in the params, we'll need it to save to the page document.
+	$fields['page_type']['form']['value'] = (isset($this->request->params['page_type'])) ? $this->request->params['page_type']:null;
+	
 	
 	// Update the record
 	if ($this->request->data) {
@@ -219,19 +239,15 @@ class PagesController extends \lithium\action\Controller {
 	    ));
 	    
 	    // Call save from the main app's Page model
-	    if($record->save($this->request->data)) {
+	    if($page->save($this->request->data)) {
 		FlashMessage::set('The content has been updated successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
-		if(!empty($this->request->data['page_type'])) {
-		    $this->redirect(array('controller' => 'pages', 'action' => 'index', 'page_type' => $this->request->data['page_type']));
-		} else {
-		    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
-		}
+		$this->redirect(array('controller' => 'pages', 'action' => 'index'));
 	    } else {
 		FlashMessage::set('The content could not be updated, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
 	    }
 	}
 	
-	$this->set(compact('record', 'fields'));
+	$this->set(compact('page', 'fields', 'display_name'));
     }
 
     /**
@@ -277,7 +293,7 @@ class PagesController extends \lithium\action\Controller {
 	    }
 	}
 	
-	$this->set(compact('record'));
+	$this->set(compact('document'));
     }
     
     /** 

@@ -20,14 +20,14 @@ class User extends \lithium\data\Model {
 		'new_email' => array('type' => 'string', 'form' => array('label' => false, 'type' => 'hidden')),
 		//'username' => array('type' => 'string', 'form' => array('label' => 'Username')), // going to use e-mail for username
 		'password' => array('type' => 'string', 'form' => array('label' => 'Password')),
-		'role' => array('type' => 'string', 'form' => array('type' => 'select', 'label' => 'User Role')),
-		'active' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'label' => 'Active')),
+		'role' => array('type' => 'string', 'form' => array('type' => 'select', 'label' => 'User Role', 'position' => 'options')),
+		'active' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'label' => 'Active', 'position' => 'options')),
 		'approval_code' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
 		'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
-		'profile_pics' => array('type' => 'string'),
+		//'profile_pics' => array('type' => 'string'),
 		'last_login_ip' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'last_login_time' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
+		'last_login_time' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false))
 		//'file' => array('type' => 'string', 'form' => array('type' => 'file'))
 	);
 	
@@ -53,6 +53,9 @@ class User extends \lithium\data\Model {
 		// TODO: password confirm
 	);
 	
+	// So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
+	public $display_name = 'User';
+	
 	public static function __init() {
 		$class =  __CLASS__;
 		$extended_schema = static::_object()->_schema;
@@ -68,6 +71,9 @@ class User extends \lithium\data\Model {
 		// Also append extended validation rules (giving priroity to the library for overriding)
 		$class::_object()->validates = static::_object()->validates += $class::_object()->validates;
 		
+		// Replace any set display name for context
+		$class::_object()->display_name = static::_object()->display_name;
+	
 		/**
 		 * ROLES
 		 * Note: You don't need to use Minerva's role based access system.
@@ -84,7 +90,7 @@ class User extends \lithium\data\Model {
 		// Replace user roles
 		$class::_object()->_user_roles = static::_object()->_user_roles;
 		// Fill form with role options
-		$class::_object()->_schema['role']['form']['options'] = $class::_object()->_user_roles;
+		$class::_object()->_schema['role']['form']['options'] = User::user_roles();
 		
 		/*
 		 * Some special validation rules
@@ -113,6 +119,33 @@ class User extends \lithium\data\Model {
 		
 		parent::__init();
 	}
+	
+	/**
+	 * Get the display name for a page.
+	 * This helps to add a little bit of context for users.
+	 * For example, the create action template has a title "Create Page"
+	 * but if another page type uses that admin template, it would need
+	 * to be changed to something like "Create Blog Entry" for example.
+	 * The "display_name" property of each Page model changes that and
+	 * this method gets the value.
+	 *
+	 * @return String
+	*/
+	public function display_name() {
+		$class =  __CLASS__;
+		return $class::_object()->display_name;
+	}
+	
+	/**
+	 * Get the user roles.
+	 * 
+	 * @return Array
+	*/
+	public function user_roles() {
+		$class =  __CLASS__;
+		return $class::_object()->_user_roles;
+	}
+
 
 }
 

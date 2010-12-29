@@ -36,7 +36,7 @@ class Page extends \minerva\models\Page {
 	// Add new fields here
 	protected $_schema = array(
 		'title' => array('label' => 'Blog Title'), // this won't overwrite the main app's page models' $fields title key
-		'author' => array('type' => 'string'),
+		'author' => array('type' => 'string', 'form' => array('help_text' => 'Optionally override the author name which is set from your user name.', 'position' => 'options')),
 		'body' => array('type' => 'string', 'form' => array('label' => 'Body Copy', 'type' => 'textarea'))
 	);
 	
@@ -49,6 +49,9 @@ class Page extends \minerva\models\Page {
 		    array('notEmpty', 'message' => 'It can\'t be empty foo!')
 		)
 	);
+	
+	// A little context
+	public $display_name = 'Blog Entry';
 	
 	public static function __init() {
 		

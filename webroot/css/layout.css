@@ -673,3 +673,22 @@ table.ui-datepicker-calendar {
 	padding-bottom: 0px;
 	margin-bottom: 0px;
 }
+
+/* Admin Stuff, forms, etc. */
+fieldset.admin label {
+	display: block;
+	padding: 0px 0px 0px 4px;
+	font-weight: bold;
+}
+fieldset.admin div {
+	clear: left;
+	margin-bottom: 10px;
+}
+fieldset.admin input[type="checkbox"] {
+	float: left;
+	margin: 0px 5px 0px 3px;
+}
+fieldset.admin .help_text {
+	color: #333;
+	font-style: italic;
+}

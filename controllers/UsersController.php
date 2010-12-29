@@ -161,7 +161,7 @@ class UsersController extends \lithium\action\Controller {
         if((isset($params['page'])) && ($params['page'] == 0)) { $params['page'] = 1; }
         list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
         
-        $records = User::find('all', array(
+        $documents = User::find('all', array(
             'limit' => $params['limit'],
             'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
             //'order' => $params['order']
@@ -169,7 +169,7 @@ class UsersController extends \lithium\action\Controller {
         ));	
         $total = User::count();
         
-        $this->set(compact('records', 'limit', 'page', 'total'));
+        $this->set(compact('documents', 'limit', 'page', 'total'));
     }
 	
     public function read($id=null) {
@@ -217,6 +217,11 @@ class UsersController extends \lithium\action\Controller {
 	    $users = User::find('count');
 	    if(empty($users)) {
 		$this->request->data['role'] = 'administrator';
+	    }
+	    
+	    // Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
+	    if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
+		$this->request->data['user_type'] = 'user';
 	    }
 	    
             if($user->save($this->request->data, array('validate' => $rules))) {
@@ -286,23 +291,36 @@ class UsersController extends \lithium\action\Controller {
 	 * Update a user.
 	 *
 	*/
-	public function update($url=null) {	
+	public function update($url=null) {
+	    if(isset($this->request->params['page_type'])) {
+		$conditions = array('page_type' => $this->request->params['page_type']);
+	    } else {
+		$conditions = array();
+	    }
+	
+	    if(isset($this->request->params['url'])) {
+		$conditions += array('url' => $this->request->params['url']);
+	    }
+	    
+	    if(isset($this->request->params['id'])) {
+		$conditions += array('_id' => $this->request->params['id']);
+	    }
+	    
+	    // Get the name for the page, so if another page type library uses the "admin" (core) templates for this action, it will be shown
+	    $display_name = User::display_name();
+	
+	    // Get the fields so the view template can build the form
+	    $fields = User::schema();                
+	    // Don't need to have these fields in the form
+	    unset($fields[User::key()]);
+	    // If a page type was passed in the params, we'll need it to save to the page document.
+	    $fields['user_type']['form']['value'] = (isset($this->request->params['user_type'])) ? $this->request->params['user_type']:null;
+	
+	    
 		// First, get the record
-		$record = User::find('first', array('conditions' => array('url' => $url)));
+		$document = User::find('first', array('conditions' => $conditions));
 		
-		$user = Auth::check('minerva_user');
-		if(!$user) {
-			// TODO Flash message
-			$this->redirect('/');
-			exit();
-		}
-		
-		$record_data = $record->data();
-		if($user['admin'] != true) {
-			// TODO Flash message
-			$this->redirect('/');
-			exit();
-		}
+		$document_data = $document->data();
 		
 		// Update the record
 		if ($this->request->data) {
@@ -313,15 +331,15 @@ class UsersController extends \lithium\action\Controller {
 				unset($this->request->data['new_password']);
 			}
 			// Checkboxes
-			var_dump($this->request->data);exit();
+			//var_dump($this->request->data);exit();
 			
                         // Call save from the main app's User model
-                        if($record->save($this->request->data)) {
+                        if($document->save($this->request->data)) {
                             $this->redirect(array('controller' => 'users', 'action' => 'index'));
                         }                        
 		}
 		
-                $this->set(compact('record'));
+                $this->set(compact('document', 'fields', 'display_name'));
 	}
 	
 	/**

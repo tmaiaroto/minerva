@@ -1,36 +1,59 @@
-<div class="grid_4">
-	<div class="box">
-		<h2>Box</h2>
-		<div class="block">
-			
-		</div>
-	</div>
+<div class="grid_16">
+	<h2 id="page-heading">Update <?=$display_name; ?></h2>  
 </div>
+<div class="clear"></div>
 
-
-<div class="grid_8">
-    <h2 id="page-heading">Update User</h2>    
-    <div class="box">
-	<?=$this->form->create(null, array('type' => 'file')); ?>
-		<fieldset>
-			<legend>Your Information</legend>
-		    	<?=$this->form->field('first_name', array('label' => 'First Name', 'value' => $record->first_name));?>
-			<?=$this->form->field('last_name', array('label' => 'Last Name', 'value' => $record->last_name));?>
-			<?=$this->form->field('url', array('label' => 'Profile URL', 'value' => $record->url));?>
-			<?=$this->form->field('email', array('label' => 'E-Mail', 'value' => $record->email));?>
-		</fieldset>
-	    <?=$this->form->submit('Update'); ?>
-	<?=$this->form->end(); ?>
-	</div>
+<div class="grid_12">  
+	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
+	<?=$this->form->create($document); ?>
+	<fieldset class="admin">
+		<legend>Primary Information</legend>
+	    <?php
+		foreach($fields as $k => $v) {
+			if($v['form']['position'] != 'options') {
+		?>	    
+		<?php if($v['form']['type'] == 'select') { ?>
+			<?=$this->form->label($v['form']['label']);?>
+			<?=$this->form->select($k, $v['form']['options']);?>
+		<?php } else { ?>
+			<?=$this->form->field($k, $v['form']);?>
+		<?php } ?>
+		<?php
+			} 
+	    }
+		?>
+	    <?=$this->form->submit('Edit ' . $display_name); ?>
+	</fieldset>
 	
 </div>
 
 <div class="grid_4">
-	<div class="box">
-		<h2>Box</h2>
-		<div class="block">
+    <div class="box">
+        <h2>Options</h2>
+	    <div class="block">
+			<fieldset class="admin">
+			<?php
+			foreach($fields as $k => $v) {
+				if($v['form']['position'] == 'options') {
+			?>
+			<?php if($v['form']['type'] == 'select') { ?>
+				<?=$this->form->label($v['form']['label']);?>
+				<?=$this->form->select($k, $v['form']['options']);?>
+			<?php } else { ?>
+				<?=$this->form->field($k, $v['form']);?>
+			<?php } ?>
 			
-		</div>
-	</div>
+			<?php
+					if($v['form']['help_text']) {
+						echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
+					}
+				} 
+			}
+			?>
+			</fieldset>
+        </div>
+    </div>
 </div>
+
+<?=$this->form->end(); ?>
 <div class="clear"></div>
