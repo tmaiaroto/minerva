@@ -22,7 +22,7 @@ use \lithium\util\Set;
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_access\security\Access;
 use \lithium\security\Auth;
-use minerva\util\Util;
+use minerva\libraries\util\Util;
 use lithium\util\Inflector;
 
 class PagesController extends \lithium\action\Controller {
@@ -120,31 +120,72 @@ class PagesController extends \lithium\action\Controller {
     */
     public function index() {
 	// Default options for pagination, merge with URL parameters
-	$defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
+	$defaults = array('page' => 1, 'limit' => 10, 'order' => 'created.desc');
 	$params = Set::merge($defaults, $this->request->params);
 	if((isset($params['page'])) && ($params['page'] == 0)) {
 	    $params['page'] = 1;
 	}
 	list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
 	
-	// If there's a page_type passed, add it to the conditions.
+	// If there's a page_type passed, add it to the conditions, 'all' will show all pages.
 	// TODO: OBVIOUSLY add an index to "page_type" field (also url for other actions' needs, not this one)
-	if(isset($this->request->params['page_type'])) {
+	if((isset($this->request->params['page_type'])) && (strtolower($this->request->params['page_type']) != 'all')) {
 	    $conditions = array('page_type' => $this->request->params['page_type']);
 	} else {
 	    $conditions = array();
 	}
 	
-	$documents = Page::find('all', array(
-	    'conditions' => $conditions,
-	    'limit' => $params['limit'],
-	    'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
-	    //'order' => $params['order']
-	    'order' => array('_id' => 'asc')
-	));	
-	$total = Page::count();
+	// If a search query was provided, search all "searchable" fields (any model schema field that has a "search" key on it)
+	// NOTE: the values within this array for "search" include things like "weight" etc. and are not yet fully implemented...But will become more robust and useful.
+	// Possible integration with Solr/Lucene, etc.
+	if((isset($this->request->query['q'])) && (!empty($this->request->query['q']))) {
+	    $schema = Page::schema();
+	    // If the "page_type" is set to "all" then we want to get all the page type's schemas, merge them into $schema
+	    if($this->request->params['page_type'] == 'all') {
+		foreach(Util::list_types('Page', array('exclude_minerva' => true)) as $library) {
+		    $model = 'minerva\libraries\\' . $library;
+		    $schema += $model::schema();
+		}
+	    }
+	    
+	    // If a field has a "search" key defined then it's searchable
+	    $searchable_fields = array_filter($schema, function($var){ return(isset($var['search'])); });
+	    $search_conditions = array();
+	    // For each of those, adjust the conditions to include a regex
+	    foreach($searchable_fields as $k => $v) {
+		// TODO: possibly factor in the weighting later. also maybe note the "type" to ensure our regex is going to work or if it has to be adjusted (string data types, etc.)
+		//var_dump($k);
+		$search_regex = new \MongoRegex('/' . $this->request->query['q'] . '/i');
+		$conditions['$or'][] = array($k => $search_regex);
+	    }
+	    
+	}
 	
-	$this->set(compact('documents', 'limit', 'page', 'total'));
+	// Set the order for the records (dot syntax defined)
+	$order_pieces = explode('.', $params['order']);
+	if(count($order_pieces) > 1) {
+	    $order = array($order_pieces[0], $order_pieces[1]);
+	}
+	
+	// Get the documents and the total
+	$documents = array();
+	if((int)$params['limit'] > 0) {
+	    $documents = Page::find('all', array(
+		'conditions' => $conditions,
+		'limit' => (int)$params['limit'],
+		'offset' => ($params['page'] - 1) * $limit, // TODO: "offset" becomes "page" soon or already in some branch...
+		'order' => $order
+	    ));
+	}
+	// Get some handy numbers
+	$total = Page::find('count', array(
+		'conditions' => $conditions
+	));
+	$page_number = $params['page'];
+	$total_pages = ((int)$params['limit'] > 0) ? ceil($total / $params['limit']):0;
+	
+	// Set data for the view template
+	$this->set(compact('documents', 'limit', 'page_number', 'total_pages', 'total'));
     }
 
     /**
@@ -297,22 +338,24 @@ class PagesController extends \lithium\action\Controller {
     }
     
     /** 
-     *  Delete a page record.
+     *  Delete a page document.
      *  Plugins can apply filters within their Page model class in order to run filters for the delete.
      *  Useful for "clean up" tasks such as removing image files from the server if the plugin was a gallery for example.
     */
-    public function delete($url=null) {
-	if(!$url) {
+    public function delete() {
+	if(!isset($this->request->params['url'])) {
 	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
 	}
 	
-	if($record->delete()) {
+	$document = Page::findByUrl($this->request->params['url']);
+	
+	if($document->delete()) {
 	    FlashMessage::set('The content has been deleted.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
 	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
 	} else {
 	    FlashMessage::set('The content could not be deleted, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
 	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
-	}		
+	}
     }
     
 }

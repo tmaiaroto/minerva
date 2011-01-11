@@ -1,12 +1,8 @@
 <div class="grid_16">
     <h2 id="page-heading">Page Content</h2>
-    <p>From here you should be able to manage all of the dynamic (served from the database) pages on your site.<br />
-    <?=$this->html->link('Create New Page', '/pages/create', array('id' => 'create_new_page')); ?>
-    <div id="new_page_type" style="display: none;">
-	<?=$this->html->link('Blog Entry', '/pages/create/' . 'blog'); ?>
-    </div>
+    <p>From here you should be able to manage all of the dynamic (served from the database) pages on your site.
     </p>
-    <!-- TODO: instead of linking to create a new basic page....have the link something you can hover and then popup a lightbox type thing that has all the page types listed. so when you hover you get a popup and then in that popup are these icons that when you click one of those....THEN it goes to make a page and it's making a page for the proper page type. Or maybe its not lightbox and just a little slide in under the "Create New Page" link. text, icons, both, whatever. -->
+    <!-- MAYBE TODO: instead of linking to create a new basic page....have the link something you can hover and then popup a lightbox type thing that has all the page types listed. so when you hover you get a popup and then in that popup are these icons that when you click one of those....THEN it goes to make a page and it's making a page for the proper page type. Or maybe its not lightbox and just a little slide in under the "Create New Page" link. text, icons, both, whatever. -->
 </div>
 
 <div class="clear"></div>
@@ -39,26 +35,35 @@
                 <?=$page->ownder_id; ?>
             </td>
             <td>
-                <?=$page->modified; ?>
+                <?=$this->time->to('nice', $page->modified->sec); ?>
             </td>
             <td>
-                <?=$page->created; ?>
+                <?=$this->time->to('nice', $page->created->sec); ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', '/pages/update/' . $page->page_type . '/' . $page->url); ?>
+                <?=$this->html->link('Edit', '/pages/update/' . $page->page_type . '/' . $page->url); ?> | 
+		<?=$this->html->link('Delete', '/pages/delete/' . $page->page_type . '/' . $page->url, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $page->title . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>
     </table>
 
+<em>Showing page <?=$page_number; ?> of <?=$total_pages; ?>. <?=$total; ?> total record<?php echo ((int) $total > 1 || (int) $total == 0) ? 's':''; ?>.</em><br />
 <em>Template rendered from /views/pages/index.html.php (core Minerva pages index).</em>
 </div>
 
 <div class="grid_4">
     <div class="box">
-        <h2>Filter &amp; Search</h2>
+        <h2>Search for Content</h2>
 	    <div class="block">
+		<?=$this->html->query_form(array('label' => 'Query ')); ?>
             </div>
+    </div>
+    <div class="box">
+	<h2>Create Content</h2>
+	<div class="block">
+	    <?=$this->html->link_types('page', 'create'); ?>
+	</div>
     </div>
 </div>
 
@@ -66,8 +71,8 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-	$('#create_new_page').live('hover', function() {
+	/*$('#create_new_page').live('hover', function() {
 	    $('#new_page_type').show();
-	});
+	});*/
     });
 </script>

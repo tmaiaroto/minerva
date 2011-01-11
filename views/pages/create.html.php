@@ -3,8 +3,8 @@
 </div>
 <div class="clear"></div>
 
-<div class="grid_12">  
-	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
+<div class="grid_12">
+    	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
 	<?=$this->form->create($page); ?>
 	<fieldset class="admin">
 		<legend>Primary Information</legend>
@@ -42,6 +42,13 @@
 			?>
 			</fieldset>
         </div>
+    </div>
+    
+    <div class="box">
+		<h2>Create Other Page Types</h2>
+		<div class="block">
+			<?=$this->html->link_types('page', 'create'); ?>
+		</div>
     </div>
 </div>
 

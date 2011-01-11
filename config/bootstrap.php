@@ -19,14 +19,16 @@
  * directory as your application.  If you use the same libraries in multiple applications, you can
  * set this to a shared path on your server.
  */
-define('LITHIUM_LIBRARY_PATH', dirname(dirname(__DIR__)) . '/libraries');
+//define('LITHIUM_LIBRARY_PATH', dirname(dirname(__DIR__)) . '/libraries');
+defined('LITHIUM_LIBRARY_PATH') or define('LITHIUM_LIBRARY_PATH', dirname(dirname(__DIR__)) . '/libraries');
 
 /**
  * This is the path to your application's directory.  It contains all the sub-folders for your
  * application's classes and files.  You don't need to change this unless your webroot folder is
  * stored outside of your app folder.
  */
-define('LITHIUM_APP_PATH', dirname(__DIR__));
+//define('LITHIUM_APP_PATH', dirname(__DIR__));
+defined('LITHIUM_APP_PATH') or define('LITHIUM_APP_PATH', dirname(__DIR__));
 
 /**
  * Locate and load Lithium core library files.  Throws a fatal error if the core can't be found.

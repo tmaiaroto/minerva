@@ -90,6 +90,8 @@ Libraries::add('blog');
 
 Libraries::add('li3_access');
 
+Libraries::add('al13_helpers');
+Libraries::add('util');
 Libraries::add('li3_flash_message');
 Libraries::add('li3_assets', array(
                                      'config' => array(

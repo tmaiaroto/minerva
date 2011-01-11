@@ -14,12 +14,11 @@ namespace minerva\util;
 class Debug {
     
     static $domain_whitelist = array(
-        'dev.familyspoon.com',
-        'familyspoon.local'
+        'minerva.local',
     );
     
     static $ip_whitelist = array(
-        '76.21.112.105'
+        '127.0.0.1'
     );
     
     public function dump($data=null, $options=array()) {

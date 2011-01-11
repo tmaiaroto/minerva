@@ -1,11 +1,13 @@
 <?php
 /*
- * A general utility class for familyspoon.com. This includes several useful methods used throughout the site.
+ * A general utility class for Minerva. This includes several useful methods used throughout the site.
 */
-namespace minerva\util;
+namespace minerva\libraries\util;
 
 use \RecursiveIteratorIterator;
 use \RecursiveArrayIterator;
+use lithium\core\Libraries;
+use lithium\util\Set;
 
 class Util {
     
@@ -94,5 +96,47 @@ class Util {
         }        
         return strtolower($options['url']);
     }
+    
+    /**
+     * Returns an array of all libraries that have models in order to provide
+     * a list for page types, block types, or user types. The list is returned
+     * in alphabetical order.
+     *
+     * @param $model String The model
+     * @param $options Array Various options
+     *      - exclude_minerva Boolean Excludes the minerva\models classes
+     *      - exclude Array Other class paths to exclude
+     * @return Array All of the class paths to the types for that model
+    */
+    public function list_types($model='Page', $options=array()) {
+        $options += array('exclude_minerva' => false, 'exclude' => array());
+        $model = ucfirst($model);
+        
+        $types = array();
+        $libraries = Libraries::locate('models');
+        foreach($libraries as $library) {
+            if(end(explode('\\', $library)) == 'Page') {
+                $types[] = $library;
+            }
+        }
+        
+        if($options['exclude_minerva'] === true) {
+            $options['exclude'][] = 'minerva\models\\' . $model;
+        }
+        if(count($options['exclude']) > 0) {
+            $i=0;
+            foreach($types as $type) {
+                if(in_array($type, $options['exclude'])) {
+                    unset($types[$i]);
+                }
+                $i++;
+            }
+        }
+        
+        sort($types);
+        return $types;
+    }
+    
+    
 }
 ?>

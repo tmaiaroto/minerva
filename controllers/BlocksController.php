@@ -17,6 +17,10 @@
  */
 namespace minerva\controllers;
 use minerva\models\Block;
+use li3_flash_message\extensions\storage\FlashMessage;
+use li3_access\security\Access;
+use \lithium\security\Auth;
+use \lithium\storage\Session;
 use \lithium\util\Set;
 
 class BlocksController extends \lithium\action\Controller {
@@ -80,13 +84,13 @@ class BlocksController extends \lithium\action\Controller {
 	if((isset($params['page'])) && ($params['page'] == 0)) { $params['page'] = 1; }
 	list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
 	
-	if(isset($this->request->params['page_type'])) {
-	    $conditions = array('page_type' => $this->request->params['page_type']);
+	if(isset($this->request->params['block_type'])) {
+	    $conditions = array('block_type' => $this->request->params['block_type']);
 	} else {
 	    $conditions = array();
 	}
 	
-	$records = Block::find('all', array(
+	$documents = Block::find('all', array(
 	    'limit' => $params['limit'],
 	    'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
 	    //'order' => $params['order']
@@ -96,7 +100,7 @@ class BlocksController extends \lithium\action\Controller {
 
 	$total = Block::count();
 	
-	return compact('records', 'limit', 'page', 'total');		
+	return compact('documents', 'limit', 'page', 'total');		
     }
 	
     /** 
@@ -125,23 +129,30 @@ class BlocksController extends \lithium\action\Controller {
      * they all have to work together to pull off this flexibility.
      * 
     */
-    public function create() {	
+    public function create() {
+	// Get the name for the page, so if another page type library uses the "admin" (core) templates for this action, it will be shown
+	$display_name = Block::display_name();
+	
 	// Get the fields so the view template can iterate through them and build the form
-	$fields = Block::$fields;	 
-    
+	$fields = Block::schema();
+	// Don't need to have these fields in the form
+	unset($fields[Block::key()]);
+	// If a block type was passed in the params, we'll need it to save to the block document.
+	$fields['block_type']['form']['value'] = (isset($this->request->params['block_type'])) ? $this->request->params['block_type']:null;
+	
 	// Save
 	if ($this->request->data) {
-	    $block = Block::create($this->request->data);	    
-	    if($block->save()) {		
+	    $document = Block::create($this->request->data);	    
+	    if($document->save()) {		
 		$this->redirect(array('controller' => 'blocks', 'action' => 'index'));
 	    }
 	}
 	
-	if(empty($block)) {
-	    $block = Block::create(); // Create an empty block object
+	if(empty($document)) {
+	    $document = Block::create(); // Create an empty block document object
 	}
     
-	$this->set(compact('block', 'fields'));
+	$this->set(compact('document', 'fields', 'display_name'));
     }
     
     /**
@@ -168,17 +179,18 @@ class BlocksController extends \lithium\action\Controller {
      *  Delete a block record.
      *  Plugins can apply filters within their Block model class in order to run filters for the delete.  
     */
-    public function delete($url=null) {
-	if(!$url) {
+    public function delete() {
+	if(!isset($this->request->params['url'])) {
 	    $this->redirect(array('controller' => 'blocks', 'action' => 'index'));
 	}
-	$record = Block::find('first', array('conditions' => array('url' => $url)));
 	
-	// Delete the record TODO: put in some kinda flash messages (like cake has) to notify the user things deleted or didn't
-	// http://rad-dev.org/li3_flash_message
-	if($record->delete()) {
+	$document = Block::findByUrl($this->request->params['url']);
+	
+	if($document->delete()) {
+	    FlashMessage::set('The block has been deleted.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
 	    $this->redirect(array('controller' => 'blocks', 'action' => 'index'));
 	} else {
+	    FlashMessage::set('The block could not be deleted, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
 	    $this->redirect(array('controller' => 'blocks', 'action' => 'index'));
 	}		
     }	

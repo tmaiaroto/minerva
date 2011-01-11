@@ -37,7 +37,7 @@ class Page extends \minerva\models\Page {
 	protected $_schema = array(
 		'title' => array('label' => 'Blog Title'), // this won't overwrite the main app's page models' $fields title key
 		'author' => array('type' => 'string', 'form' => array('help_text' => 'Optionally override the author name which is set from your user name.', 'position' => 'options')),
-		'body' => array('type' => 'string', 'form' => array('label' => 'Body Copy', 'type' => 'textarea'))
+		'body' => array('type' => 'string', 'search' => array('weight' => 1), 'form' => array('label' => 'Body Copy', 'type' => 'textarea'))
 	);
 	
 	// Add validation rules for new fields here

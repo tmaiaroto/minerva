@@ -1,11 +1,11 @@
 <?php
 namespace minerva\controllers;
 use minerva\models\User;
+use li3_flash_message\extensions\storage\FlashMessage;
+use li3_access\security\Access;
 use \lithium\security\Auth;
 use \lithium\storage\Session;
 use \lithium\util\Set;
-
-use li3_flash_message\extensions\storage\FlashMessage;
 
 class UsersController extends \lithium\action\Controller {
 
@@ -238,174 +238,123 @@ class UsersController extends \lithium\action\Controller {
         $this->set(compact('user', 'fields'));
     }
 	
-	/**
-	 * Manage a user account. Similar to update(), but for public site users and not admins to use.
-	*/
-	public function manage($url=null) {	
-		// First, get the record
-		$record = User::find('first', array('conditions' => array('url' => $url)));
-		
-		$user = Auth::check('minerva_user');
-		if(!$user) {
-			// TODO Flash message
-			$this->redirect('/');
-			exit();
-		}
-		
-		$record_data = $record->data();
-		if($user['_id'] != $record_data['_id']) {
-			// TODO Flash message
-			$this->redirect('/');
-			exit();
-		}
-		
-		
-		// Next, if the record uses a library, instantiate it's User model (bridge from plugin to core)
-		if((isset($record->library)) && ($record->library != 'app') && (!empty($record->library))) {		
-			// Just instantiating the library's Page model will essentially "bridge" and extend the main app's User model	
-			$class = '\\'.$record->library.'\models\User';
-			if(class_exists($class)) {
-                            $Library = new $class();
-                        }
-			// var_dump(User::$fields); // debug
-			// var_dump($Library::$fields); // just the extended library's fields			
-		}
-		
-		// Update the record
-		if ($this->request->data) {
-			unset($this->request->data['password']);
-			if((isset($this->request->data['new_password'])) && (!empty($this->request->data['new_password']))) {
-				$this->request->data['password'] = sha1($this->request->data['new_password']);
-				unset($this->request->data['new_password']);
-			}
-                        // Call save from the main app's User model
-                        if($record->save($this->request->data)) {
-                            $this->redirect('/');
-                        }                        
-		}
-		
-                $this->set(compact('record'));
+    /**
+     * Update a user.
+     *
+    */
+    public function update() {
+	if(isset($this->request->params['page_type'])) {
+	    $conditions = array('page_type' => $this->request->params['page_type']);
+	} else {
+	    $conditions = array();
+	}
+    
+	if(isset($this->request->params['url'])) {
+	    $conditions += array('url' => $this->request->params['url']);
 	}
 	
-	/**
-	 * Update a user.
-	 *
-	*/
-	public function update($url=null) {
-	    if(isset($this->request->params['page_type'])) {
-		$conditions = array('page_type' => $this->request->params['page_type']);
+	if(isset($this->request->params['id'])) {
+	    $conditions += array('_id' => $this->request->params['id']);
+	}
+	
+	// Get the name for the page, so if another page type library uses the "admin" (core) templates for this action, it will be shown
+	$display_name = User::display_name();
+    
+	// Get the fields so the view template can build the form
+	$fields = User::schema();                
+	// Don't need to have these fields in the form
+	unset($fields[User::key()]);
+	// If a page type was passed in the params, we'll need it to save to the page document.
+	$fields['user_type']['form']['value'] = (isset($this->request->params['user_type'])) ? $this->request->params['user_type']:null;
+	
+	// Get the user document
+	$document = User::find('first', array('conditions' => $conditions));
+	
+	$document_data = $document->data();
+	
+	// Update the record
+	if ($this->request->data) {
+	    // Set some data
+	    unset($this->request->data['password']);
+	    if((isset($this->request->data['new_password'])) && (!empty($this->request->data['new_password']))) {
+		$this->request->data['password'] = sha1($this->request->data['new_password']);
+		unset($this->request->data['new_password']);
+	    }
+	    
+	    // Call save from the main app's User model
+	    if($document->save($this->request->data)) {
+		$this->redirect(array('controller' => 'users', 'action' => 'index'));
+	    }                        
+	}
+	    
+	    $this->set(compact('document', 'fields', 'display_name'));
+	}
+	
+    /**
+     * Change a user password.
+     * This is a method that you request via AJAX.
+     *
+    */
+    public function update_password($url=null) {
+	// First, get the record
+	$record = User::find('first', array('conditions' => array('url' => $url)));
+	if(!$record) {
+	    return array('error' => true, 'response' => 'User record not found.');
+	}
+	
+	$user = Auth::check('minerva_user');
+	if(!$user) {
+	    //$this->redirect('/');
+	    return array('error' => true, 'response' => 'You must be logged in to change your password.');
+	    //exit();
+	}
+	
+	$record_data = $record->data();
+	if($user['_id'] != $record_data['_id']) {
+	    //$this->redirect('/');
+	    return array('error' => true, 'response' => 'You can only change your own password.');
+	    //exit();
+	}
+	
+	// Update the record
+	if ($this->request->data) {
+	    // Make sure the password matches the confirmation
+	    if($this->request->data['password'] != $this->request->data['password_confirm']) {
+		return array('error' => true, 'response' => 'You must confirm your password change by typing it again in the confirm box.');
+	    }
+	    
+	    // Call save from the main app's User model
+	    if($record->save($this->request->data)) {
+		//$this->redirect(array('controller' => 'users', 'action' => 'manage', $url));
+		return array('error' => false, 'response' => 'Password has been updated successfully.');
 	    } else {
-		$conditions = array();
+		return array('error' => true, 'response' => 'Failed to update password, try again.');
 	    }
+	} else {
+	    return array('error' => true, 'response' => 'You must pass the proper data to change your password and you can\'t call this URL directly.');
+	}
+    }
 	
-	    if(isset($this->request->params['url'])) {
-		$conditions += array('url' => $this->request->params['url']);
-	    }
-	    
-	    if(isset($this->request->params['id'])) {
-		$conditions += array('_id' => $this->request->params['id']);
-	    }
-	    
-	    // Get the name for the page, so if another page type library uses the "admin" (core) templates for this action, it will be shown
-	    $display_name = User::display_name();
-	
-	    // Get the fields so the view template can build the form
-	    $fields = User::schema();                
-	    // Don't need to have these fields in the form
-	    unset($fields[User::key()]);
-	    // If a page type was passed in the params, we'll need it to save to the page document.
-	    $fields['user_type']['form']['value'] = (isset($this->request->params['user_type'])) ? $this->request->params['user_type']:null;
-	
-	    
-		// First, get the record
-		$document = User::find('first', array('conditions' => $conditions));
-		
-		$document_data = $document->data();
-		
-		// Update the record
-		if ($this->request->data) {
-			// Set some data
-			unset($this->request->data['password']);
-			if((isset($this->request->data['new_password'])) && (!empty($this->request->data['new_password']))) {
-				$this->request->data['password'] = sha1($this->request->data['new_password']);
-				unset($this->request->data['new_password']);
-			}
-			// Checkboxes
-			//var_dump($this->request->data);exit();
-			
-                        // Call save from the main app's User model
-                        if($document->save($this->request->data)) {
-                            $this->redirect(array('controller' => 'users', 'action' => 'index'));
-                        }                        
-		}
-		
-                $this->set(compact('document', 'fields', 'display_name'));
+    /** 
+     *  Delete a user record.
+     *  Plugins can apply filters within their User model class in order to run filters for the delete.
+     *  Useful for "clean up" tasks.
+    */
+    public function delete() {
+	if(!isset($this->request->params['id'])) {
+	    $this->redirect(array('controller' => 'users', 'action' => 'index'));
 	}
 	
-	/**
-	 * Change a user password.
-	 * This is a method that you request via AJAX.
-	 *
-	*/
-	public function update_password($url=null) {
-		// First, get the record
-		$record = User::find('first', array('conditions' => array('url' => $url)));
-		if(!$record) {
-			return array('error' => true, 'response' => 'User record not found.');
-		}
-		
-		$user = Auth::check('minerva_user');
-		if(!$user) {
-			//$this->redirect('/');
-			return array('error' => true, 'response' => 'You must be logged in to change your password.');
-			//exit();
-		}
-		
-		$record_data = $record->data();
-		if($user['_id'] != $record_data['_id']) {
-			//$this->redirect('/');
-			return array('error' => true, 'response' => 'You can only change your own password.');
-			//exit();
-		}
-		
-		// Update the record
-		if ($this->request->data) {
-			// Make sure the password matches the confirmation
-			if($this->request->data['password'] != $this->request->data['password_confirm']) {
-				return array('error' => true, 'response' => 'You must confirm your password change by typing it again in the confirm box.');
-			}
-			
-                        // Call save from the main app's User model
-                        if($record->save($this->request->data)) {
-				//$this->redirect(array('controller' => 'users', 'action' => 'manage', $url));
-				return array('error' => false, 'response' => 'Password has been updated successfully.');
-                        } else {
-				return array('error' => true, 'response' => 'Failed to update password, try again.');
-			}
-		} else {
-			return array('error' => true, 'response' => 'You must pass the proper data to change your password and you can\'t call this URL directly.');
-		}
-	}
+	$document = User::find('first', array('conditions' => array('_id' => $this->request->params['id'])));
 	
-	/** 
-	 *  Delete a user record.
-	 *  Plugins can apply filters within their User model class in order to run filters for the delete.
-	 *  Useful for "clean up" tasks.
-	*/
-	public function delete($url=null) {
-		if(!$url) {
-			$this->redirect(array('controller' => 'users', 'action' => 'index'));
-		}
-               
-                // TODO: should messages like this be done with a filter on delete??
-		// Delete the record TODO: put in some kinda flash messages (like cake has) to notify the user things deleted or didn't
-		// http://rad-dev.org/li3_flash_message
-		if($record->delete()) {
-			$this->redirect(array('controller' => 'users', 'action' => 'index'));
-		} else {
-			$this->redirect(array('controller' => 'users', 'action' => 'index'));
-		}		
-	}
-	
+	if($document->delete()) {
+	    FlashMessage::set('The user has been deleted.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
+	    $this->redirect(array('controller' => 'users', 'action' => 'index'));
+	} else {
+	    FlashMessage::set('The user could not be deleted, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+	    $this->redirect(array('controller' => 'users', 'action' => 'index'));
+	}		
+    }
+    
 }
 ?>

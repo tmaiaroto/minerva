@@ -41,7 +41,8 @@
                 <?=$user->created; ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', '/users/update/' . $user->user_type . '/' . $user->_id); ?>
+                <?=$this->html->link('Edit', '/users/update/' . $user->user_type . '/' . $user->_id); ?> |
+                <?=$this->html->link('Delete', '/users/delete/' . $user->user_type . '/' . $user->_id, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $user->email . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>

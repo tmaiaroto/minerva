@@ -69,7 +69,7 @@ class Page extends \lithium\data\Model {
     protected $_schema = array(
 	'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
 	'page_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-	'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
+	'title' => array('type' => 'string', 'search' => array('weight' => 1), 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
 	'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
 	'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),		
 	'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this page (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
