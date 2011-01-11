@@ -6,7 +6,7 @@
  * @author Tom Maiaroto
  * @website http://www.shift8creative.com
  * @modified 2011-01-10 08:22:00 
- * @created 2010-01-10 08:22:00
+ * @created 2011-01-10 08:22:00
  *
 */
 namespace minerva\extensions\helper;

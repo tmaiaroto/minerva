@@ -35,9 +35,9 @@ Router::connect('/pages/read/{:url}', array('controller' => 'pages', 'action' =>
 Router::connect('/pages/create/{:page_type}', array('admin' => true, 'controller' => 'pages', 'action' => 'create'));
 Router::connect('/pages/update/{:page_type}/{:url}', array('admin' => true, 'controller' => 'pages', 'action' => 'update'));
 Router::connect('/pages/delete/{:page_type}/{:url}', array('admin' => true, 'controller' => 'pages', 'action' => 'delete'));
-// and for index pages
+// and for index pages (note by default it uses a page_type of "all" and is intended to be an admin action)
 Router::connect('/pages/index/{:page_type}', array(
-    'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10
+    'controller' => 'pages', 'action' => 'index', 'page' => 1, 'limit' => 10, 'page_type' => 'all'
 ));
 Router::connect('/pages/index/{:page_type}/page:{:page:[0-9]+}', array(
     'controller' => 'pages', 'action' => 'index', 'page' => 1

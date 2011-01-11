@@ -692,3 +692,13 @@ fieldset.admin .help_text {
 	color: #333;
 	font-style: italic;
 }
+ul.pagination_actions {
+	display: block;
+}
+ul.pagination_actions li {
+	float: left;
+	display: inline;
+	list-style: none;
+	list-style-position: inside;
+	margin: 0px 5px 0px 0px;
+}
