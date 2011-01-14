@@ -31,7 +31,7 @@
 	<div class="container_16">
 		<div class="grid_16">
 			<h1 id="branding">
-				<a href="/">Minerva</a>
+				<a href="/admin">Minerva</a>
 			</h1>
 			<?php echo $this->menu->render_admin_menu('main_administration'); ?>
 		</div>

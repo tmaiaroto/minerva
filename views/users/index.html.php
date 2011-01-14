@@ -51,13 +51,13 @@
 
 <div class="grid_4">
     <div class="box">
-        <h2>Search for Content</h2>
+        <h2>Search for Users</h2>
 	    <div class="block">
 		<?=$this->html->query_form(array('label' => 'Query ')); ?>
             </div>
     </div>
     <div class="box">
-	<h2>Create Content</h2>
+	<h2>Create User</h2>
 	<div class="block">
 	    <?=$this->html->link_types('user', 'create', array('exclude_minerva' => false)); ?>
 	</div>

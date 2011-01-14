@@ -278,7 +278,7 @@ class UsersController extends \lithium\action\Controller {
 	
 	if(!$record) {
 	    FlashMessage::set('The user could not be found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
-	    $this->redirect('/');
+	    $this->redirect('/users');
 	}
 	
 	$this->set(compact('record'));
