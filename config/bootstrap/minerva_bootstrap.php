@@ -180,13 +180,30 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 
 Media::applyFilter('render', function($self, $params, $chain) {
     // Set the layout and template paths to the library if it has templates there
-    $library = $params['options']['library'];
+    $library = (isset($params['options']['library'])) ? $params['options']['library']:null;
     $layout = $params['options']['layout'];
     $type = $params['options']['type'];
     $template = $params['options']['template'];
     $controller = $params['options']['controller'];
-    $admin = $params['options']['admin'];
+    $admin = (isset($params['options']['admin'])) ? $params['options']['admin']:false; // this is probably unnecessary because the filter above on the Dispatcher does it already
+    $action = (isset($params['options']['request']->params['action'])) ? $params['options']['request']->params['action']:null;
     
+    // If PagesController::view() then we're looking for a static page, if admin is set to false then we render from the "static" library
+    if(($action == 'view' && $controller == 'pages') && (!$admin)) {
+	$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
+        $params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+	return $chain->next($self, $params, $chain);
+    }
+    
+    // If BlocksController::view() then we're looking for a static block template, if admin is set to false then we render from the "static" library
+    if(($action == 'view' && $controller == 'blocks') && (!$admin)) {
+	// note: blocks don't use layouts, there is a "blank.html.php" layout template that it uses actually within minerva/views/layouts/ ... so it has one, but it's empty
+	// $params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
+        $params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'blocks' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+	return $chain->next($self, $params, $chain);
+    }
+    
+    // Paths for all other controller actions
     if((!$admin) && (file_exists(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . $layout . '.' . $type . '.php'))) {
 	$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
     } else {
@@ -198,8 +215,8 @@ Media::applyFilter('render', function($self, $params, $chain) {
     } else {
 	$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
     }
-    
-    // var_dump($params['options']['paths']);
+
+    // var_dump($params['options']);
     return $chain->next($self, $params, $chain);	
 });
 ?>

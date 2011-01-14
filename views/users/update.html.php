@@ -26,7 +26,7 @@
 			}
 	    }
 		?>
-	    <?=$this->form->submit('Edit ' . $display_name); ?>
+	    <?=$this->form->submit('Edit ' . $display_name); ?> <?=$this->html->link('Cancel', array('controller' => 'users', 'action' => 'index')); ?>
 	</fieldset>
 	
 </div>

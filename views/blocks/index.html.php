@@ -39,8 +39,8 @@
                 <?=$block->created; ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', '/blocks/update/' . $block->block_type . '/' . $block->url); ?> | 
-		<?=$this->html->link('Delete', '/blocks/delete/' . $block->block_type . '/' . $block->url, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $block->title . '?\')')); ?>
+                <?=$this->html->link('Edit', '/blocks/update/' . $block->url); ?> | 
+		<?=$this->html->link('Delete', '/blocks/delete/' . $block->url, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $block->title . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>

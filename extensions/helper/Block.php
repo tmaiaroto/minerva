@@ -46,7 +46,7 @@
 *
 * @author Tom Maiaroto
 * @website http://www.shift8creative.com
-* @modified 2010-06-10 16:17:41 
+* @modified 2011-01-13 21:37:50 
 * @created 2010-06-10 16:17:41 
 *
 */
@@ -56,13 +56,45 @@ use \lithium\util\Inflector as Inflector;
 
 class Block extends \lithium\template\Helper {
 	
-	/** render allows you to render a view template or external URL's content inline with the template it was called from.
+	/**
+	 * Shortcut helper method for rendering an admin static block from a view template.
+	 * Admin templates are always pulled from minerva/views/blocks/static/...
+	 *
+	 * @param $template string[required] The name of the template file
+	 * @return Mixed the html/css from the rendered page/view template
+	*/
+	public function render_admin_block($template=null) {
+		if(empty($template)) {
+			return '';
+		}
+		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => null, 'template' => $template, 'layout' => 'blank', 'type' => 'html');
+		return $this->render($options);
+	}
+	
+	/**
+	 * Shortcut helper method for rendering a static block from a view template.
+	 * Static templates are pulled from minerva/libraries/static/views/blocks/...
+	 * If the path needs to be changed, use render() instead.
+	 *
+	 * @param $template string[required] The name of the template file
+	 * @return Mixed the html/css from the rendered page/view template
+	*/
+	public function render_block($template=null) {
+		if(empty($template)) {
+			return '';
+		}
+		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'static', 'template' => $template, 'layout' => 'blank', 'type' => 'html');
+		return $this->render($options);
+	}
+	
+	/**
+	 * render() allows you to render a view template or external URL's content inline with the template it was called from.
 	 *
 	 * @param $options array[required]
 	 * @return Mixed the html/css from the rendered page/view template or JavaScript code with an AJAX call to load local content or false if something went wrong
 	*/
 	public function render($options=array()) {
-		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'minerva', 'template' => null, 'folder' => 'blocks/static', 'layout' => 'blank', 'type' => 'html');
+		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'static', 'template' => null, 'layout' => 'blank', 'type' => 'html');
 		$options += $defaults;
 		
 		/** 
@@ -71,18 +103,27 @@ class Block extends \lithium\template\Helper {
 		 *  Both the normal "File" renderer to render templates can be used and also a custom "Curl" renderer that can be used 
 		 *  to load any URL using the cURL library.
 		 */
-		if($options['method'] == 'php') {	
+		if($options['method'] == 'php') {
+			if(empty($options['library'])) {
+				// "admin" blocks have templates saved in minerva/views/blocks/static
+				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'blocks' .  DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+			} else {
+				// any library with static block templates keep their templates in library_name/views/blocks
+				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $options['library'] . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'blocks' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+			}
+			
 			// If a template was specified, we need to set the paths and our renderer becomes File.
 			if(!empty($options['template'])) { 
 				$viewOptions['renderer'] = 'File'; // Should be by default, but ensure it is.
-				$viewOptions['library'] = $options['library']; // The defaults will set this to minerva, but each library can have its own
+				$viewOptions['library'] = $options['library']; // The defaults will set this to null or 'static', but each library can have its own
 				$viewOptions['paths'] = array(
-			        'template' => '{:library}/views/'.$options['folder'].'/{:template}.{:type}.php',
+			        //'template' => '{:library}/views/'.$options['folder'].'/{:template}.{:type}.php',
+				'template' => $template_path,
 			        //'layout'   => '{:library}/views/layouts/{:layout}.{:type}.php',
 				// This will always ensure the layout template for blocks is an empty layout and comes from the core minerva folder.
 				// This way, each library isn't required to create an empty layout template. Very convenient.
 				// Plus blocks shouldn't need anything else...IF they do, we can add another option like "layout_library" or something.
-				'layout' => LITHIUM_APP_PATH . '/views/layouts/{:layout}.{:type}.php'
+				'layout' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views'. DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php'
 			    );			    
 			}
 			
@@ -126,7 +167,8 @@ class Block extends \lithium\template\Helper {
 		
 	}
 	
-	/** requestAction is a shortcut method to pulling back return data from any controller's method.
+	/**
+	 *  requestAction() is a shortcut method to pulling back return data from any controller's method.
 	 *  Normally, you'd have to manually instantiate the class, call the method, and pass arguments...
 	 *  Which really isn't a big deal, but this is a convience to that. It also let's you pass a conveient library option.
 	 *
@@ -152,7 +194,8 @@ class Block extends \lithium\template\Helper {
 		return $controller->{$options['action']}($options['args']);		
 	}
 	
-	/** request is simply a shortcut method to the shortcut method of pulling back data from the block controller
+	/**
+	 *  request() is simply a shortcut method to the shortcut method of pulling back data from the block controller
 	 *  In this case...We're talking about getting a dynamic block from the database.
 	 *  While the requestAction() can call any controller/action, request() just calls the blocks controller's read method.
 	 *  This leaves just one simple argument to be passed, the "URL" of the block.

@@ -105,10 +105,18 @@ class PagesController extends \lithium\action\Controller {
     */
     public function view() {
 	$path = func_get_args();
-	if (empty($path)) {
-	    $path = array('static', 'home');
+	
+	// If route has the "admin" key set to true then render template from Minerva's views/pages/static folder
+	if((isset($this->request->params['admin'])) && ($this->request->params['admin'] === true)) {
+	    if (empty($path)) {
+		$path = array('static', 'home');
+	    } else {
+		array_unshift($path, 'static');
+	    }
 	} else {
-	    array_unshift($path, 'static');
+	    if (empty($path)) {
+		$path = array('home');
+	    }
 	}
 	$this->render(array('template' => join('/', $path)));
     }	
@@ -271,7 +279,7 @@ class PagesController extends \lithium\action\Controller {
 	    $this->request->data['url'] = Util::unique_url(array(
 		'url' => Inflector::slug($this->request->data['title']),
 		'model' => 'minerva\models\Page',
-		'id' => $this->request->data['_id']
+		'id' => $page->_id
 	    ));
 	    
 	    // Call save from the main app's Page model

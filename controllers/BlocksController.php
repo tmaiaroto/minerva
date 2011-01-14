@@ -23,6 +23,7 @@ use \lithium\security\Auth;
 use \lithium\storage\Session;
 use \lithium\util\Set;
 use minerva\libraries\util\Util;
+use lithium\util\Inflector;
 
 class BlocksController extends \lithium\action\Controller {
 
@@ -60,12 +61,18 @@ class BlocksController extends \lithium\action\Controller {
     
     static $document_access = array();
 
-    public function view() {		
-	if (empty($path)) {
-	    $path = array('static', 'example');
+    public function view() {
+	if((isset($this->request->params['admin'])) && ($this->request->params['admin'] === true)) {
+	    if (empty($path)) {
+		$path = array('static', 'example');
+	    } else {
+		$path = array('static', func_get_args());
+	    }
 	} else {
-	    $path = array('static', func_get_args());
-	}       
+	    if (empty($path)) {
+		$path = array('example');
+	    }
+	}
 	$this->render(array('template' => join('/', $path), 'layout' => 'blank'));
     }
 	
@@ -182,7 +189,22 @@ class BlocksController extends \lithium\action\Controller {
 	
 	// Save
 	if ($this->request->data) {
-	    $document = Block::create($this->request->data);	    
+	    $now = date('Y-m-d h:i:s');
+	    $this->request->data['created'] = $now;
+	    $this->request->data['modified'] = $now;
+	    $this->request->data['url'] = Util::unique_url(array(
+		'url' => Inflector::slug($this->request->data['title']),
+		'model' => 'minerva\models\Block'
+	    ));
+	    $user = Auth::check('minerva_user');
+	    if($user) {
+		$this->request->data['owner_id'] = $user['_id'];
+	    } else {
+		// TODO: possible for anonymous users to create things? do we need to put in any value here?
+		$this->request->data['owner_id'] = '';
+	    }
+	    $document = Block::create($this->request->data);
+	    
 	    if($document->save()) {		
 		$this->redirect(array('controller' => 'blocks', 'action' => 'index'));
 	    }
@@ -200,19 +222,50 @@ class BlocksController extends \lithium\action\Controller {
      * 
     */
     public function update($url=null) {	
-	$record = Block::find('first', array('conditions' => array('url' => $url)));
+	if(isset($this->request->params['block_type'])) {
+	    $conditions = array('block_type' => $this->request->params['block_type']);
+	} else {
+	    $conditions = array();
+	}
 	
-	$fields = Block::$fields;
-	$fields[Block::key()] = array('type' => 'hidden', 'label' => false);
-	//$fields['block_type'] = array('type' => 'hidden', 'label' => false);
+	if(isset($this->request->params['url'])) {
+	    $conditions += array('url' => $this->request->params['url']);
+	}
+	
+	// Get the name for the page, so if another page type library uses the "admin" (core) templates for this action, it will be shown
+	$display_name = Block::display_name();
+	
+	// First, get the record
+	$block = Block::find('first', array('conditions' => $conditions));
+	
+	// Get the fields so the view template can build the form
+	$fields = Block::schema();                
+	// Don't need to have these fields in the form
+	unset($fields[Block::key()]);
+	// If a page type was passed in the params, we'll need it to save to the page document.
+	$fields['block_type']['form']['value'] = (isset($this->request->params['block_type'])) ? $this->request->params['block_type']:$block->block_type;
+	
 	
 	// Update the record
 	if ($this->request->data) {
-	    if($record->save($this->request->data)) {				
+	    $now = date('Y-m-d h:i:s');
+	    $this->request->data['modified'] = $now;
+	    $this->request->data['url'] = Util::unique_url(array(
+		'url' => Inflector::slug($this->request->data['title']),
+		'model' => 'minerva\models\Block',
+		'id' => $block->_id
+	    ));
+	    
+	    // Call save from the main app's Block model
+	    if($block->save($this->request->data)) {
+		FlashMessage::set('The block has been updated successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
 		$this->redirect(array('controller' => 'blocks', 'action' => 'index'));
+	    } else {
+		FlashMessage::set('The block could not be updated, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
 	    }
 	}
-	$this->set(compact('record', 'fields'));
+	
+	$this->set(compact('block', 'fields', 'display_name'));
     }
 	
     /** 
@@ -235,12 +288,6 @@ class BlocksController extends \lithium\action\Controller {
 	}		
     }	
     
-    
-    // test method
-    public function foo() {
-	$foo_data = array('string_data' => 'Hello foo.', 'int_data' => 4);		
-	return compact('foo_data');
-    }
     
 }
 ?>

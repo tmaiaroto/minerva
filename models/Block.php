@@ -2,7 +2,7 @@
 namespace minerva\models;
 
 use \lithium\util\Validator;
-use lithium\util\Inflector as Inflector;
+use lithium\util\Inflector;
 
 class Block extends \lithium\data\Model {
 	
@@ -71,34 +71,6 @@ class Block extends \lithium\data\Model {
 		return $class::_object()->display_name;
     }
 	
-	public function unique_url($url=null, $id=null) {
-		if(!$url) {
-			return null;
-		}
-		
-		$records = Block::find('all', array('fields' => array('url'), 'conditions' => array('url' => array('like' => '/'.$url.'/'))));
-		$conflicts = array();
-		
-		foreach($records as $record) {
-			$conflicts[] = $record->url;
-		}
-		
-		if (!empty($conflicts)) {
-			$firstSlug = $url;
-			$i = 1;
-			while($i > 0) {
-				// TODO: Maybe make separator option somewhere as a property? So it can be _ instead of -
-				if (!in_array($firstSlug . '-' . $i, $conflicts)) {					
-					$url = $firstSlug . '-' . $i;
-					$i = -1;
-				}
-                        $i++;
-			}
-		}
-		
-		return $url;
-	}
-	
 }
 
 /* FILTERS
@@ -106,23 +78,5 @@ class Block extends \lithium\data\Model {
  * Filters must be set down here outside the class because of the class extension by libraries.
  * If the filter was applied within __init() it would run more than once.
  *
- * TODO: move to controller, ditch unique_url() method in this model
 */
-Block::applyFilter('save', function($self, $params, $chain) {	
-	// Set the created and modified dates and pretty url (slug)
-	$now = date('Y-m-d h:i:s');
-	if (!$params['entity']->exists()) {
-		$params['data']['created'] = $now;
-		$params['data']['modified'] = $now;				
-		if(empty($params['data']['url'])) {
-			$params['data']['url'] = $params['data']['title'];
-		}
-		$params['data']['url'] = Block::unique_url(Inflector::slug($params['data']['url']), $params['data'][Block::key()]);
-	} else {
-		$params['data']['url'] = Block::unique_url(Inflector::slug($params['data']['url']), $params['data'][Block::key()]);
-		$params['data']['modified'] = $now;
-	}
-	
-	return $chain->next($self, $params, $chain);
-});
 ?>

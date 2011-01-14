@@ -315,6 +315,9 @@ class UsersController extends \lithium\action\Controller {
         // Save
         if ($this->request->data) {
             $document = User::create();
+	    $now = date('Y-m-d h:i:s');
+	    $this->request->data['created'] = $now;
+	    $this->request->data['modified'] = $now;
 	    
 	    // Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
 	    if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
@@ -379,6 +382,9 @@ class UsersController extends \lithium\action\Controller {
 		$this->request->data['password'] = sha1($this->request->data['new_password']);
 		unset($this->request->data['new_password']);
 	    }
+	    
+	    $now = date('Y-m-d h:i:s');
+	    $this->request->data['modified'] = $now;
 	    
 	    // Call save from the main app's User model
 	    if($document->save($this->request->data)) {

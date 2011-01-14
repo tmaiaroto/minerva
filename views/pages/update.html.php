@@ -17,7 +17,7 @@
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Edit ' . $display_name); ?>
+	    <?=$this->form->submit('Edit ' . $display_name); ?> <?=$this->html->link('Cancel', array('controller' => 'pages', 'action' => 'index')); ?>
 	</fieldset>
 	
 </div>

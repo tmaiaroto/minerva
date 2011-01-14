@@ -24,6 +24,8 @@ Router::connect('/', array('controller' => 'pages', 'action' => 'view', 'home'))
 // and this is for the other static pages
 Router::connect('/page/{:args}', array('controller' => 'pages', 'action' => 'view'));
 
+Router::connect('/admin', array('admin' => true, 'controller' => 'pages', 'action' => 'view', 'home'));
+
 /**
  * ...and connect the rest of 'Pages' controller's urls.
  * note there's importance with naming the argument "url"
