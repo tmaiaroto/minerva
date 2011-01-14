@@ -1,4 +1,5 @@
-<h1>Minerva CMS</h1>
+<?=$this->menu->render_menu('example'); ?>
+
 <p>
     Deafult static home page.
 </p>

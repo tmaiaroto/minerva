@@ -33,7 +33,7 @@
 			<h1 id="branding">
 				<a href="/">Minerva</a>
 			</h1>
-			<?php echo $this->menu->render(array('template' => 'main_administration')); ?>
+			<?php echo $this->menu->render_admin_menu('main_administration'); ?>
 		</div>
 		<div class="clear" style="height: 10px;"></div>
 

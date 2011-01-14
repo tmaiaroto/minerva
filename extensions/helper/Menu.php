@@ -37,6 +37,8 @@ class Menu extends Block {
      * menus are not. Their contents won't exist outside the system.
     */
     public function render($options=array()) {
+	$defaults = array('library' => 'static');
+	$options += $defaults;
 	if(!is_array($options)) {
 	    // TODO: log why
             return false;
@@ -55,11 +57,44 @@ class Menu extends Block {
 		
         // Always rendering a template, never an external URL. That would definitely be a "block."
         $options['method'] = 'php';
-        // For consistency - all static menus come from a "menus" folder.
-        $options['folder'] = 'menus';
-        
+        // For consistency - all static menus come from a "menus" folder regardless of the library
+        $options['views_folder'] = 'menus';
+	
+	
+	
         return parent::render($options);
     }
+    
+    /**
+     * Shortcut helper method to render an admin menu.
+     * Works very similar to the Blocks helper's render_admin_block() method. It uses the same render() method.
+     * 
+     * @param $template String The name of the template file located in minerva/views/menus/static/
+     * @param String HTML menu code
+    */
+    public function render_admin_menu($template=null) {
+	if(empty($template)) {
+	    return '';
+	}
+	$options = array('library' => null, 'template' => $template);
+	return $this->render($options);
+    }
+    
+    /**
+     * Shortcut helper method to render an admin menu.
+     * Works very similar to the Blocks helper's render_block() method. It uses the same render() method.
+     *
+     * @param $template String The name of the template file located in minerva/views/menus/static/
+     * @param String HTML menu code
+    */
+    public function render_menu($template=null) {
+	if(empty($template)) {
+	    return '';
+	}
+	$options = array('library' => 'static', 'template' => $template);
+	return $this->render($options);
+    }
+    
     
     // Don't want to use this for Menus.
     public function requestAction($options=array()) {

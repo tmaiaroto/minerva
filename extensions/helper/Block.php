@@ -94,7 +94,7 @@ class Block extends \lithium\template\Helper {
 	 * @return Mixed the html/css from the rendered page/view template or JavaScript code with an AJAX call to load local content or false if something went wrong
 	*/
 	public function render($options=array()) {
-		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'static', 'template' => null, 'layout' => 'blank', 'type' => 'html');
+		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'static', 'views_folder' => 'blocks', 'template' => null, 'layout' => 'blank', 'type' => 'html');
 		$options += $defaults;
 		
 		/** 
@@ -106,10 +106,10 @@ class Block extends \lithium\template\Helper {
 		if($options['method'] == 'php') {
 			if(empty($options['library'])) {
 				// "admin" blocks have templates saved in minerva/views/blocks/static
-				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'blocks' .  DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] .  DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
 			} else {
 				// any library with static block templates keep their templates in library_name/views/blocks
-				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $options['library'] . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'blocks' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $options['library'] . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
 			}
 			
 			// If a template was specified, we need to set the paths and our renderer becomes File.
