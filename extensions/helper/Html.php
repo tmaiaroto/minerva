@@ -41,7 +41,11 @@ class Html extends \lithium\template\helper\Html {
         
         (count($libraries) > 0) ? $output .= '<ul>':$output .= '';
 	foreach($libraries as $library) {
-	    $model = 'minerva\libraries\\' . $library;
+            if(substr($library, 0, 7) == 'minerva') {
+                $model = $library;
+            } else {
+                $model = 'minerva\libraries\\' . $library;
+            }
 	    $type = current(explode('\\', $library));
 	    $output .= '<li>' . $this->link($model::display_name(), '/' . Inflector::pluralize($model_name) . '/' . $action . '/' . $type, $options['link_options']) . '</li>';
 	}

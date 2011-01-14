@@ -11,8 +11,8 @@ class Block extends \lithium\data\Model {
 		'block_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		// url possibly gets indexed
 		'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this block (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
-		'title' => array('type' => 'string', 'form' => array('label' => 'Title')),
-		'content' => array('type' => 'string', 'form' => array('label' => 'Block Content', 'type' => 'textarea', 'after' => '(you may use html code)')),	
+		'title' => array('type' => 'string', 'search' => array('weight' => 1), 'form' => array('label' => 'Title')),
+		'content' => array('type' => 'string', 'search' => array('weight' => 1), 'form' => array('label' => 'Block Content', 'type' => 'textarea', 'after' => '(you may use html code)')),	
 		// options contain all sorts of misc. data like "weight" or "position" or "is_menu" it could also contain "pubished" flags if desired, but minerva core doesn't care about publish status on blocks so no dedicated field is set for it
 		// the "is_menu" is set true if the MenusController saves the block
 		'options' => array('type' => 'array', 'form' => array('type' => 'hidden', 'label' => false)),

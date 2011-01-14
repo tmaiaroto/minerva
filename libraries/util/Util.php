@@ -115,7 +115,7 @@ class Util {
         $types = array();
         $libraries = Libraries::locate('models');
         foreach($libraries as $library) {
-            if(end(explode('\\', $library)) == 'Page') {
+            if(end(explode('\\', $library)) == $model) {
                 $types[] = $library;
             }
         }
@@ -137,6 +137,33 @@ class Util {
         return $types;
     }
     
+    /**
+     * Formats the order array for the find() method's order option.
+     * By default uses id descending, if invalid, an empty array is returned.
+     * The order string is passed as dot separated field.direciton.
+     * ex. created.desc or created.asc
+     * Also valid: created.DESC or created.descending
+     *
+     * @param $order String The dot separated field.direction
+    */
+    public function format_dot_order($order='id.desc') {
+	$order_pieces = explode('.', $order);
+	if(count($order_pieces) > 1) {
+            switch(strtolower($order_pieces[1])) {
+                case 'desc':
+                case 'descending':
+                default:
+                    $direction = 'desc';
+                    break;
+                case 'asc':
+                case 'ascending':
+                    $direction = 'asc';
+                    break;
+            }
+	    return array($order_pieces[0], $direction);
+	}
+        return array();
+    }
     
 }
 ?>

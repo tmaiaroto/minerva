@@ -3,14 +3,14 @@
 </div>
 <div class="clear"></div>
 
-<div class="grid_12">  
+<div class="grid_12">
 	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
 	<?=$this->form->create($page); ?>
 	<fieldset class="admin">
 		<legend>Primary Information</legend>
 	    <?php
 		foreach($fields as $k => $v) {
-			if($v['form']['position'] != 'options') {
+			if(!isset($v['form']['position']) || $v['form']['position'] != 'options') {
 		?>	    
 		<?=$this->form->field($k, $v['form']);?>
 		<?php
@@ -29,12 +29,12 @@
 			<fieldset class="admin">
 			<?php
 			foreach($fields as $k => $v) {
-				if($v['form']['position'] == 'options') {
+				if(isset($v['form']['position']) && $v['form']['position'] == 'options') {
 			?>	    
 			<?=$this->form->field($k, $v['form']);?>
 			
 			<?php
-					if($v['form']['help_text']) {
+					if(isset($v['form']['help_text'])) {
 						echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
 					}
 				} 

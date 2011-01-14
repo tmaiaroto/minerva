@@ -10,16 +10,20 @@
 		<legend>Primary Information</legend>
 	    <?php
 		foreach($fields as $k => $v) {
-			if($v['form']['position'] != 'options') {
-		?>	    
-		<?php if($v['form']['type'] == 'select') { ?>
-			<?=$this->form->label($v['form']['label']);?>
-			<?=$this->form->select($k, $v['form']['options']);?>
-		<?php } else { ?>
-			<?=$this->form->field($k, $v['form']);?>
-		<?php } ?>
-		<?php
-			} 
+			if(!isset($v['form']['position']) || $v['form']['position'] != 'options') {
+				$v['form']['type'] = (isset($v['form']['type'])) ? $v['form']['type']:'text';
+				switch($v['form']['type']) {
+					case 'text':
+					case 'input':
+					default:
+						echo $this->form->field($k, $v['form']);
+						break;
+					case 'select':
+						echo $this->form->label($v['form']['label']);
+						echo $this->form->select($k, $v['form']['options']);
+						break;
+				}
+			}
 	    }
 		?>
 	    <?=$this->form->submit('Edit ' . $display_name); ?>
@@ -34,7 +38,7 @@
 			<fieldset class="admin">
 			<?php
 			foreach($fields as $k => $v) {
-				if($v['form']['position'] == 'options') {
+				if(isset($v['form']['position']) && $v['form']['position'] == 'options') {
 			?>
 			<?php if($v['form']['type'] == 'select') { ?>
 				<?=$this->form->label($v['form']['label']);?>
@@ -44,7 +48,7 @@
 			<?php } ?>
 			
 			<?php
-					if($v['form']['help_text']) {
+					if(isset($v['form']['help_text'])) {
 						echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
 					}
 				} 

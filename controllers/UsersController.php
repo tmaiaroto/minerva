@@ -6,6 +6,7 @@ use li3_access\security\Access;
 use \lithium\security\Auth;
 use \lithium\storage\Session;
 use \lithium\util\Set;
+use minerva\libraries\util\Util;
 
 class UsersController extends \lithium\action\Controller {
 
@@ -81,11 +82,60 @@ class UsersController extends \lithium\action\Controller {
         return false;
     }
     
-    /*
+    /**
      * Register is basically the same as create. It just lets us use a separeate "register" template in addition to a "create" one.
+     * However, it's a front-end action and as such it can never allow a user role to be set to anything more than a regular user.
+     * 
     */
     public function register() {
-        $this->create('minerva');
+        // Get the fields so the view template can iterate through them and build the form
+        $fields = User::schema();
+        // Don't need to have these fields in the form
+        unset($fields[User::key()]);
+        
+        $rules = array(
+            'email' => array(
+                array('notEmpty', 'message' => 'E-mail cannot be empty.'),
+                array('email', 'message' => 'E-mail is not valid.'),
+                array('uniqueEmail', 'message' => 'Sorry, this e-mail address is already registered.'),
+            ),
+            'password' => array(
+                array('notEmpty', 'message' => 'Password cannot be empty.'),
+                array('notEmptyHash', 'message' => 'Password cannot be empty.'),
+                array('moreThanFive', 'message' => 'Password must be at least 6 characters long.')
+            )
+            // TODO: password confirm
+        );
+        
+        // Save
+        if ($this->request->data) {
+            $user = User::create();
+	    $this->request->data['role'] = 'registered_user'; // set basic user, always hard coded and set
+	    
+	    // IF this is the first user ever created, then they will be an administrator
+	    // TODO: make a wizard that will set this so there's no chance of some user registering and becoming an admin
+	    $users = User::find('count');
+	    if(empty($users)) {
+		$this->request->data['role'] = 'administrator';
+	    }
+	    
+	    // Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
+	    if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
+		$this->request->data['user_type'] = 'user';
+	    }
+	    
+            if($user->save($this->request->data, array('validate' => $rules))) {
+                //$this->redirect(array('controller' => 'users', 'action' => 'index'));
+                $this->redirect('/');
+            }
+        }
+        
+        if(empty($user)) {
+            // Create an empty user object
+            $user = User::create();
+        }
+        
+        $this->set(compact('user', 'fields'));
     }
 	
     /**
@@ -156,20 +206,67 @@ class UsersController extends \lithium\action\Controller {
     
     public function index() {
         // Default options for pagination, merge with URL parameters
-        $defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
+        $defaults = array('page' => 1, 'limit' => 10, 'order' => 'created.desc');
         $params = Set::merge($defaults, $this->request->params);
-        if((isset($params['page'])) && ($params['page'] == 0)) { $params['page'] = 1; }
+        if((isset($params['page'])) && ($params['page'] == 0)) {
+	    $params['page'] = 1;
+	}
         list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
         
-        $documents = User::find('all', array(
-            'limit' => $params['limit'],
-            'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
-            //'order' => $params['order']
-            'order' => array('email' => 'asc')
-        ));	
-        $total = User::count();
-        
-        $this->set(compact('documents', 'limit', 'page', 'total'));
+	// If there's a page_type passed, add it to the conditions, 'all' will show all pages.
+	// TODO: OBVIOUSLY add an index to "user_type" field (also url for other actions' needs, not this one)
+	if((isset($this->request->params['user_type'])) && (strtolower($this->request->params['user_type']) != 'all')) {
+	    $conditions = array('user_type' => $this->request->params['user_type']);
+	} else {
+	    $conditions = array();
+	}
+	
+	// If a search query was provided, search all "searchable" fields (any model schema field that has a "search" key on it)
+	// NOTE: the values within this array for "search" include things like "weight" etc. and are not yet fully implemented...But will become more robust and useful.
+	// Possible integration with Solr/Lucene, etc.
+	$user_type = (isset($this->request->params['user_type'])) ? $this->request->params['user_type']:'all';
+	if((isset($this->request->query['q'])) && (!empty($this->request->query['q']))) {
+	    $schema = User::schema();
+	    // If the "page_type" is set to "all" then we want to get all the page type's schemas, merge them into $schema
+	    if($user_type == 'all') {
+		foreach(Util::list_types('User', array('exclude_minerva' => true)) as $library) {
+		    $model = 'minerva\libraries\\' . $library;
+		    $schema += $model::schema();
+		}
+	    }
+	    
+	    // If a field has a "search" key defined then it's searchable
+	    $searchable_fields = array_filter($schema, function($var){ return(isset($var['search'])); });
+	    $search_conditions = array();
+	    // For each of those, adjust the conditions to include a regex
+	    foreach($searchable_fields as $k => $v) {
+		// TODO: possibly factor in the weighting later. also maybe note the "type" to ensure our regex is going to work or if it has to be adjusted (string data types, etc.)
+		//var_dump($k);
+		$search_regex = new \MongoRegex('/' . $this->request->query['q'] . '/i');
+		$conditions['$or'][] = array($k => $search_regex);
+	    }
+	    
+	}
+	
+	// Get the documents and the total
+	$documents = array();
+	if((int)$params['limit'] > 0) {
+	    $documents = User::find('all', array(
+		'conditions' => $conditions,
+		'limit' => (int)$params['limit'],
+		'offset' => ($params['page'] - 1) * $limit,
+		'order' => Util::format_dot_order($params['order'])
+	    ));
+	}
+	// Get some handy numbers
+	$total = User::find('count', array(
+	    'conditions' => $conditions
+	));
+	$page_number = $params['page'];
+	$total_pages = ((int)$params['limit'] > 0) ? ceil($total / $params['limit']):0;
+	
+	// Set data for the view template
+	$this->set(compact('documents', 'limit', 'page_number', 'total_pages', 'total'));
     }
 	
     public function read($id=null) {
@@ -187,7 +284,15 @@ class UsersController extends \lithium\action\Controller {
 	$this->set(compact('record'));
     }
     
+    /**
+     * Backend administrative action.
+     * Should never be hit from the front-end.
+     * 
+    */
     public function create() {
+	// Get the name for the user, so if another user type library uses the "admin" (core) templates for this action, it will be shown
+	$display_name = User::display_name();
+	
         // Get the fields so the view template can iterate through them and build the form
         $fields = User::schema();
         // Don't need to have these fields in the form
@@ -209,33 +314,27 @@ class UsersController extends \lithium\action\Controller {
         
         // Save
         if ($this->request->data) {
-            $user = User::create();
-	    $this->request->data['role'] = 'registered_user'; // set basic user
-	    
-	    // IF this is the first user ever created, then they will be an administrator
-	    // TODO: make a wizard that will set this so there's no chance of some user registering and becoming an admin
-	    $users = User::find('count');
-	    if(empty($users)) {
-		$this->request->data['role'] = 'administrator';
-	    }
+            $document = User::create();
 	    
 	    // Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
 	    if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
 		$this->request->data['user_type'] = 'user';
 	    }
 	    
-            if($user->save($this->request->data, array('validate' => $rules))) {
-                //$this->redirect(array('controller' => 'users', 'action' => 'index'));
-                $this->redirect('/');
-            }
+            if($document->save($this->request->data, array('validate' => $rules))) {
+                FlashMessage::set('The user has been created successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
+		$this->redirect(array('controller' => 'users', 'action' => 'index'));
+            } else {
+		FlashMessage::set('The user could not be saved, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+	    }
         }
         
-        if(empty($user)) {
+        if(empty($document)) {
             // Create an empty user object
-            $user = User::create();
+            $document = User::create();
         }
         
-        $this->set(compact('user', 'fields'));
+        $this->set(compact('document', 'fields', 'display_name'));
     }
 	
     /**

@@ -138,10 +138,11 @@ class PagesController extends \lithium\action\Controller {
 	// If a search query was provided, search all "searchable" fields (any model schema field that has a "search" key on it)
 	// NOTE: the values within this array for "search" include things like "weight" etc. and are not yet fully implemented...But will become more robust and useful.
 	// Possible integration with Solr/Lucene, etc.
+	$page_type = (isset($this->request->params['page_type'])) ? $this->request->params['page_type']:'all';
 	if((isset($this->request->query['q'])) && (!empty($this->request->query['q']))) {
 	    $schema = Page::schema();
 	    // If the "page_type" is set to "all" then we want to get all the page type's schemas, merge them into $schema
-	    if($this->request->params['page_type'] == 'all') {
+	    if($page_type == 'all') {
 		foreach(Util::list_types('Page', array('exclude_minerva' => true)) as $library) {
 		    $model = 'minerva\libraries\\' . $library;
 		    $schema += $model::schema();
@@ -161,12 +162,6 @@ class PagesController extends \lithium\action\Controller {
 	    
 	}
 	
-	// Set the order for the records (dot syntax defined)
-	$order_pieces = explode('.', $params['order']);
-	if(count($order_pieces) > 1) {
-	    $order = array($order_pieces[0], $order_pieces[1]);
-	}
-	
 	// Get the documents and the total
 	$documents = array();
 	if((int)$params['limit'] > 0) {
@@ -174,7 +169,7 @@ class PagesController extends \lithium\action\Controller {
 		'conditions' => $conditions,
 		'limit' => (int)$params['limit'],
 		'offset' => ($params['page'] - 1) * $limit, // TODO: "offset" becomes "page" soon or already in some branch...
-		'order' => $order
+		'order' => Util::format_dot_order($params['order'])
 	    ));
 	}
 	// Get some handy numbers
@@ -266,7 +261,7 @@ class PagesController extends \lithium\action\Controller {
 	// Don't need to have these fields in the form
 	unset($fields[Page::key()]);
 	// If a page type was passed in the params, we'll need it to save to the page document.
-	$fields['page_type']['form']['value'] = (isset($this->request->params['page_type'])) ? $this->request->params['page_type']:null;
+	$fields['page_type']['form']['value'] = (isset($this->request->params['page_type'])) ? $this->request->params['page_type']:$page->page_type;
 	
 	
 	// Update the record

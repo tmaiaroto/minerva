@@ -22,6 +22,7 @@ use li3_access\security\Access;
 use \lithium\security\Auth;
 use \lithium\storage\Session;
 use \lithium\util\Set;
+use minerva\libraries\util\Util;
 
 class BlocksController extends \lithium\action\Controller {
 
@@ -79,28 +80,67 @@ class BlocksController extends \lithium\action\Controller {
     
     public function index() {
 	// Default options for pagination
-	$defaults = array('page' => 1, 'limit' => 10, 'order' => array('descending' => 'true'));
+	$defaults = array('page' => 1, 'limit' => 10, 'order' => 'created.desc');
 	$params = Set::merge($defaults, $this->request->params);
-	if((isset($params['page'])) && ($params['page'] == 0)) { $params['page'] = 1; }
+	if((isset($params['page'])) && ($params['page'] == 0)) {
+	    $params['page'] = 1;
+	}
 	list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
 	
-	if(isset($this->request->params['block_type'])) {
+	// If there's a page_type passed, add it to the conditions, 'all' will show all pages.
+	// TODO: OBVIOUSLY add an index to "user_type" field (also url for other actions' needs, not this one)
+	if((isset($this->request->params['block_type'])) && (strtolower($this->request->params['block_type']) != 'all')) {
 	    $conditions = array('block_type' => $this->request->params['block_type']);
 	} else {
 	    $conditions = array();
 	}
 	
-	$documents = Block::find('all', array(
-	    'limit' => $params['limit'],
-	    'offset' => ($params['page'] - 1) * $params['limit'], // TODO: "offset" becomes "page" soon or already in some branch...
-	    //'order' => $params['order']
-	    'order' => array('_id' => 'asc'),
+	// If a search query was provided, search all "searchable" fields (any model schema field that has a "search" key on it)
+	// NOTE: the values within this array for "search" include things like "weight" etc. and are not yet fully implemented...But will become more robust and useful.
+	// Possible integration with Solr/Lucene, etc.
+	$block_type = (isset($this->request->params['block_type'])) ? $this->request->params['block_type']:'all';
+	if((isset($this->request->query['q'])) && (!empty($this->request->query['q']))) {
+	    $schema = Block::schema();
+	    // If the "block_type" is set to "all" then we want to get all the page type's schemas, merge them into $schema
+	    if($block_type == 'all') {
+		foreach(Util::list_types('Block', array('exclude_minerva' => true)) as $library) {
+		    $model = 'minerva\libraries\\' . $library;
+		    $schema += $model::schema();
+		}
+	    }
+	    
+	    // If a field has a "search" key defined then it's searchable
+	    $searchable_fields = array_filter($schema, function($var){ return(isset($var['search'])); });
+	    $search_conditions = array();
+	    // For each of those, adjust the conditions to include a regex
+	    foreach($searchable_fields as $k => $v) {
+		// TODO: possibly factor in the weighting later. also maybe note the "type" to ensure our regex is going to work or if it has to be adjusted (string data types, etc.)
+		//var_dump($k);
+		$search_regex = new \MongoRegex('/' . $this->request->query['q'] . '/i');
+		$conditions['$or'][] = array($k => $search_regex);
+	    }
+	    
+	}
+	
+	// Get the documents and the total
+	$documents = array();
+	if((int)$params['limit'] > 0) {
+	    $documents = Block::find('all', array(
+		'conditions' => $conditions,
+		'limit' => (int)$params['limit'],
+		'offset' => ($params['page'] - 1) * $limit,
+		'order' => Util::format_dot_order($params['order'])
+	    ));
+	}
+	// Get some handy numbers
+	$total = Block::find('count', array(
 	    'conditions' => $conditions
 	));
-
-	$total = Block::count();
+	$page_number = $params['page'];
+	$total_pages = ((int)$params['limit'] > 0) ? ceil($total / $params['limit']):0;
 	
-	return compact('documents', 'limit', 'page', 'total');		
+	// Set data for the view template
+	$this->set(compact('documents', 'limit', 'page_number', 'total_pages', 'total'));
     }
 	
     /** 

@@ -16,10 +16,10 @@ class User extends \lithium\data\Model {
 	protected $_schema = array(
 		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
 		'user_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'email' => array('type' => 'string', 'form' => array('label' => 'E-mail')),
+		'email' => array('type' => 'string', 'search' => array('weight' => 1), 'form' => array('label' => 'E-mail', 'autocomplete' => 'off')),
 		'new_email' => array('type' => 'string', 'form' => array('label' => false, 'type' => 'hidden')),
 		//'username' => array('type' => 'string', 'form' => array('label' => 'Username')), // going to use e-mail for username
-		'password' => array('type' => 'string', 'form' => array('label' => 'Password')),
+		'password' => array('type' => 'string', 'form' => array('label' => 'Password', 'type' => 'password', 'autocomplete' => 'off')),
 		'role' => array('type' => 'string', 'form' => array('type' => 'select', 'label' => 'User Role', 'position' => 'options')),
 		'active' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'label' => 'Active', 'position' => 'options')),
 		'approval_code' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
@@ -196,7 +196,7 @@ User::applyFilter('save', function($self, $params, $chain) {
 			}
 			
 			// If the new_email field was passed, the user is requesting to update their e-mail, we will set it and send an email to allow them to confirm, once confirmed it will be changed
-			if($params['data']['new_email']) {
+			if(isset($params['data']['new_email'])) {
 				// Unique E-mail validation
 				if((Validator::rule('uniqueEmail', $params['data']['new_email']) === false) || (Validator::isEmail($params['data']['new_email']) === false)) {
 					// Invalidate

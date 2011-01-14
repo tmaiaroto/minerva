@@ -10,14 +10,14 @@
 		<legend>Primary Information</legend>
 	    <?php
 		foreach($fields as $k => $v) {
-			if($v['form']['position'] != 'options') {
+			if(!isset($v['form']['position']) || $v['form']['position'] != 'options') {
 		?>	    
 		<?=$this->form->field($k, $v['form']);?>
 		<?php
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Add ' . $display_name); ?>
+	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('controller' => 'pages', 'action' => 'index')); ?>
 	</fieldset>
 	
 </div>
@@ -29,12 +29,12 @@
 			<fieldset class="admin">
 			<?php
 			foreach($fields as $k => $v) {
-				if($v['form']['position'] == 'options') {
+				if(isset($v['form']['position']) && $v['form']['position'] == 'options') {
 			?>	    
 			<?=$this->form->field($k, $v['form']);?>
 			
 			<?php
-					if($v['form']['help_text']) {
+					if(isset($v['form']['help_text'])) {
 						echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
 					}
 				} 

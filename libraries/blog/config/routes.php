@@ -15,6 +15,12 @@ Router::connect('/blog/read/{:url}', array('controller' => 'pages', 'action' => 
 // just ensure "page_type" is set. Templates from: /libraries/blog/views/pages/static/template-name.html.php
 Router::connect('/blog/view/{:url}', array('controller' => 'pages', 'action' => 'view', 'page_type' => 'blog'));
 
+
+// would use update from blog library (using core templates if not present)
+//Router::connect('/blogs/update/{:url}', array('controller' => 'pages', 'action' => 'update'));
+// would use core layout because admin is set to true and would then look for update.html.php in the library and default back to core if not found
+///Router::connect('/blogs/update/{:url}', array('admin' => true, 'controller' => 'pages', 'action' => 'update'));
+
 Router::connect('/blog/create', array('controller' => 'pages', 'action' => 'create', 'page_type' => 'blog'));
 
 // Route for listing all blog entries

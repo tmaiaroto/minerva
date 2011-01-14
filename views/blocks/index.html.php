@@ -1,12 +1,6 @@
 <div class="grid_16">
     <h2 id="page-heading">Block Content</h2>
-    <p>From here you should be able to manage all of the dynamic (served from the database) blocks on your site.<br />
-    <?=$this->html->link('Create New Block', '/blocks/create', array('id' => 'create_new_block')); ?>
-    <div id="new_block_type" style="display: none;">
-	
-    </div>
-    </p>
-    <!-- TODO: instead of linking to create a new basic block....have the link something you can hover and then popup a lightbox type thing that has all the page types listed. so when you hover you get a popup and then in that popup are these icons that when you click one of those....THEN it goes to make a page and it's making a page for the proper page type. Or maybe its not lightbox and just a little slide in under the "Create New Page" link. text, icons, both, whatever. -->
+    <p>From here you should be able to manage all of the dynamic (served from the database) blocks on your site.</p>
 </div>
 
 <div class="clear"></div>
@@ -32,7 +26,7 @@
                 <?php if(!empty($block->page_type)) {
                     echo '<em>' . $block->page_type . '</em>';
                 } else {
-                    echo '<em>page</em>';
+                    echo '<em>block</em>';
                 } ?>
             </td>
             <td>
@@ -52,23 +46,26 @@
         <?php } ?>
     </table>
 
-<em>Template rendered from /views/blocks/index.html.php (core Minerva pages index).</em>
+<?php $block_type = (isset($this->_request->params['block_type'])) ? $this->_request->params['block_type']:'all'; ?>
+<?=$this->paginator->pagination($total, $limit, $page_number, array('args' => array('block_type' => $block_type))); ?>
+<br />
+<em>Showing page <?=$page_number; ?> of <?=$total_pages; ?>. <?=$total; ?> total record<?php echo ((int) $total > 1 || (int) $total == 0) ? 's':''; ?>.</em><br />
+<em>Template rendered from /views/blocks/index.html.php (core Minerva blocks index).</em>
 </div>
 
 <div class="grid_4">
     <div class="box">
-        <h2>Filter &amp; Search</h2>
+        <h2>Search for Content</h2>
 	    <div class="block">
+		<?=$this->html->query_form(array('label' => 'Query ')); ?>
             </div>
+    </div>
+    <div class="box">
+	<h2>Create Block</h2>
+	<div class="block">
+	    <?=$this->html->link_types('block', 'create', array('exclude_minerva' => false)); ?>
+	</div>
     </div>
 </div>
 
 <div class="clear"></div>
-
-<script type="text/javascript">
-    $(document).ready(function() {
-	$('#create_new_block').live('hover', function() {
-	    $('#new_block_type').show();
-	});
-    });
-</script>

@@ -48,7 +48,7 @@ use \lithium\util\Inflector;
 use lithium\net\http\Media;
 use \lithium\security\Auth;
 
-Dispatcher::applyFilter('_call', function($self, $params, $chain) {
+Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
     
     /*
      * So the problem with redirects and building requests is that since the "app" folder was changed to "minerva"
@@ -74,14 +74,14 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
     // Get the library if provided from the route params
     // (Note: Pages, Users, and Blocks are the only models considered, if any additional are created, the following must change)
     // TODO: consider going back to a standard field name, it makes for less if thens....but it could create more problems for several reasons when it comes to 3rd party addons...the if thens here guarantee things to a good degree
-    if(isset($params['callable']->request->params['page_type'])) {
-	$library = $params['callable']->request->params['page_type'];
+    if(isset($params['request']->params['page_type'])) {
+	$library = $params['request']->params['page_type'];
 	$library_field = 'page_type';
-    } elseif(isset($params['callable']->request->params['user_type'])) {
-	$library = $params['callable']->request->params['user_type'];
+    } elseif(isset($params['request']->params['user_type'])) {
+	$library = $params['request']->params['user_type'];
 	$library_field = 'user_type';
-    } elseif(isset($params['callable']->request->params['block_type'])) {
-	$library = $params['callable']->request->params['block_type'];
+    } elseif(isset($params['request']->params['block_type'])) {
+	$library = $params['request']->params['block_type'];
 	$library_field = 'block_type';
     } else {
 	$library = null;
@@ -89,15 +89,17 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
     }
     
     // Get the slug (we may need to use it to find the library)
-    if(isset($params['callable']->request->params['url'])) {
-	$url = $params['callable']->request->params['url'];
+    if(isset($params['request']->params['url'])) {
+	$url = $params['request']->params['url'];
     } else {
 	$url = null;
     }
     
     // This should convert the controller name (lowercase or not) into the model name
-    $model = Inflector::classify(Inflector::singularize($params['callable']->request->params['controller']));
+    $model = Inflector::classify(Inflector::singularize($params['request']->params['controller']));
     $modelClass = $LibraryBridgeModel = 'minerva\models\\'.$model;
+    
+   // var_dump($params['request']);
     
     // If we loaded the Pages, Users, or Blocks controller and there's a "page_type" or "url" argument passed, meaning the routes must be set properly to use this filter
     // NOTE: wrapping controller param with strtolower() because $params['params']['controller'] will be camelcase, where $params['request']->params['controller'] will not be...So just in case something changes.
@@ -106,7 +108,7 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
     // edit: i think this is a better way of doing the check, rather than setting the "bridgeable_controllers" above... but this means ALL minerva's controllers (that have models) are bridgeable
     if((class_exists($LibraryBridgeModel)) && ((!is_null($library)) || (!is_null($url)))) {
 	
-	switch($params['callable']->request->params['action']) {
+	switch($params['request']->params['action']) {
 	    // update, read, and delete based on database record, so they must be instantiated in the PagesController
 	    case 'create':
 	    case 'index':
@@ -125,7 +127,7 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
                     $modelClass = 'minerva\models\\'.$model;
 		    // Note: again, something constant would definitely help this look nicer here, but there's only a few possibilities
 		    $potential_library_fields = array('page_type', 'user_type', 'block_type');
-                    $record = $modelClass::first(array('conditions' => array('url' => $params['callable']->request->params['url']), 'fields' => $potential_library_fields));
+                    $record = $modelClass::first(array('conditions' => array('url' => $params['request']->params['url']), 'fields' => $potential_library_fields));
                     
                     if($record) {
                         $library = $record->data();
@@ -134,98 +136,70 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
 			$library_field = key($library);
 			
                         // Set the library so the filter on Media::render() has it
-                        $params['callable']->request->params[$library_field] = $library[$library_field];
+                       // $params['request']->params[$library_field] = $library[$library_field];
+			$library = $library[$library_field];
                     } else {
                         $library = null;
                     }
                 } else {
-                    $library = $params['callable']->request->params[$library_field];
+		    
+                    $library = $params['request']->params[$library_field];
                 }
-                
                 $class = '\minerva\libraries\\'.$library.'\models\\'.$model;
-                
+		
                 // Load the model if it exists
 		if(class_exists($class)) {
 		    $LibraryBridgeModel = new $class();
 		}
+		
+		//var_dump($params['request']);exit();
+		
 		break;
 	    default:
                 // Don't load the library's Page model by default
 	    break;
 	}
 	
-        // Authentication & Access Check for Core Minerva Controllers
-        // (properties set in model for core controllers) ... transfer those settings to the controller
-        $controllerClass = get_class($params['callable']);
-        if(isset($LibraryBridgeModel::$access)) {
-	    // Don't overwrite core Minerva controller with new access rules, but append them (giving the library model's access property priority)
-	    $controllerClass::$access = $LibraryBridgeModel::$access += $controllerClass::$access;
-        }
-	
     }
+    
+    // Authentication & Access Check for Core Minerva Controllers
+    // (properties set in model for core controllers) ... transfer those settings to the controller
+    $controllerClass = '\minerva\controllers\\'.$params['params']['controller'].'Controller';
+    // If the $controllerClass doesn't exist, it means it's a controller that Minerva doesn't have. That means it's not core and the access can be set there on that controller.
+    if((is_object($LibraryBridgeModel)) && (isset($LibraryBridgeModel::$access)) && (class_exists($controllerClass))) {
+	// Don't overwrite core Minerva controller with new access rules, but append them (giving the library model's access property priority)
+	$controllerClass::$access = $LibraryBridgeModel::$access += $controllerClass::$access;
+    }
+    
+    // Send some options to Media::render() the "admin" parameter will tell Media::render() that we want to render the core layout. If however a template for the action is found in the library's folder it will be used. This way libraries can use the core admin templates, or they can use their own. They can also use their own layout, but at that point it's not considered an "admin" page.
+    $params['options']['render']['library'] = $library;
+    $params['options']['render']['admin'] = (isset($params['request']->params['admin'])) ? $params['request']->params['admin']:false;
     
     return $chain->next($self, $params, $chain);	
 });
 
-// Then use the render filter to change where the pages get their templates from.
-// We'll first look in the page type library's views and then fall back to Minerva's views.
-// Like how "themes" worked with CakePHP, sorta.
-Media::applyFilter('render', function($self, $params, $chain){
-    // TODO: see if the Media class has a method to check if a template exists, but file_exists() should work too
-    
-    // This is the old code (condensed but problematic with the key "library" for routing and other issues)
-    /*if(isset($params['options']['request']->params['library'])) {
-	$library = $params['options']['request']->params['library'];
-    } else {
-	$library= null;
-    }*/
-    
-    // TODO: same as above filter on the dispatcher...
-    // Note: Here the $library_field is not required because there's no queries being made to get the library name. The library name should now be in the request params (even if not put there by the routes).
-    if(isset($params['options']['request']->params['page_type'])) {
-	$library = $params['options']['request']->params['page_type'];
-    } elseif(isset($params['options']['request']->params['user_type'])) {
-	$library = $params['options']['request']->params['user_type'];
-    } elseif(isset($params['options']['request']->params['block_type'])) {
-	$library = $params['options']['request']->params['block_type'];
-    } else {
-	$library = null;
-    }
-    
-    // TODO: keep this? it allows libraries to use the core layouts... call it something different?
-    // so now, http://minerva.local/blog/create would show its layout and view template, while...
-    // http://minerva.local/pages/create/blog would show the core default minerva layout and view... or the "admin" layout
-    if(isset($params['options']['request']->params['admin'])) {
-	$admin = $params['options']['request']->params['admin'];
-    } else {
-	$admin = false;
-    }
-    
+Media::applyFilter('render', function($self, $params, $chain) {
+    // Set the layout and template paths to the library if it has templates there
+    $library = $params['options']['library'];
     $layout = $params['options']['layout'];
-    $type = (isset($params['options']['type'])) ? $params['options']['type']:'html';
+    $type = $params['options']['type'];
     $template = $params['options']['template'];
     $controller = $params['options']['controller'];
-    // If using a library, change template paths (if that library has templates, else default back)
-    if((!empty($library)) && (!$admin)) {
-	// set the layout template from Minerva's layouts if the library doesn't have it (will eliminate missing layout template errors completely, but the default template won't really match up in terms of design)
-	if(!isset($params['options']['paths']['layout'])) {
-	    if(file_exists(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . $layout . '.' . $type . '.php')) {
-		$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
-	    } else {
-		$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
-	    }
-	}
-	// set the view template from the library if there's a library in use and if the template exists, oterhwise fall back to core minerva templates and if it doesn't exist then there'll be a missing template error
-	if(!isset($params['options']['paths']['template'])) {
-	    if((!empty($library)) && (file_exists(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.' . $type . '.php'))) {
-		$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.{:type}.php';
-	    } else {
-		$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.{:type}.php';
-	    }
-	}
-	//var_dump($params['options']);
+    $admin = $params['options']['admin'];
+    
+    if((!$admin) && (file_exists(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . $layout . '.' . $type . '.php'))) {
+	$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
+    } else {
+	$params['options']['paths']['layout'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php';
     }
     
-    return $chain->next($self, $params, $chain);
+    if((!empty($library)) && (file_exists(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . $template . '.' . $type . '.php'))) {
+	$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+    } else {
+	$params['options']['paths']['template'] = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $controller . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+    }
+    
+    // var_dump($params['options']['paths']);
+    return $chain->next($self, $params, $chain);	
 });
 ?>

@@ -20,7 +20,8 @@ jQuery(document).ready(function() {
         <?php
         // No icon by default, it has to be passed in the options
         echo 'pnotify_notice_icon: false,';
-        
+        echo 'pnotify_history: false,';
+	
         // If options were passed in the "options" key
         if(isset($options)) {
             foreach($options as $k => $v) {
