@@ -20,7 +20,7 @@ use \lithium\data\Connections;
 Connections::add('default', array(	
 	'type' => 'database',
 	'adapter' =>  'MongoDb', 
-	'database' => 'itsrumored', 
+	'database' => 'minerva', 
 	'host' => 'localhost'
 ));
 

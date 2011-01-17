@@ -122,8 +122,7 @@ class UsersController extends \lithium\action\Controller {
 	    
 	    // Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
 	    if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
-		//$this->request->data['user_type'] = 'user';
-		$this->request->data['user_type'] = null;
+		$this->request->data['user_type'] = 'user';
 	    }
 	    
             if($user->save($this->request->data, array('validate' => $rules))) {
