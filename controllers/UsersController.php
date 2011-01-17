@@ -172,7 +172,7 @@ class UsersController extends \lithium\action\Controller {
 
     
     public function login() {
-        $user = Auth::check('minerva_user', $this->request);		
+        $user = Auth::check('minerva_user', $this->request);
         if ($user) {
             // TODO: Put in a $redirectURL property so it can be controlled and option for the following redirect true/false for taking a user back to the page they first requested.
             // Also TODO: Make flash messages set in some sort of config, possibly even the model properties too

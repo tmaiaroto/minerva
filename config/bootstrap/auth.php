@@ -23,8 +23,8 @@ Auth::config(array(
 	'minerva_user' => array(
 	    'adapter' => 'Form',
 	    'model'  => 'User',
-	    //'fields' => array('username', 'password'),
-	    ///'scope'  => array('is_active' => 1),
+	    'fields' => array('email', 'password'),
+	    'scope'  => array('active' => true),
 	    /*'filters' => array(
 		//'password' => 'app\models\User::hashPassword'
 	    ),*/
