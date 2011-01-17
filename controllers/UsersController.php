@@ -117,6 +117,7 @@ class UsersController extends \lithium\action\Controller {
 	    $users = User::find('count');
 	    if(empty($users)) {
 		$this->request->data['role'] = 'administrator';
+		$this->request->data['active'] = true;
 	    }
 	    
 	    // Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)

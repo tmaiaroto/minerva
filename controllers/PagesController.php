@@ -56,7 +56,7 @@ class PagesController extends \lithium\action\Controller {
 	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
 	),
 	'view' => array(
-	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
+	    array('rule' => 'allowAll', 'redirect' => '/users/login')
 	)
     );
     
@@ -108,6 +108,12 @@ class PagesController extends \lithium\action\Controller {
 	
 	// If route has the "admin" key set to true then render template from Minerva's views/pages/static folder
 	if((isset($this->request->params['admin'])) && ($this->request->params['admin'] === true)) {
+	    // todo: make rule and check access class
+	    $user = Auth::check('minerva_user');
+	    if(!in_array($user['role'], array('administrator', 'content_editor'))) {
+		$this->redirect('/users/login');
+	    }
+	    
 	    if (empty($path)) {
 		$path = array('static', 'home');
 	    } else {
