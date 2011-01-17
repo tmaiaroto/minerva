@@ -14,9 +14,10 @@ Auth::config(array(
 	    'model'  => 'User',
 	    'fields' => array('email', 'password'),
 	    'scope'  => array('active' => true),
-	    /*'filters' => array(
+	    'filters' => array(
 		//'password' => 'app\models\User::hashPassword'
-	    ),*/
+                'password' => 'sha1'
+	    ),
 	    'session' => array(
 	    	'options' => array('name' => 'default')
 	    )
