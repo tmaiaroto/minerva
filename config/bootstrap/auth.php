@@ -6,18 +6,7 @@
  * do so by configuring it here.
  *
 */
-
-use \lithium\storage\Session;
 use \lithium\security\Auth;
-
-Session::config(array(
-	'default' => array('adapter' => 'Php'),
-	// HMAC is built into lithium...can also hash your cookies
-	/*'strategies' => array(
-			'Hmac' => array('secret' => 'your_secret_key')
-	)*/
-	'flash_message' => array('adapter' => 'Php')
-));
 
 Auth::config(array(
 	'minerva_user' => array(
@@ -30,11 +19,7 @@ Auth::config(array(
 	    ),*/
 	    'session' => array(
 	    	'options' => array('name' => 'default')
-	    )	
+	    )
 	)
 ));
-
-use \lithium\action\Dispatcher;
-use \lithium\net\http\Router;
-use \lithium\action\Response;
 ?>
