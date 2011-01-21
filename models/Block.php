@@ -22,8 +22,6 @@ class Block extends \lithium\data\Model {
 		'modified' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))		
 	);
 	
-	protected $_meta = array('locked' => true);
-	
 	public $validates = array(
 		'title' => array(
                     array('notEmpty', 'message' => 'Title cannot be empty'),
@@ -50,7 +48,10 @@ class Block extends \lithium\data\Model {
 		
 		// Replace any set display name for context
 		$class::_object()->display_name = static::_object()->display_name;
-	
+		
+		// Lock the schema so values that aren't part of it can't be saved to the db.
+		$class::meta('locked', true);
+		
 		// Don't forget me...
 		parent::__init();
 	}

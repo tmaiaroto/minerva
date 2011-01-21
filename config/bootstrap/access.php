@@ -45,6 +45,14 @@ Dispatcher::applyFilter('_call', function($self, $params, $chain) {
 	    }
 	    return false;
 	});
+	
+	// Check for protected "admin" routes. Only administrators and content editors can access these routes.
+	if((isset($params['callable']->request->params['admin'])) && ($params['callable']->request->params['admin'] === true)) {
+	    $access = Access::check('minerva_access', Auth::check('minerva_user'), $params['callable']->request, array('rules' => array('rule' => 'allowManagers', 'redirect' => '/users/login')));
+	    if(!empty($access)) {
+		return new Response(array('location' => $access['redirect']));
+	    }
+	}
         
         /*
          * The * key is a convenience if the controller wishes to apply the same rule(s) to all methods.

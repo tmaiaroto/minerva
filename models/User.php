@@ -32,8 +32,6 @@ class User extends \lithium\data\Model {
 		//'file' => array('type' => 'string', 'form' => array('type' => 'file'))
 	);
 	
-	protected $_meta = array('locked' => true);
-	
 	protected $_user_roles = array(
 		'administrator' => 'Administrator',
 		'content_editor' => 'Content Editor',
@@ -117,6 +115,9 @@ class User extends \lithium\data\Model {
 			}
 			return true;
 		});
+		
+		// Lock the schema so values that aren't part of it can't be saved to the db.
+		$class::meta('locked', true);
 		
 		parent::__init();
 	}

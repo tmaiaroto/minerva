@@ -79,8 +79,6 @@ class Page extends \lithium\data\Model {
 	// it's useful...BUT, it won't have validation. it's still good to store simple data that isn't harmful if left unvalidated or data that's set programatically so it's known and doesn't need to be validated.
     );
     
-    protected $_meta = array('locked' => true);
-    
     // Defined as normal and the library Page model's $validates is also defined as normal, they will be combined.
     public $validates = array(
 	'title' => array(
@@ -111,6 +109,9 @@ class Page extends \lithium\data\Model {
 	
 	// Replace any set display name for context
 	$class::_object()->display_name = static::_object()->display_name;
+	
+	// Lock the schema so values that aren't part of it can't be saved to the db.
+	$class::meta('locked', true);
 	
 	// Don't forget me...
 	parent::__init();
