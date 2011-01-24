@@ -254,6 +254,7 @@ class UsersController extends \lithium\action\Controller {
 	$documents = array();
 	if((int)$params['limit'] > 0) {
 	    $documents = User::find('all', array(
+		'request_params' => $this->request->params,
 		'conditions' => $conditions,
 		'limit' => (int)$params['limit'],
 		'offset' => ($params['page'] - 1) * $limit,
@@ -276,7 +277,7 @@ class UsersController extends \lithium\action\Controller {
 	    $id = $this->request->params['id'];
 	}
 	
-	$record = User::find('first', array('conditions' => array('_id' => $id)));
+	$record = User::find('first', array('conditions' => array('_id' => $id), 'request_params' => $this->request->params));
 	
 	if(!$record) {
 	    FlashMessage::set('The user could not be found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));

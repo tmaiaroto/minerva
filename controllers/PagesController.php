@@ -180,6 +180,7 @@ class PagesController extends \lithium\action\Controller {
 	$documents = array();
 	if((int)$params['limit'] > 0) {
 	    $documents = Page::find('all', array(
+		'request_params' => $this->request->params,
 		'conditions' => $conditions,
 		'limit' => (int)$params['limit'],
 		'offset' => ($params['page'] - 1) * $limit, // TODO: "offset" becomes "page" soon or already in some branch...
@@ -309,7 +310,7 @@ class PagesController extends \lithium\action\Controller {
 	if((isset($this->request->params['url'])) && (empty($url))) {
 	    $url = $this->request->params['url'];
 	}
-	$document = Page::find('first', array('conditions' => array('url' => $url)));
+	$document = Page::find('first', array('conditions' => array('url' => $url), 'request_params' => $this->request->params));
 	if(!$document) {
 	    FlashMessage::set('Page not found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
 	    $this->redirect(array('controller' => 'pages', 'action' => 'index'));
