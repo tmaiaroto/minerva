@@ -44,7 +44,7 @@ use minerva\models\Page;
 				?>
 				<tr>
 					<td>
-						<a href="/page/read/<?=$page->url; ?>"><?=$page->title; ?></a>
+						<?=$this->html->link($page->title, array('controller' => 'pages', 'action' => 'read', 'url' => $page->url)); ?>
 					</td>
 					<td>
 						<?php if(!empty($page->page_type)) {

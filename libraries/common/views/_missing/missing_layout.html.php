@@ -24,9 +24,12 @@
 			</h2>
 		</div>
 		<div id="content">
+			<div id="missing_layout" class="test-result test-result-fail error">
+                            Error: A layout template seems to be missing.
+                        </div>
 			<?php echo $this->content(); ?>
 		</div>
-		<em>Layout rendered from: minerva/lirbaries/static/layouts/default.html.php</em>
 	</div>
+	<?=$this->flashMessage->output(); ?>
 </body>
 </html>

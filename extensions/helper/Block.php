@@ -67,7 +67,7 @@ class Block extends \lithium\template\Helper {
 		if(empty($template)) {
 			return '';
 		}
-		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => null, 'template' => $template, 'layout' => 'blank', 'type' => 'html');
+		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'common', 'template' => $template, 'layout' => 'blank', 'type' => 'html', 'admin' => true);
 		return $this->render($options);
 	}
 	
@@ -83,7 +83,7 @@ class Block extends \lithium\template\Helper {
 		if(empty($template)) {
 			return '';
 		}
-		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'static', 'template' => $template, 'layout' => 'blank', 'type' => 'html');
+		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'common', 'template' => $template, 'layout' => 'blank', 'type' => 'html');
 		return $this->render($options);
 	}
 	
@@ -94,7 +94,7 @@ class Block extends \lithium\template\Helper {
 	 * @return Mixed the html/css from the rendered page/view template or JavaScript code with an AJAX call to load local content or false if something went wrong
 	*/
 	public function render($options=array()) {
-		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'static', 'views_folder' => 'blocks', 'template' => null, 'layout' => 'blank', 'type' => 'html');
+		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'common', 'views_folder' => 'blocks' . DIRECTORY_SEPARATOR . 'static', 'template' => null, 'layout' => 'blank', 'type' => 'html', 'admin' => false);
 		$options += $defaults;
 		
 		/** 
@@ -104,13 +104,34 @@ class Block extends \lithium\template\Helper {
 		 *  to load any URL using the cURL library.
 		 */
 		if($options['method'] == 'php') {
-			if(empty($options['library'])) {
-				// "admin" blocks have templates saved in minerva/views/blocks/static
-				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] .  DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
-			} else {
-				// any library with static block templates keep their templates in library_name/views/blocks
-				$template_path = LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $options['library'] . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php';
+			// By default, missing
+			$template_path = array(
+				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR .  'libraries' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_missing' . DIRECTORY_SEPARATOR . 'missing_block_template.{:type}.php'
+			);
+			
+			// We're going to try to grab the block template from common (note by default it's checking blocks/static)
+			array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR .  'libraries' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
+			// If requesting a template from a specific library, put that ahead in the list to check first
+			if(!empty($options['library'])) {
+				array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $options['library'] . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');				
+			} 
+			
+			// For admin blocks, check the admin paths first IF the admin flag was set to true (can not render admin blocks without explicitly saying to do so)
+			if($options['admin'] === true) {
+				// "admin" blocks have templates saved in minerva/views/blocks/static and this is the default place to look
+				array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
+				// but we can override those in the common library's "_admin" folder
+				array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR .  'libraries' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_admin' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
 			}
+			
+			// Now a similar thing for the layout templates, but we want to use empty layouts because we don't want <html> tags etc. but we will still cascade and check a few locations
+			// NOTE: This layout isn't a "static" layout, it's just an empty "blank" one... It can be changed but the paths aren't looking in the layouts/static folder.
+			// This is because a block isn't necessarily "static" content. It can be, but doesn't have to be. Static folders are used for the templates because blocks can be static and menus are ALWAYS static.
+			$layout_path = array(
+				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
+				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views'. DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
+				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_missing' . DIRECTORY_SEPARATOR . 'missing_layout.{:type}.php'
+			);
 			
 			// If a template was specified, we need to set the paths and our renderer becomes File.
 			if(!empty($options['template'])) { 
@@ -120,12 +141,10 @@ class Block extends \lithium\template\Helper {
 			        //'template' => '{:library}/views/'.$options['folder'].'/{:template}.{:type}.php',
 				'template' => $template_path,
 			        //'layout'   => '{:library}/views/layouts/{:layout}.{:type}.php',
-				// This will always ensure the layout template for blocks is an empty layout and comes from the core minerva folder.
-				// This way, each library isn't required to create an empty layout template. Very convenient.
-				// Plus blocks shouldn't need anything else...IF they do, we can add another option like "layout_library" or something.
-				'layout' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views'. DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php'
+				'layout' => $layout_path
 			    );			    
 			}
+			// var_dump($viewOptions['paths']); // <-- helpful info
 			
 			// If a URL was specified, then we definitely don't want to use the File renderer, we want to use the Curl adapter.
 			// Also ensure that both a url and template weren't specified, if so, use the template File renderer (above).

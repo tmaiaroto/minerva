@@ -20,7 +20,7 @@
         <?php foreach($documents as $block) { ?>
         <tr>
             <td>
-                <?=$this->html->link($block->title, array('controller' => 'blocks', 'action' => 'read', 'url' => $block->url)); ?>
+                <?=$block->title; ?>
             </td>
             <td>
                 <?php if(!empty($block->page_type)) {

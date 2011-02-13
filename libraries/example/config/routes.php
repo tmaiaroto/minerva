@@ -8,9 +8,8 @@
 use \lithium\net\http\Router;
 
 
-Router::connect('/example', array('plugin' => 'example', 'controller' => 'example.examples', 'action' => 'view'));
+Router::connect('/example', array('library' => 'example', 'controller' => 'example.examples', 'action' => 'view', 'home'));
 Router::connect('/example/{:controller}/{:action}/{:args}', array(
 	'plugin' => 'example', 'controller' => 'example.examples'
 ));
-
 ?>

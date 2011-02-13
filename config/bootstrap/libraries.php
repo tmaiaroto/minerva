@@ -88,6 +88,8 @@ while (false !== ($library = readdir($libraries_directory))) {
 
 Libraries::add('blog');
 
+//Libraries::add('example'); <-- example of a completely unrelated library
+
 Libraries::add('li3_access');
 
 Libraries::add('al13_helpers');

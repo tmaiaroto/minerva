@@ -45,6 +45,6 @@
 		</div>
 	</div>
 	<?=$this->flashMessage->output(); ?>
-    
+	<!-- layout template: /minerva/views/layouts/default.html.php -->
 </body>
 </html>

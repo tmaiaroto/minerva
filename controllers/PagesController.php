@@ -113,17 +113,12 @@ class PagesController extends \lithium\action\Controller {
 	    if(!in_array($user['role'], array('administrator', 'content_editor'))) {
 		$this->redirect('/users/login');
 	    }
-	    
-	    if (empty($path)) {
-		$path = array('static', 'home');
-	    } else {
-		array_unshift($path, 'static');
-	    }
-	} else {
-	    if (empty($path)) {
-		$path = array('home');
-	    }
+	} 
+	
+	if (empty($path)) {
+	    $path = array('home');
 	}
+	
 	$this->render(array('template' => join('/', $path)));
     }	
     

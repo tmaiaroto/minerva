@@ -57,10 +57,8 @@ class Menu extends Block {
 		
         // Always rendering a template, never an external URL. That would definitely be a "block."
         $options['method'] = 'php';
-        // For consistency - all static menus come from a "menus" folder regardless of the library
-        $options['views_folder'] = 'menus';
-	
-	
+        // For consistency - all static menus come from a "menus/static" folder regardless of the library (not that they can be dynamic anyway)
+        $options['views_folder'] = 'menus' . DIRECTORY_SEPARATOR . 'static';
 	
         return parent::render($options);
     }
@@ -76,7 +74,7 @@ class Menu extends Block {
 	if(empty($template)) {
 	    return '';
 	}
-	$options = array('library' => null, 'template' => $template);
+	$options = array('library' => null, 'template' => $template, 'admin' => true);
 	return $this->render($options);
     }
     
@@ -91,7 +89,7 @@ class Menu extends Block {
 	if(empty($template)) {
 	    return '';
 	}
-	$options = array('library' => 'static', 'template' => $template);
+	$options = array('library' => 'common', 'template' => $template);
 	return $this->render($options);
     }
     

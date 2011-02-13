@@ -19,7 +19,7 @@
         <?php foreach($documents as $user) { ?>
         <tr>
             <td>
-                <?=$this->html->link($user->email, array('controller' => 'users', 'action' => 'read', 'id' => $user->_id)); ?>
+                <?=$this->html->link($user->email, array('admin' => true, 'controller' => 'users', 'action' => 'read', 'id' => $user->_id)); ?>
             </td>
             <td>
                 <?php if(!empty($user->user_type)) {

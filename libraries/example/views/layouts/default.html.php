@@ -27,5 +27,6 @@
 			<?php echo $this->content(); ?>
 		</div>
 	</div>
+	<!-- layout template: /minerva/libraries/example/views/layouts/default.html.php -->
 </body>
 </html>

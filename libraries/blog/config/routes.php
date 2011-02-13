@@ -21,7 +21,7 @@ Router::connect('/blog/view/{:url}', array('controller' => 'pages', 'action' => 
 // would use core layout because admin is set to true and would then look for update.html.php in the library and default back to core if not found
 ///Router::connect('/blogs/update/{:url}', array('admin' => true, 'controller' => 'pages', 'action' => 'update'));
 
-Router::connect('/blog/create', array('controller' => 'pages', 'action' => 'create', 'page_type' => 'blog'));
+Router::connect('/blog/create', array('admin' => true, 'controller' => 'pages', 'action' => 'create', 'page_type' => 'blog'));
 
 // Route for listing all blog entries
 Router::connect('/blog', array('controller' => 'pages', 'action' => 'index', 'page_type' => 'blog'));

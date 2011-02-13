@@ -1,3 +1,4 @@
+RENDERED FROM /minerva/libraries/example/views/examples/home.html.php
 <?php
 /**
  * Lithium: the most rad php framework

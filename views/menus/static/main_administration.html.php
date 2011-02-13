@@ -25,7 +25,7 @@ if(Auth::check('minerva_user')) { ?>
         </ul>
     </li>
     <li>
-        <a href="/">System</a>
+        <a href="/admin/system_status">System</a>
         <ul>
             <li><a href="/admin/system_status">System Status</a></li>
             <li><a href="/test" target="_blank">Unit Test Dashboard</a></li>
