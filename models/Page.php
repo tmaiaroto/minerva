@@ -56,8 +56,7 @@ namespace minerva\models;
 use \lithium\util\Validator;
 use lithium\util\Inflector as Inflector;
 
-class Page extends \lithium\data\Model {
-    
+class Page extends \minerva\models\MinervaModel {
     
     /**
      * $_schema gets appended to with the libary Page model's protected $_schema property.
@@ -67,11 +66,8 @@ class Page extends \lithium\data\Model {
      * create/update and choose not to use the value from the 'form' key if you choose.
     */
     protected $_schema = array(
-	'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
 	'page_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-	'title' => array('type' => 'string', 'search' => array('weight' => 1), 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
-	'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
-	'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),		
+	'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
 	'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this page (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
 	'published' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'position' => 'options')),
 	'owner_id' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
@@ -86,83 +82,18 @@ class Page extends \lithium\data\Model {
 	)
     );
     
+    // Search schema will also be combined
+    public $search_schema = array(
+	'title' => array(
+	    'weight' => 1
+	)
+    );
+    
     // So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
     public $display_name = 'Page';
     
-    public static function __init() {		
-	/**
-	 * The following code will append a library Page model's $_schema and
-	 * $validates properites to this Page model. $_schema can never be changed,
-	 * only extended. $validates can be changed and extended, but if default
-	 * field rules are left out, they will be used from this parent model.
-	*/
-	$class =  __CLASS__;
-	$extended_schema = static::_object()->_schema;
-	// Loop through and ensure no one forgot to set the form key		
-	foreach($extended_schema as $k => $v) {
-		$extended_schema[$k] += array('form' => array('position' => 'default'));
-	}
-	// Append extended schema
-	$class::_object()->_schema += $extended_schema;
-	// Use the library Page model's validation rules combined with the default (but the library gets priority) this way the default rules can be changed, but if left out will still be used (to help make things nicer)
-	$class::_object()->validates = static::_object()->validates += $class::_object()->validates;
-	
-	// Replace any set display name for context
-	$class::_object()->display_name = static::_object()->display_name;
-	
-	// Lock the schema so values that aren't part of it can't be saved to the db.
-	$class::meta('locked', true);
-	
-	// Don't forget me...
-	parent::__init();
-    }	
     
-    /**
-     * Get the display name for a page.
-     * This helps to add a little bit of context for users.
-     * For example, the create action template has a title "Create Page"
-     * but if another page type uses that admin template, it would need
-     * to be changed to something like "Create Blog Entry" for example.
-     * The "display_name" property of each Page model changes that and
-     * this method gets the value.
-     *
-     * @return String
-    */
-    public function display_name() {
-	$class =  __CLASS__;
-	return $class::_object()->display_name;
-    }
-    
-    public function unique_url($url=null, $id=null) {
-	if((!$url) || (!$id)) {
-	    return null;
-	}
-	
-	$records = Page::find('all', array('fields' => array('url'), 'conditions' => array('url' => array('like' => '/'.$url.'/'))));
-	$conflicts = array();
-	
-	foreach($records as $record) {
-	    if($record->{Page::key()} != $id) {
-		$conflicts[] = $record->url;
-	    }
-	}
-	
-	if (!empty($conflicts)) {
-	    $firstSlug = $url;
-	    $i = 1;
-	    while($i > 0) {
-		// TODO: Maybe make separator option somewhere as a property? So it can be _ instead of -
-		if (!in_array($firstSlug . '-' . $i, $conflicts)) {					
-		    $url = $firstSlug . '-' . $i;
-		    $i = -1;
-		}
-	    $i++;
-	    }
-	}
-	
-	return $url;
-    }
-    
+    // TODO: ditch this method
     public function getLatestPages($options=array()) {
 	$defaults = array('conditions' => array(), 'limit' => 10);
 	$options += $defaults;
@@ -170,7 +101,7 @@ class Page extends \lithium\data\Model {
 	return Page::find('all', array('limit' => $options['limit'], 'conditions' => $options['conditions']));
     
     }
-
+    
 }
 
 /* FILTERS GO HERE

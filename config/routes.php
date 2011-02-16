@@ -90,6 +90,11 @@ Router::connect('/users/read/{:id}', array(
     'controller' => 'users',
     'action' => 'read'
 ));
+Router::connect('/users/create', array(
+    'admin' => true,
+    'controller' => 'users',
+    'action' => 'create'
+));
 Router::connect('/users/create/{:user_type}', array(
     'admin' => true,
     'controller' => 'users',
@@ -126,8 +131,13 @@ Router::connect('/users/index/{:user_type}/page:{:page}/limit:{:limit}', array(
     'page' => 1,
     'limit' => 10
 ));
-Router::connect('/users/{:action}/{:args}', array(
+Router::connect('/users', array(
     'admin' => true,
+    'controller' => 'users',
+    'action' => 'index'
+));
+Router::connect('/users/{:action}/{:args}', array(
+    'admin' => false,
     'controller' => 'users'
 ));
 
@@ -150,7 +160,7 @@ Router::connect('/blocks/create/{:block_type}', array(
     'controller' => 'blocks',
     'action' => 'create'
 ));
-Router::connect('/blocks/update/{:id}', array(
+Router::connect('/blocks/update/{:url}', array(
     'admin' => true,
     'controller' => 'blocks',
     'action' => 'update'

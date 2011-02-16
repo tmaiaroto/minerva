@@ -39,7 +39,7 @@
                 <?=$block->created; ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', '/blocks/update/' . $block->url); ?> | 
+                <?=$this->html->link('Edit', array('admin' => true, 'controller' => 'blocks', 'action' => 'update', 'url' => $block->url)); ?> | 
 		<?=$this->html->link('Delete', '/blocks/delete/' . $block->url, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $block->title . '?\')')); ?>
             </td>
         </tr>

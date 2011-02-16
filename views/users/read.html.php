@@ -7,10 +7,10 @@
 <div class="grid_12">
 <!-- start main content area -->
 		
-            <h3><?=$record->email; ?></h3>
-            <p>Member since <?=substr($this->time->to('nice', $record->created->sec), 0, -7); ?></p>
-            <p>Last seen <?=$this->time->to('nice', $record->last_login_time->sec); ?> from <?=$record->last_login_ip; ?></p>
-	    <p>Role: <?=$record->role; ?></p>
+            <h3><?=$document->email; ?></h3>
+            <p>Member since <?=substr($this->time->to('nice', $document->created->sec), 0, -7); ?></p>
+            <p>Last seen <?=$this->time->to('nice', $document->last_login_time->sec); ?> from <?=$document->last_login_ip; ?></p>
+	    <p>Role: <?=$document->role; ?></p>
 
 <!-- end main content area -->
 </div>

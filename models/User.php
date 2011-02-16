@@ -9,7 +9,7 @@ use \minerva\util\Email;
 use \minerva\util\Util;
 // use app\models\Asset;
 
-class User extends \lithium\data\Model {
+class User extends \minerva\models\MinervaModel {
 	
 	// User model also can be extended...Plugins can maybe add features like "Profile Pages" or "Twitter Feeds" etc.
 	
@@ -30,6 +30,12 @@ class User extends \lithium\data\Model {
 		'last_login_ip' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'last_login_time' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false))
 		//'file' => array('type' => 'string', 'form' => array('type' => 'file'))
+	);
+	
+	public $search_schema = array(
+		'body' => array(
+			'weight' => 1
+		)
 	);
 	
 	protected $_user_roles = array(
@@ -57,22 +63,6 @@ class User extends \lithium\data\Model {
 	
 	public static function __init() {
 		$class =  __CLASS__;
-		$extended_schema = static::_object()->_schema;
-		// Loop through and ensure no one forgot to set the form key
-		// TODO: see if there's a more graceful way to do this
-		foreach($extended_schema as $k => $v) {
-			if(!isset($extended_schema[$k]['form'])) {
-				$extended_schema[$k]['form'] = array();	
-			}			
-		}
-		// Append extended schema
-		$class::_object()->_schema += $extended_schema;
-		// Also append extended validation rules (giving priroity to the library for overriding)
-		$class::_object()->validates = static::_object()->validates += $class::_object()->validates;
-		
-		// Replace any set display name for context
-		$class::_object()->display_name = static::_object()->display_name;
-	
 		/**
 		 * ROLES
 		 * Note: You don't need to use Minerva's role based access system.
@@ -116,26 +106,7 @@ class User extends \lithium\data\Model {
 			return true;
 		});
 		
-		// Lock the schema so values that aren't part of it can't be saved to the db.
-		$class::meta('locked', true);
-		
 		parent::__init();
-	}
-	
-	/**
-	 * Get the display name for a page.
-	 * This helps to add a little bit of context for users.
-	 * For example, the create action template has a title "Create Page"
-	 * but if another page type uses that admin template, it would need
-	 * to be changed to something like "Create Blog Entry" for example.
-	 * The "display_name" property of each Page model changes that and
-	 * this method gets the value.
-	 *
-	 * @return String
-	*/
-	public function display_name() {
-		$class =  __CLASS__;
-		return $class::_object()->display_name;
 	}
 	
 	/**
@@ -147,7 +118,6 @@ class User extends \lithium\data\Model {
 		$class =  __CLASS__;
 		return $class::_object()->_user_roles;
 	}
-
 
 }
 
@@ -162,7 +132,9 @@ class User extends \lithium\data\Model {
  * 
 */
 User::applyFilter('save', function($self, $params, $chain) {
-	//$params['data']['library'] = 'family_spoon'; // For now...
+    // TODO: below
+    return $chain->next($self, $params, $chain);
+    
 	
 	// Do this except for those with a facebook uid, the FB PHP SDK takes care of that
 	if(!isset($params['data']['facebook_uid'])) {
@@ -176,7 +148,6 @@ User::applyFilter('save', function($self, $params, $chain) {
 		}*/
 		
 		// Set created, modified, and pretty url (slug)
-		$now = date('Y-m-d h:i:s');
 		if (!$params['entity']->exists()) {
 			if(Validator::rule('moreThanFive', $params['data']['password']) === true) {
 				$params['data']['password'] = String::hash($params['data']['password']); // will be sha512
@@ -186,10 +157,7 @@ User::applyFilter('save', function($self, $params, $chain) {
 				$params['data']['email'] = ''; 
 			}
 			
-			$params['data']['created'] = $now;
-			$params['data']['modified'] = $now;
 		} else {
-			$params['data']['modified'] = $now;
 			// If the fields password and password_confirm both exist, then validate the password field too
 			if((isset($params['data']['password'])) && (isset($params['data']['password_confirm']))) {
 				if(Validator::rule('moreThanFive', $params['data']['password']) === true) {

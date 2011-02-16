@@ -35,7 +35,7 @@
                 <?=$this->time->to('nice', $user->created->sec); ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', '/users/update/' . $user->user_type . '/' . $user->_id); ?> |
+                <?=$this->html->link('Edit', array('admin' => true, 'controller' => 'users', 'action' => 'update', 'id' => $user->_id)); ?> |
                 <?=$this->html->link('Delete', '/users/delete/' . $user->user_type . '/' . $user->_id, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $user->email . '?\')')); ?>
             </td>
         </tr>
