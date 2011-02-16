@@ -526,7 +526,7 @@ ul.nav li a.current {
 	background: #888;
 }
 
-/* CakePHP Specific */
+/* Errors and Flash Messages */
 div#flashMessage {
 	padding: 10px;
 	margin: 0px 13px 10px 11px;
@@ -701,4 +701,45 @@ ul.pagination_actions li {
 	list-style: none;
 	list-style-position: inside;
 	margin: 0px 5px 0px 0px;
+}
+
+
+/* RED THEME SPECIFIC */
+html {
+	background: #eee;
+}
+body {
+	background: #eee; /* for non-css3 browsers */
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#b5b5b5', endColorstr='#eee'); /* for IE */
+    background: -webkit-gradient(linear, left top, left bottom, from(#b5b5b5), to(#eee)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #b5b5b5,  #eee); /* for firefox 3.6+ */
+	height: 400px;
+	overflow: visible;
+}
+.box h2 {
+	background: #222;
+}
+a:hover {
+	color: #a00c00;
+}
+h1#branding {
+	background: url('/img/minerva-logo-red.png') no-repeat;
+	padding-left: 25px;
+	padding-top: 40px;
+}
+h1#branding a {
+	width: 194px;
+	display: block;
+	height: 30px;
+	text-indent: -2000px;
+}
+#admin_header {
+	background: url('/img/admin-header-bg-red.png') #6c120a repeat-x;
+}
+ul#main_administration_menu li a, ul#main_administration_menu {
+	background: #222;
+}
+ul#main_administration_menu li a:hover {
+	color: #d71d04;
+	background: #111;
 }

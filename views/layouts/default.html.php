@@ -29,7 +29,7 @@
 </head>
 <body>
 	<div class="container_16">
-		<div class="grid_16">
+		<div class="grid_16" id="admin_header">
 			<h1 id="branding">
 				<a href="/admin">Minerva</a>
 			</h1>
