@@ -6,6 +6,7 @@ use li3_access\security\Access;
 use \lithium\security\Auth;
 use \lithium\storage\Session;
 use \lithium\util\Set;
+use \lithium\util\String;
 use minerva\libraries\util\Util;
 
 class UsersController extends \minerva\controllers\MinervaController {
@@ -183,26 +184,32 @@ class UsersController extends \minerva\controllers\MinervaController {
         // Save
         if ($this->request->data) {
             $user = User::create();
-	    $this->request->data['role'] = 'registered_user'; // set basic user, always hard coded and set
-	    
-	    // IF this is the first user ever created, then they will be an administrator
-	    // TODO: make a wizard that will set this so there's no chance of some user registering and becoming an admin
-	    $users = User::find('count');
-	    if(empty($users)) {
-		$this->request->data['role'] = 'administrator';
-		$this->request->data['active'] = true;
-	    }
-	    
-	    // Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
-	    if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
-		//$this->request->data['user_type'] = 'user';
-		$this->request->data['user_type'] = null;
-	    }
-	    
+			$this->request->data['role'] = 'registered_user'; // set basic user, always hard coded and set
+			
+			// IF this is the first user ever created, then they will be an administrator
+			// TODO: make a wizard that will set this so there's no chance of some user registering and becoming an admin
+			$users = User::find('count');
+			if(empty($users)) {
+			$this->request->data['role'] = 'administrator';
+			$this->request->data['active'] = true;
+			}
+			
+			// Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
+			if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
+			//$this->request->data['user_type'] = 'user';
+			$this->request->data['user_type'] = null;
+			}
+			
+			if((isset($this->request->data['password'])) && (!empty($this->request->data['password']))) {
+				$this->request->data['password'] = String::hash($this->request->data['password']);
+			}
+		
             if($user->save($this->request->data, array('validate' => $rules))) {
                 //$this->redirect(array('controller' => 'users', 'action' => 'index'));
                 $this->redirect('/');
-            }
+            } else {
+				$this->request->data['password'] = '';
+			}
         }
         
         if(empty($user)) {
