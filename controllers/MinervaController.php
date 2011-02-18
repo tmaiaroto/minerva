@@ -79,7 +79,7 @@ class MinervaController extends \lithium\action\Controller {
         // get the library name
         foreach($this->library_fields as $field) {
             if(in_array($field, array_keys($library_name_haystack))) {
-                $library = $library_name_haystack[$field];
+                $library = (isset($library_name_haystack[$field])) ? $library_name_haystack[$field]:null;
             }
         }
         
@@ -138,7 +138,7 @@ class MinervaController extends \lithium\action\Controller {
             // add the document to the document access rules so it can be checked against
             $i=0;
             foreach($rules as $rule) {
-                $rules['document'][$i] = $document->data();
+                $rules['document'][$i]['document'] = $document->data();
                 $i++;
             }
             
@@ -181,7 +181,7 @@ class MinervaController extends \lithium\action\Controller {
         
         // If there's a page/user/block_type passed, add it to the conditions, 'all' will show all pages.
         if($type != 'all') {
-            $conditions = array($type => $this->request->params[$type]);
+            $conditions = array($type => $this->request->params[$x_type]);
         } else {
             $conditions = array();
         }
