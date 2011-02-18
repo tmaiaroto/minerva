@@ -267,7 +267,7 @@ class MinervaController extends \lithium\action\Controller {
         // Don't need to have these fields in the form
         unset($fields['_id']);
         // If a page type was passed in the params, we'll need it to save to the page document.
-        $fields[$x_type]['form']['value'] = ($type != 'all') ? $type:null;
+        //$fields[$x_type]['form']['value'] = ($type != 'all') ? $type:null;
         
         // If data was passed, set some more data and save
         if ($this->request->data) {
@@ -275,6 +275,8 @@ class MinervaController extends \lithium\action\Controller {
             $now = date('Y-m-d h:i:s');
             $this->request->data['created'] = $now;
             $this->request->data['modified'] = $now;
+            // If a page type was passed in the params, we'll need it to save to the page document.
+            $this->request->data[$x_type] = $type;
             $this->request->data['url'] = Util::unique_url(array(
                 'url' => Inflector::slug($this->request->data['title']),
                 'model' => $modelClass
