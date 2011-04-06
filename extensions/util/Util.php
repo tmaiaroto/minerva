@@ -2,7 +2,7 @@
 /*
  * A general utility class for Minerva. This includes several useful methods used throughout the site.
 */
-namespace minerva\libraries\util;
+namespace minerva\extensions\util;
 
 use \RecursiveIteratorIterator;
 use \RecursiveArrayIterator;

@@ -15,7 +15,7 @@ use lithium\storage\Session;
 Session::config(array(
 	'cookie' => array('adapter' => 'Cookie'),
 	'default' => array('adapter' => 'Php'),
-        'flash_message' => array('adapter' => 'Php')
+    //'flash_message' => array('adapter' => 'Php')
 ));
 
 /**

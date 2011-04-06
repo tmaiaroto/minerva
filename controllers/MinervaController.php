@@ -1,14 +1,21 @@
 <?php
 namespace minerva\controllers;
 
+/*
 use li3_access\security\Access;
 use \lithium\security\Auth;
 use \lithium\storage\Session;
-use \lithium\util\Set;
+
 use \lithium\util\String;
-use minerva\libraries\util\Util;
+
 use \lithium\util\Inflector;
 use li3_flash_message\extensions\storage\FlashMessage;
+*/
+
+use minerva\extensions\util\Util;
+use \lithium\util\Set;
+use \lithium\util\Inflector;
+use minerva\models\Page;
 
 class MinervaController extends \lithium\action\Controller {
   
@@ -54,7 +61,9 @@ class MinervaController extends \lithium\action\Controller {
         
         // $action=null, $request=null, $find_type='first', $conditions=array(), $limit=null, $offset=0, $order=null
         // 1. Determine the proper model to be using
-        $model = Inflector::classify(Inflector::singularize($request->params['controller']));
+        $controller_pieces = explode('.', $request->params['controller']);
+        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
+        $model = Inflector::classify(Inflector::singularize($controller));
         $modelClass = 'minerva\models\\'.$model;
         $library = null;
         $library_name_haystack = array();
@@ -97,7 +106,7 @@ class MinervaController extends \lithium\action\Controller {
             $action = $controller_pieces[1];
         }
         
-        $controllerClass = '\minerva\controllers\\'.$request->params['controller'].'Controller';
+        $controllerClass = '\minerva\controllers\\'.$controller.'Controller';
         
         // If the $controllerClass doesn't exist, it means it's a controller that Minerva doesn't have. That means it's not core and the access can be set there on that controller.
         if((isset($modelClass::$access)) && (class_exists($controllerClass))) {
@@ -109,7 +118,9 @@ class MinervaController extends \lithium\action\Controller {
         $rules = (isset($controllerClass::$access[$request->params['action']])) ? $controllerClass::$access[$request->params['action']]:array();
         
         // Check access for the action in general
-        $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['action']));
+        //$action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['action']));
+        // TODO: put this back on
+        $action_access = array();
         
         if(!empty($action_access)) {
             FlashMessage::set($action_access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
@@ -142,7 +153,9 @@ class MinervaController extends \lithium\action\Controller {
                 $i++;
             }
             
-            $document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['document']));
+            //$document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['document']));
+            $document_access = array();
+            // TODO : put this back
             if(!empty($document_access)) {
                 FlashMessage::set($document_access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
                 $this->redirect($document_access['redirect']);
@@ -165,7 +178,9 @@ class MinervaController extends \lithium\action\Controller {
     */
     public function index() {
         // get the "_type" ... page_type, user_type, or block_type
-        $model = Inflector::classify(Inflector::singularize($this->request->params['controller']));
+        $controller_pieces = explode('.', $this->request->params['controller']);
+        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
+        $model = Inflector::classify(Inflector::singularize($controller));
         $modelClass = 'minerva\models\\'.$model;
         $x_type = strtolower($model) . '_type';
         // or set it to "all" if there wasn't a param passed
@@ -243,7 +258,9 @@ class MinervaController extends \lithium\action\Controller {
     */
     public function create() {
         // get the "_type" ... page_type, user_type, or block_type
-        $model = Inflector::classify(Inflector::singularize($this->request->params['controller']));
+        $controller_pieces = explode('.', $this->request->params['controller']);
+        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
+        $model = Inflector::classify(Inflector::singularize($controller));
         $modelClass = 'minerva\models\\'.$model;
         $x_type = strtolower($model) . '_type';
         // or set it to "all" if there wasn't a param passed
@@ -318,10 +335,13 @@ class MinervaController extends \lithium\action\Controller {
     */
     public function update() {
         // get the "_type" ... page_type, user_type, or block_type
-        $model = Inflector::classify(Inflector::singularize($this->request->params['controller']));
+        $controller_pieces = explode('.', $this->request->params['controller']);
+        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
+        $model = Inflector::classify(Inflector::singularize($controller));
         $modelClass = 'minerva\models\\'.$model;
         $x_type = strtolower($model) . '_type';
         
+        $conditions = array();
         // Use the pretty URL if provided
 		if(isset($this->request->params['url'])) {
 			$conditions = array('url' => $this->request->params['url']);
@@ -376,10 +396,10 @@ class MinervaController extends \lithium\action\Controller {
 			
             // Save it
 			if($document->save($this->request->data)) {
-                FlashMessage::set('The content has been updated successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
+                //FlashMessage::set('The content has been updated successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
                 $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
 			} else {
-                FlashMessage::set('The content could not be updated, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+                //FlashMessage::set('The content could not be updated, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
             }
 		}
 	    

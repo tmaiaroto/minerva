@@ -18,11 +18,17 @@
  */
 namespace minerva\controllers;
 use minerva\models\Page;
-use \lithium\util\Set;
+
+/*
+
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_access\security\Access;
-use \lithium\security\Auth;
+
 use minerva\libraries\util\Util;
+*/
+
+use \lithium\security\Auth;
+use \lithium\util\Set;
 use lithium\util\Inflector;
 
 class PagesController extends \minerva\controllers\MinervaController {

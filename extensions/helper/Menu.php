@@ -37,7 +37,7 @@ class Menu extends Block {
      * menus are not. Their contents won't exist outside the system.
     */
     public function render($options=array()) {
-	$defaults = array('library' => 'static');
+	$defaults = array('library' => 'minerva');
 	$options += $defaults;
 	if(!is_array($options)) {
 	    // TODO: log why
@@ -74,7 +74,7 @@ class Menu extends Block {
 	if(empty($template)) {
 	    return '';
 	}
-	$options = array('library' => null, 'template' => $template, 'admin' => true);
+	$options = array('library' => 'minerva', 'template' => $template, 'admin' => true);
 	return $this->render($options);
     }
     
@@ -89,7 +89,7 @@ class Menu extends Block {
 	if(empty($template)) {
 	    return '';
 	}
-	$options = array('library' => 'common', 'template' => $template);
+	$options = array('library' => 'minerva', 'template' => $template);
 	return $this->render($options);
     }
     

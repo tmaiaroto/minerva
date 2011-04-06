@@ -723,7 +723,7 @@ a:hover {
 	color: #a00c00;
 }
 h1#branding {
-	background: url('/img/minerva-logo-red.png') no-repeat;
+	background: url('/minerva/img/minerva-logo-red.png') no-repeat;
 	padding-left: 25px;
 	padding-top: 40px;
 }
@@ -734,7 +734,7 @@ h1#branding a {
 	text-indent: -2000px;
 }
 #admin_header {
-	background: url('/img/admin-header-bg-red.png') #6c120a repeat-x;
+	background: url('/minerva/img/admin-header-bg-red.png') #6c120a repeat-x;
 }
 ul#main_administration_menu li a, ul#main_administration_menu {
 	background: #222;

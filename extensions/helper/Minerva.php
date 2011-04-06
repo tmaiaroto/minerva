@@ -11,10 +11,10 @@
 */
 namespace minerva\extensions\helper;
 
-use minerva\libraries\util\Util;
+use minerva\extensions\util\Util;
 use lithium\util\Inflector;
 
-class Html extends \lithium\template\helper\Html {
+class Minerva extends \lithium\template\helper\Html {
 
     public function greeting($name) {
         return "Hello {$name}!";

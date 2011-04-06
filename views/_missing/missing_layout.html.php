@@ -30,6 +30,5 @@
 			<?php echo $this->content(); ?>
 		</div>
 	</div>
-	<?=$this->flashMessage->output(); ?>
 </body>
 </html>
