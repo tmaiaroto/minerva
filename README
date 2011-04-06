@@ -1,4 +1,9 @@
 Minerva CMS
+
+Second draft, April 6, 2011
+----
+Moving to a plugin. The Minerva plugin will, eventually, provide CMS functionality to your existing applications. So to get started, clone minerva into your app/libraries directory. Do not change any .htaccess files, but put in your bootstrap somewhere: Libraries::add('minerva');
+
 First draft, June 22, 2010
 ----
 To get started, checkout minerva into your root directory where "app" and "libraries" (the actual lithium framework) sit. Then change up your .htaccess file to point to the folder "minerva" instead of "app"
