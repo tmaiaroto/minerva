@@ -17,6 +17,7 @@ class MinervaModel extends \lithium\data\Model {
     static $document_access = array();
     static $access = array();
     public $document_type = '';
+	public $action_redirects = array();
 	protected $_meta = array(
 		'locked' => true
 	);
@@ -38,6 +39,9 @@ class MinervaModel extends \lithium\data\Model {
 		
 		// Replace any set display name for context
 		$class::_object()->display_name = static::_object()->display_name;
+		
+		// Replace any action_redirect properties (holds redirects for each core Minerva controller method, ie. create, update, and delete)
+		$class::_object()->action_redirects = static::_object()->action_redirects;
 		
 		// Set the library name for this model
 		$model_path = Libraries::path(get_class(static::_object()));
@@ -77,6 +81,18 @@ class MinervaModel extends \lithium\data\Model {
 	public function library_name() {
 		$class =  __CLASS__;
 		return $class::_object()->library_name;
+    }
+	
+	/**
+	 * Returns the action_redirect property for the model.
+	 * This property is used to control where certain actions redirect to.
+	 * For example, after updating a record.
+	 *
+	 * @return Array
+	*/
+	public function action_redirects() {
+		$class =  __CLASS__;
+		return $class::_object()->action_redirects;
     }
 	
 	/**

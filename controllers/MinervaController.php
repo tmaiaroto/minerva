@@ -94,12 +94,46 @@ class MinervaController extends \lithium\action\Controller {
         $this->minerva_config['display_name'] = $ModelClass::display_name();
         $this->minerva_config['library_name'] = $ModelClass::library_name();
         $this->minerva_config['document_type'] = $document_type;
-        // redirect is a little tricky, routes can actually dictate the redirect after things like saving or deleting, by default it's to the index action of the current controller
-        $admin = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
-        $this->request->params += array('action_redirect' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index'));
-        $this->minerva_config['action_redirect'] = $this->request->params['action_redirect'];
+        $this->minerva_config['admin'] = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
         
         parent::_init();
+    }
+    
+    /**
+     * Gets the redirects for each action.
+     * These redirects have defaults, but can be set on each Minerva model.
+     * The current $this->minerva_config['ModelClass'] will be used to lookup
+     * this action_redirect property from the model.
+     *
+     * @return Array
+    */
+    public function getRedirects() {
+        $redirects = array();
+        $admin = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
+        $default_redirects = array(
+            'create' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index'),
+            'update' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index'),
+            'delete' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index')
+        );
+        $ModelClass = $this->minerva_config['ModelClass'];
+        $redirects = $ModelClass::action_redirects();
+        $redirects += $default_redirects;
+        
+        // loop through, look for special redirect values
+        foreach($redirects as $k => $v) {
+            if($v == 'self') {
+                $redirects[$k] = '/' . $this->request->url;
+            }
+            if($v == 'referer') {
+                if(isset($_SERVER['HTTP_REFERER'])) {
+                    $redirects[$k] = $_SERVER['HTTP_REFERER'];
+                } else {
+                    $redirects[$k] = '/' . $this->request->url;
+                }
+            }
+        }
+        
+        return $redirects;
     }
     
     /**
@@ -280,10 +314,10 @@ class MinervaController extends \lithium\action\Controller {
             $search_conditions = array();
             // For each searchable field, adjust the conditions to include a regex
             foreach($search_schema as $k => $v) {
-            // TODO: possibly factor in the weighting later. also maybe note the "type" to ensure our regex is going to work or if it has to be adjusted (string data types, etc.)
-            //var_dump($k);
-            $search_regex = new \MongoRegex('/' . $this->request->query['q'] . '/i');
-            $conditions['$or'][] = array($k => $search_regex);
+                // TODO: possibly factor in the weighting later. also maybe note the "type" to ensure our regex is going to work or if it has to be adjusted (string data types, etc.)
+                //var_dump($k);
+                $search_regex = new \MongoRegex('/' . $this->request->query['q'] . '/i');
+                $conditions['$or'][] = array($k => $search_regex);
             }
             
         }
@@ -324,6 +358,8 @@ class MinervaController extends \lithium\action\Controller {
         extract($this->minerva_config);
         
         $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => false));
+        // get the redirects; important to call this AFTER $this->getDocument() because the proper $ModelClass will be set (it will have changed based on the document from the database)
+        $action_redirects = $this->getRedirects();
         
         // Get the fields so the view template can iterate through them and build the form
         $fields = $ModelClass::schema();
@@ -362,8 +398,7 @@ class MinervaController extends \lithium\action\Controller {
             // Save
             if($document->save($this->request->data)) {
                 FlashMessage::write('The content has been created successfully.', array(), 'minerva_admin');
-                $this->redirect($action_redirect);
-        
+                $this->redirect($action_redirects['create']);
             } else {
                 FlashMessage::write('The content could not be saved, please try again.', array(), 'minerva_admin');
             }
@@ -397,8 +432,10 @@ class MinervaController extends \lithium\action\Controller {
         
 		// Get the document
 		$document = $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => 'first', 'conditions' => $conditions));
+        // get the redirects (again, call AFTER $this->getDocument() because the $ModelClass will have changed)
+        $action_redirects = $this->getRedirects();
         
-        // NOW get all the data we need from minerva_config because $this->getDocument() will have changed it for read/update/delete
+        // NOW get all the data we need from minerva_config for this method because $this->getDocument() will have changed it for read/update/delete
         extract($this->minerva_config);
         
         // Get the fields so the view template can build the form
@@ -412,7 +449,6 @@ class MinervaController extends \lithium\action\Controller {
         }
 		// If a document_type isn't empty, set it in the form
 		$fields['document_type']['form']['value'] = (!empty($document_type)) ? $document_type:null;
-        
         
         // Update the record
 		if ($this->request->data) {
@@ -433,13 +469,13 @@ class MinervaController extends \lithium\action\Controller {
             // Save it
 			if($document->save($this->request->data)) {
                 FlashMessage::write('The content has been updated successfully.', array(), 'minerva_admin');
-                $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
+                $this->redirect($action_redirects['update']);
 			} else {
                 FlashMessage::write('The content could not be updated, please try again.', array(), 'minerva_admin');
             }
 		}
 	    
-	    $this->set(compact('document', 'fields', 'display_name'));
+	    $this->set(compact('document', 'fields', 'display_name', 'document_type'));
     }
     
     /**
@@ -471,13 +507,15 @@ class MinervaController extends \lithium\action\Controller {
             'conditions' => $conditions
         ));
         
+        // called after $this->getDocument() so the proper $ModelClass is used
+        $action_redirects = $this->getRedirects();
+        
         if($document->delete()) {
             FlashMessage::write('The content has been deleted.', array(), 'minerva_admin');
-            $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
         } else {
             FlashMessage::write('The content could not be deleted, please try again.', array(), 'minerva_admin');
-            $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
         }
+        $this->redirect($action_redirects['delete']);
     }
     
 }
