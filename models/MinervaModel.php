@@ -2,6 +2,7 @@
 namespace minerva\models;
 
 use lithium\util\Inflector;
+use lithium\core\Libraries;
 
 class MinervaModel extends \lithium\data\Model {
     
@@ -98,12 +99,8 @@ class MinervaModel extends \lithium\data\Model {
      * @return class
     */
     public function getMinervaModel($model_name=null, $library_name=null) {
-        $class = __CLASS__;
-        if(!empty($model_name) && !empty($library_name)) {
-            $class = '\minerva\libraries\\' . $library_name . '\models\\' . $model_name;
-            $class = (class_exists($class)) ? $class:'\minerva\models\\' . $model_name;
-        }
-        return (class_exists($class)) ? $class:__CLASS__;
+		$model = Libraries::locate('minerva_models', $library_name . '.' . $model_name);
+		return (class_exists($model)) ? $model:__CLASS__;
     }
     
 }

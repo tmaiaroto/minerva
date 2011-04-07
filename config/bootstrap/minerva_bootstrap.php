@@ -18,10 +18,42 @@
  * but it would be after this.
 */
 
-use \lithium\action\Dispatcher;
-use \lithium\util\Inflector;
+use lithium\action\Dispatcher;
+use lithium\util\Inflector;
 use lithium\net\http\Media;
-use \lithium\security\Auth;
+use lithium\security\Auth;
+use lithium\core\Libraries;
+use lithium\template\View;
+use \Exception;
+
+Dispatcher::applyFilter('run', function($self, $params, $chain) {
+	// Dependency checks for the CMS
+	$library_deps = array(
+		'li3_flash_message'
+	);
+	
+	$missing_deps = array();
+	foreach($library_deps as $library) {
+		if(Libraries::get($library) == null) {
+			$missing_deps[] = $library;
+		//	throw new Exception('Hey! You don\'t have that library!');
+		}
+	}
+	
+	if(!empty($missing_deps)) {
+		$view = new View(array('loader' => 'Simple', 'renderer' => 'Simple'));
+		$message =  'You are missing the following libraries that Minerva depends on:<br />';
+		foreach($missing_deps as $library) {
+			$message .= $library . '<br />';
+		}
+		$message .= '<br /><br />You will need to ensure that you have these libraries yourself for now, but in the future there will hopefully be an option to automatically download and install them.';
+		
+		echo $view->render(array('element' => $message));
+		exit();
+	}
+	
+	return $chain->next($self, $params, $chain);
+});
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
     
@@ -40,7 +72,6 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
      * Now all the redirects don't show a URL of site.com/minerva/blog it will be the expected site.com/blog
      * Both work though.
     */
-    
 	if(isset($params['request']->params['library']) && $params['request']->params['library'] == 'minerva') {
 		
 		// Get the library if provided from the route params
@@ -132,26 +163,26 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		 * or static page, you don't have to specify it's an admin one because the router won't come into play for
 		 * menus and blocks.
 		*/
-		if(($params['request']->params['action'] == 'view') && ($params['request']->params['controller'] == 'blocks' || $params['request']->params['controller'] == 'pages' || $params['request']->params['controller'] == 'menus')) {
+		if(($params['request']->params['action'] == 'view') && ($params['request']->params['controller'] == 'minerva.blocks' || $params['request']->params['controller'] == 'minerva.pages' || $params['request']->params['controller'] == 'minerva.menus')) {
 		// redefine the layout and template arrays, so add back the missing template templates
 		$params['options']['render']['paths']['layout'] = array(
-			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
-			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
+			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
+			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
 			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_missing' . DIRECTORY_SEPARATOR . 'missing_layout.{:type}.php'
 		);
 		$params['options']['render']['paths']['template'] = array(
-			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . '{:controller}' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php',
+			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . '{:controller}' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:template}.{:type}.php',
 			LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_missing' . DIRECTORY_SEPARATOR . 'missing_template.{:type}.php'
 		);
 		// ADMIN STATIC VIEWS
 		// Hey, static views can be for just the admin interface as well and those will take priority.
 		if($admin === true) {
-			// before looking at the defaults set above for static views, look for layouts in "minerva/libraries/common/views/layouts" and then core "minerva/views/layouts"
-			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
+			// before looking at the defaults set above for static views, look for layouts in "app/libraries/minerva/views/layouts" and then core "minerva/views/layouts"
+			//array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
 			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_admin' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
 			
-			// but before that, look in "minerva/libraries/common/views/layouts/static" and "minerva/views/layouts/static" ... we want to give a "static" template priority
-			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
+			// but before that, look in "app/libraries/minerva/views/layouts/static" and "minerva/views/layouts/static" ... we want to give a "static" template priority
+			//array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
 			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_admin' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
 			
 			// however, templates always come from a "static" folder unlike layouts
@@ -193,6 +224,6 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		
 	}
 	
-    return $chain->next($self, $params, $chain);	
+    return $chain->next($self, $params, $chain);
 });
 ?>

@@ -1,17 +1,16 @@
 <?php
-/*
- *
+/**
+ * Minerva Menu Helper
+ * 
  * @author Tom Maiaroto
  * @website http://www.shift8creative.com
- * @modified 2010-11-20 16:17:41 
- * @created 2010-11-20 16:17:41 
  *
 */
 namespace minerva\extensions\helper;
 use \lithium\template\View as View;
 use \lithium\util\Inflector as Inflector;
 
-class Menu extends Block {
+class MinervaMenu extends Block {
   
     /** 
      *  Simply overrides the Block's request() method.

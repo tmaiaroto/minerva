@@ -175,7 +175,7 @@ class PagesController extends \minerva\controllers\MinervaController {
         ));
         
         if(!$document) {
-            FlashMessage::set('Page not found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
+            //FlashMessage::set('Page not found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
             $this->redirect(array('controller' => 'pages', 'action' => 'index'));
         }
         

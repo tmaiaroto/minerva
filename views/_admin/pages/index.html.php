@@ -42,7 +42,7 @@
             </td>
             <td>
                 <?=$this->html->link('Edit', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'update', 'url' => $page->url)); ?> | 
-		<?=$this->html->link('Delete', '/pages/delete/' . $page->url, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $page->title . '?\')')); ?>
+				<?=$this->html->link('Delete', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'delete', 'url' => $page->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $page->title . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>

@@ -10,87 +10,98 @@
  * or not use pnotify at all.
 */
 
-// Alternatively, you may wish to put these within the head section.
-echo $this->html->script('jquery/jquery.pnotify.min.js');
-echo $this->html->style('jquery/jquery.pnotify.default.css');
-?>
-<script type="text/javascript">
-jQuery(document).ready(function() {
-    jQuery.pnotify({
-        <?php
-        // No icon by default, it has to be passed in the options
-        echo 'pnotify_notice_icon: false,';
-        echo 'pnotify_history: false,';
+if((isset($message)) && (!empty($message))) {
 	
-        // If options were passed in the "options" key
-        if(isset($options)) {
-            foreach($options as $k => $v) {
-                switch($k) {
-                    // convenience, just some shortcuts. very optional, there is also a "pnotify_type" but it's limited, this kinda expands on that
-                    case 'type':
-                        switch(strtolower($v)) {
-                            case 'warn':
-                            case 'warning':
-                                echo 'pnotify_notice_icon: "ui-icon ui-icon-alert",';
-                                break;
-                            case 'info':
-                                echo 'pnotify_notice_icon: "ui-icon ui-icon-info",';
-                                break;
-                            case 'success':
-                                echo 'pnotify_notice_icon: "ui-icon ui-icon-check",';
-                                break;
-                            case 'failure':
-                            case 'fail':
-                            case 'error':
-                                // will use pnotify's shortcut
-                                echo 'pnotify_type: "error",';
-                                break;
-                            case 'tip':
-                                echo 'pnotify_notice_icon: "ui-icon ui-icon-lightbulb",';
-                                break;
-                            case 'notify':
-                            case 'notice':
-                                echo 'pnotify_notice_icon: "ui-icon ui-icon-notice",';
-                                break;
-                            case 'growl':
-                                // this one is a little different, it strips away the icons and styles
-                                echo 'pnotify_closer: false,';
-                                echo 'pnotify_after_init: function(pnotify){
-				    pnotify.click(function(){
-				    pnotify.pnotify_remove();
-				    });
-				},';
-                                break;
-                        }
-                        break;
-                    case 'pnotify_title':
-                    case 'title':
-                        echo 'pnotify_title: \'' . addslashes($v) . '\','; 
-                        break;
-                    default:
-                        if(is_string($v)) {
-                            echo $k . ': \'' . addslashes($v) . '\',';
-                        } else {
-                            echo $k . ': ' . $v . ',';
-                        }
-                        break;
-                }
-            }
-        }
-        ?>
-        pnotify_text: '<?php echo addslashes($message); ?>'
-    });
-});
-</script>
-<?php if((isset($options['type'])) && ($options['type'] == 'growl')) { ?>
-<style type="text/css">
-.ui-pnotify-container {
-    background: #000;
-    color: #fff;
-    border-color: #555;
+	// Alternatively, you may wish to put these within the head section.
+	echo $this->html->script('/minerva/js/jquery/jquery.pnotify.min.js');
+	echo $this->html->style('/minerva/css/jquery/jquery.pnotify.default.css');
+	?>
+	<script type="text/javascript">
+	jQuery(document).ready(function() {
+		jQuery.pnotify({
+			<?php
+			// No icon by default, it has to be passed in the options
+			echo 'pnotify_notice_icon: false,';
+			echo 'pnotify_history: false,';
+		
+			// If a type was passed
+			if(isset($options['type'])) {
+				switch($options['type']) {
+					case 'warn':
+					case 'warning':
+						echo 'pnotify_notice_icon: "ui-icon ui-icon-alert",';
+						break;
+					case 'info':
+						echo 'pnotify_notice_icon: "ui-icon ui-icon-info",';
+						break;
+					case 'success':
+						echo 'pnotify_notice_icon: "ui-icon ui-icon-check",';
+						break;
+					case 'failure':
+					case 'fail':
+					case 'error':
+						// will use pnotify's shortcut
+						echo 'pnotify_type: "error",';
+						break;
+					case 'tip':
+						echo 'pnotify_notice_icon: "ui-icon ui-icon-lightbulb",';
+						break;
+					case 'notify':
+					case 'notice':
+						echo 'pnotify_notice_icon: "ui-icon ui-icon-notice",';
+						break;
+					case 'growl':
+						// this one is a little different, it strips away the icons and styles
+						echo 'pnotify_closer: false,';
+						echo 'pnotify_after_init: function(pnotify){
+							pnotify.click(function(){
+							pnotify.pnotify_remove();
+							});
+						},';
+						
+						break;
+				}	
+			}
+			
+			if(isset($options['pnotify_opacity'])) {
+				echo 'pnotify_opacity: \'' . $options['pnotify_opacity'] . '\',';
+			}
+			
+			if(isset($options['title'])) {
+				echo 'pnotify_title: \'' . addslashes($options['title']) . '\','; 
+			}
+			
+			if(isset($options['fade_delay'])) {
+				echo 'pnotify_delay: ' . $options['fade_delay'] . ',';
+			}
+			
+			?>
+			pnotify_text: '<?php echo addslashes($message); ?>'
+		});
+	});
+	</script>
+	<?php if((isset($options['type'])) && ($options['type'] == 'growl')) { ?>
+	<style type="text/css">
+	.ui-pnotify-container {
+		background: #000;
+		color: #fff;
+		border-color: #555;
+	}
+	.ui-pnotify-shadow {
+		background: #777;
+	}
+	.ui-notify {
+		font-size: 11px;
+	}
+	.ui-pnotify-title {
+		font-size: 14px;
+	}
+	.ui-pnotify-text {
+		font-size: 11px;
+	}
+	</style>
+	<?php } ?>
+
+<?php
 }
-.ui-pnotify-shadow {
-    background: #777;
-}
-</style>
-<?php } ?>
+?>

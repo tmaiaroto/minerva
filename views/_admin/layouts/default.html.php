@@ -33,7 +33,7 @@
 			<h1 id="branding">
 				<a href="/minerva/admin">Minerva</a>
 			</h1>
-			<?php echo $this->menu->render_admin_menu('main_administration'); ?>
+			<?php echo $this->minervaMenu->render_admin_menu('main_administration'); ?>
 		</div>
 		<div class="clear" style="height: 10px;"></div>
 		LIBRARIES/MINERVA/_ADMIN/LAYOUTS/DEFAULT.HTML.PHP ... if this didn't exist, it would default back to the app's default layout<br />
@@ -45,7 +45,7 @@
 			Powered by <?php echo $this->html->link('Lithium', 'http://li3.rad-dev.org'); ?>.
 		</div>
 	</div>
-	<?php // echo $this->flashMessage->output(); ?>
+	<?=$this->minerva->flash(); ?>
 	<!-- layout template: /minerva/views/layouts/default.html.php -->
 </body>
 </html>

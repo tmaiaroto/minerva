@@ -1,20 +1,17 @@
-<?php
-use lithium\security\Auth;
-if(Auth::check('minerva_user')) { ?>
 <ul id="main_administration_menu" class="nav main">
-    <li class="menu_first"><a href="/admin">Dashboard</a></li>
+    <li class="menu_first"><a href="/minerva/admin">Dashboard</a></li>
     <li>
-        <a href="/pages">Pages</a>
+        <?=$this->html->link('Pages', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'index')); ?>
         <ul>
-            <li><a href="/pages">List All</a></li>
-            <li><a href="/pages/create">Create New</a></li>
+            <li><?=$this->html->link('List All', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'index')); ?></li>
+            <li><?=$this->html->link('Create New', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'create')); ?></li>
         </ul>
     </li>
     <li>
-        <a href="/blocks">Blocks</a>
+        <?=$this->html->link('Blocks', array('admin' => true, 'controller' => 'minerva.blocks', 'action' => 'index')); ?>
         <ul>
-            <li><a href="/blocks">List All</a></li>
-            <li><a href="/blocks/create">Create New</a></li>
+            <li><?=$this->html->link('List All', array('admin' => true, 'controller' => 'minerva.blocks', 'action' => 'index')); ?></li>
+            <li><?=$this->html->link('Create New', array('admin' => true, 'controller' => 'minerva.blocks', 'action' => 'create')); ?></li>
         </ul>
     </li>
     <li>
@@ -35,4 +32,3 @@ if(Auth::check('minerva_user')) { ?>
         <a href="/users/logout">Logout</a>
     </li>
 </ul>
-<?php } ?>

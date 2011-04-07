@@ -1,4 +1,13 @@
 <?php
+use lithium\core\Libraries;
+
+// Add a minerva_models type
+Libraries::paths(array('minerva_models' => array(
+		'{:library}\minerva\models\{:name}',
+		'{:library}\extensions\job\{:class}\{:name}',
+	)
+));
+
 // Set the date so we don't get any warnings (should be in your php.ini)
 $tz = ini_get('date.timezone');
 if(!$tz) {

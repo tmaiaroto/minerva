@@ -119,7 +119,7 @@ class Block extends \lithium\template\Helper {
 			// For admin blocks, check the admin paths first IF the admin flag was set to true (can not render admin blocks without explicitly saying to do so)
 			if($options['admin'] === true) {
 				// "admin" blocks have templates saved in minerva/views/blocks/static and this is the default place to look
-				array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
+				//array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
 				// but we can override those in the common library's "_admin" folder
 				array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR .  'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_admin' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
 			}
@@ -129,9 +129,13 @@ class Block extends \lithium\template\Helper {
 			// This is because a block isn't necessarily "static" content. It can be, but doesn't have to be. Static folders are used for the templates because blocks can be static and menus are ALWAYS static.
 			$layout_path = array(
 				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
-				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views'. DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
+				//LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views'. DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
 				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_missing' . DIRECTORY_SEPARATOR . 'missing_layout.{:type}.php'
 			);
+			
+			if($options['admin'] === true) {
+				array_unshift($layout_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_admin' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
+			}
 			
 			// If a template was specified, we need to set the paths and our renderer becomes File.
 			if(!empty($options['template'])) { 
@@ -144,7 +148,7 @@ class Block extends \lithium\template\Helper {
 				'layout' => $layout_path
 			    );			    
 			}
-			//var_dump($viewOptions['paths']); // <-- helpful info
+			// var_dump($viewOptions['paths']); // <-- helpful info
 			
 			// If a URL was specified, then we definitely don't want to use the File renderer, we want to use the Curl adapter.
 			// Also ensure that both a url and template weren't specified, if so, use the template File renderer (above).

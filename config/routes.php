@@ -51,6 +51,22 @@ Router::connect("{$base}/{:path:js|css|img}/{:file}.{:type}", array(), function(
 	));
 });
 
+// for assets within a subdirectory 
+Router::connect("{$base}/{:path:js|css|img}/{:sub_dir}/{:file}.{:type}", array(), function($request) {
+	$req = $request->params;
+	$file = dirname(__DIR__) . "/webroot/{$req['path']}/{$req['sub_dir']}/{$req['file']}.{$req['type']}";
+
+	if (!file_exists($file)) {
+		return;
+	}
+
+	return new Response(array(
+		'body' => file_get_contents($file),
+		'headers' => array('Content-type' => str_replace(
+			array('css', 'js'), array('text/css', 'text/javascript'), $req['type']
+		))
+	));
+});
 
 /**
  * Here, we are connecting '/' (base path) to controller called 'Pages',
@@ -73,7 +89,7 @@ Router::connect("{$base}/page/{:url}", array('controller' => 'minerva.pages', 'a
 Router::connect("{$base}/pages/read/{:url}", array('controller' => 'minerva.pages', 'action' => 'read'));
 
 // Admin routes for pages controller
-Router::connect("{$base}/pages/create/{:page_type}", array(
+Router::connect("{$base}/pages/create/{:document_type}", array(
     'admin' => true,
     'controller' => 'minerva.pages',
     'action' => 'create'
@@ -90,20 +106,20 @@ Router::connect("{$base}/pages/delete/{:url}", array(
 ));
 
 // and for index pages (note by default it uses a page_type of "all" and is intended to be an admin action)
-Router::connect("{$base}/pages/index/{:page_type}", array(
+Router::connect("{$base}/pages/index/{:document_type}", array(
     'admin' => true,
     'controller' => 'minerva.pages',
     'action' => 'index',
     'page' => 1, 'limit' => 10,
-    'page_type' => 'all'
+    'document_type' => '*'
 ));
-Router::connect("{$base}/pages/index/{:page_type}/page:{:page:[0-9]+}", array(
+Router::connect("{$base}/pages/index/{:document_type}/page:{:page:[0-9]+}", array(
     'admin' => true,
     'controller' => 'minerva.pages',
     'action' => 'index',
     'page' => 1
 ));
-Router::connect("{$base}pages/index/{:page_type}/page:{:page}/limit:{:limit}", array(
+Router::connect("{$base}pages/index/{:document_type}/page:{:page}/limit:{:limit}", array(
     'admin' => true,
     'controller' => 'minerva.pages',
     'action' => 'index',
@@ -124,113 +140,113 @@ Router::connect('/logout', array('controller' => 'users', 'action' => 'logout'))
 // admin routes for users controller
 Router::connect('/users/read/{:id}', array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'read'
 ));
-Router::connect('/users/create', array(
+Router::connect("{$base}/users/create'", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'create'
 ));
-Router::connect('/users/create/{:user_type}', array(
+Router::connect("{$base}/users/create/{:document_type}", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'create'
 ));
-Router::connect('/users/update/{:id}', array(
+Router::connect("{$base}/users/update/{:id}", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'update'
 ));
-Router::connect('/users/delete/{:id}', array(
+Router::connect("{$base}/users/delete/{:id}", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'delete'
 ));
 // and for index pages
-Router::connect('/users/index/{:user_type}', array(
+Router::connect("{$base}/users/index/{:document_type}", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'index',
     'page' => 1, 'limit' => 10,
     'user_type' => 'all'
 ));
-Router::connect('/users/index/{:user_type}/page:{:page:[0-9]+}', array(
+Router::connect("{$base}/users/index/{:document_type}/page:{:page:[0-9]+}", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'index',
     'page' => 1
 ));
-Router::connect('/users/index/{:user_type}/page:{:page}/limit:{:limit}', array(
+Router::connect("{$base}/users/index/{:document_type}/page:{:page}/limit:{:limit}", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'index',
     'page' => 1,
     'limit' => 10
 ));
-Router::connect('/users', array(
+Router::connect("{$base}/users", array(
     'admin' => true,
-    'controller' => 'users',
+    'controller' => 'minerva.users',
     'action' => 'index'
 ));
-Router::connect('/users/{:action}/{:args}', array(
+Router::connect("{$base}/users/{:action}/{:args}", array(
     'admin' => false,
-    'controller' => 'users'
+    'controller' => 'minerva.users'
 ));
 
 /**
  * Connect the static blocks
 */
-Router::connect('/block/{:args}', array(
+Router::connect("{$base}/block/{:args}", array(
     //'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'view'
 ));
 // the rest for blocks, admin stuff
-Router::connect('/blocks/read/{:url}', array(
+Router::connect("{$base}/blocks/read/{:url}", array(
     'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'read'
 ));
-Router::connect('/blocks/create/{:block_type}', array(
+Router::connect("{$base}/blocks/create/{:document_type}", array(
     'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'create'
 ));
-Router::connect('/blocks/update/{:url}', array(
+Router::connect("{$base}/blocks/update/{:url}", array(
     'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'update'
 ));
-Router::connect('/blocks/delete/{:id}', array(
+Router::connect("{$base}/blocks/delete/{:id}", array(
     'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'delete'
 ));
 // and for index pages
-Router::connect('/blocks/index/{:block_type}', array(
+Router::connect("{$base}/blocks/index/{:document_type}", array(
     'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'index',
     'page' => 1,
     'limit' => 10
 ));
-Router::connect('/blocks/index/{:block_type}/page:{:page:[0-9]+}', array(
+Router::connect("{$base}/blocks/index/{:document_type}/page:{:page:[0-9]+}", array(
     'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'index',
     'page' => 1
 ));
-Router::connect('/blocks/index/{:block_type}/page:{:page}/limit:{:limit}', array(
+Router::connect("{$base}/blocks/index/{:document_type}/page:{:page}/limit:{:limit}", array(
     'admin' => true,
-    'controller' => 'blocks',
+    'controller' => 'minerva.blocks',
     'action' => 'index',
     'page' => 1,
     'limit' => 10
 ));
-Router::connect('/blocks/{:action}/{:args}', array(
+Router::connect("{$base}/blocks/{:action}/{:args}", array(
     'admin' => true,
-    'controller' => 'blocks'
+    'controller' => 'minerva.blocks'
 ));
 
 /**
@@ -241,12 +257,4 @@ Router::connect('/blocks/{:action}/{:args}', array(
 	Router::connect('/test', array('controller' => '\lithium\test\Controller'));
 //}
 
-
-//Router::connect('/block', array('library' => 'blocks', 'controller' => 'pages', 'action' => 'view'));
-/**
- * Finally, connect the default routes.
- */
-Router::connect('/{:controller}/{:action}/{:id:[0-9]+}.{:type}', array('id' => null));
-Router::connect('/{:controller}/{:action}/{:id:[0-9]+}');
-Router::connect('/{:controller}/{:action}/{:args}');
 ?>

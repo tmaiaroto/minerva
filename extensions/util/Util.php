@@ -109,16 +109,21 @@ class Util {
      * @return Array All of the class paths to the types for that model
     */
     public function list_types($model='Page', $options=array()) {
-        $options += array('exclude_minerva' => false, 'exclude' => array());
+        $options += array('exclude_minerva' => false, 'exclude' => array(), 'library' => 'minerva');
         $model = ucfirst($model);
         
         $types = array();
-        $libraries = Libraries::locate('models');
-        foreach($libraries as $library) {
-            if(end(explode('\\', $library)) == $model) {
-                $types[] = $library;
-            }
+        
+        $model_class_name = Inflector::classify($model_name);
+		$models = Libraries::locate('minerva_models', $model_class_name);
+		$controller = $options['library'] . '.' . strtolower(Inflector::pluralize($model_name));
+        
+        foreach($models as $class_path) {
+            $pieces = explode('\\', $class_path);
+            $types[] = $pieces[0];
         }
+        
+        var_dump($types);exit();
         
         if($options['exclude_minerva'] === true) {
             $options['exclude'][] = 'minerva\models\\' . $model;

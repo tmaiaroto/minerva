@@ -9,13 +9,13 @@ use \lithium\storage\Session;
 use \lithium\util\String;
 
 use \lithium\util\Inflector;
-use li3_flash_message\extensions\storage\FlashMessage;
 */
 
 use minerva\extensions\util\Util;
 use \lithium\util\Set;
 use \lithium\util\Inflector;
 use minerva\models\Page;
+use li3_flash_message\extensions\storage\FlashMessage;
 
 class MinervaController extends \lithium\action\Controller {
   
@@ -23,15 +23,37 @@ class MinervaController extends \lithium\action\Controller {
     var $calling_class = __CLASS__;
     var $calling_method = __METHOD__;
     
-    // On the document there's a field that links a 3rd party library for pages, users, and blocks. These are the fields. Routes also carry these names.
-    var $library_fields = array(
-        'page_type',
-        'user_type',
-        'block_type'
-    );
-    
+    var $minerva_config = array();
+   
     static $access = array();
-  
+    
+    /**
+     * Sets up some very important information that Minerva needs.
+     * This data is stored in the controller's "minerva_config" property.
+     * Then calls the parent::_init() and continues like normal.
+     *
+     * In the future, we can store additional information that we need here.
+     * Potentially even filterable? Let's say we use this area for other information
+     * such as redirects, etc.
+     * 
+    */
+    protected function _init() {
+        $this->request = $this->request ?: $this->_config['request'];
+        
+        $controller_pieces = explode('.', $this->request->params['controller']);
+        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
+        $model = Inflector::classify(Inflector::singularize($controller));
+        $ModelClass = 'minerva\models\\'.$model;
+        // in case it doesn't exist, just use the base MinervaModel
+        $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
+        // or set it to "*" if there wasn't a param passed
+        $this->minerva_config['document_type'] = $document_type = (isset($this->request->params['document_type'])) ? $this->request->params['document_type']:'*';
+        $this->minerva_config['ModelClass'] = $ModelClass::getMinervaModel($model, $document_type);
+        $this->minerva_config['display_name'] = $ModelClass::display_name();
+        
+        parent::_init();
+    }
+    
     /**
      * Gets document(s) for the action and checks access.
      * 1. The proper model is determined so it can be used for the find() and also to pick up any access rules,
@@ -64,7 +86,7 @@ class MinervaController extends \lithium\action\Controller {
         $controller_pieces = explode('.', $request->params['controller']);
         $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
         $model = Inflector::classify(Inflector::singularize($controller));
-        $modelClass = 'minerva\models\\'.$model;
+        $ModelClass = 'minerva\models\\'.$model;
         $library = null;
         $library_name_haystack = array();
         
@@ -78,7 +100,7 @@ class MinervaController extends \lithium\action\Controller {
             if(isset($request->params['url'])) {
                 $conditions = array('url' => $request->params['url']);
             }
-            $record = $modelClass::first(array('request_params' => $request->params, 'conditions' => $conditions, 'fields' => $this->library_fields));
+            $record = $ModelClass::first(array('request_params' => $request->params, 'conditions' => $conditions, 'fields' => $this->library_fields));
             $library_name_haystack = ($record) ? $record->data():array();
         } else {
             // otherwise for index and create methods the library name is passed in the routes. as page_type or user_type or block_type
@@ -86,17 +108,18 @@ class MinervaController extends \lithium\action\Controller {
         }
         
         // get the library name
-        foreach($this->library_fields as $field) {
+        /*foreach($this->library_fields as $field) {
             if(in_array($field, array_keys($library_name_haystack))) {
                 $library = (isset($library_name_haystack[$field])) ? $library_name_haystack[$field]:null;
             }
-        }
+        }*/
+        $library = $library_name_haystack['library'];
         
         $class = '\minerva\libraries\\'.$library.'\models\\'.$model;
         // Don't load the model if it doesn't exist
         if(class_exists($class)) {
             // instantiate it so it can apply its properties to the base model along with any filters, etc.
-            $modelClass = new $class();
+            $ModelClass = new $class();
         }
       
         // 2. Authentication & Access Check for Core Minerva Controllers
@@ -109,9 +132,9 @@ class MinervaController extends \lithium\action\Controller {
         $controllerClass = '\minerva\controllers\\'.$controller.'Controller';
         
         // If the $controllerClass doesn't exist, it means it's a controller that Minerva doesn't have. That means it's not core and the access can be set there on that controller.
-        if((isset($modelClass::$access)) && (class_exists($controllerClass))) {
+        if((isset($ModelClass::$access)) && (class_exists($controllerClass))) {
             // Don't completely replace core Minerva controller with new access rules, but append all the rules (giving the library model's access property priority)
-            $controllerClass::$access = $modelClass::$access += $controllerClass::$access;
+            $controllerClass::$access = $ModelClass::$access += $controllerClass::$access;
         }
         
         // Get the rules for this action
@@ -137,7 +160,7 @@ class MinervaController extends \lithium\action\Controller {
          * If we're here, we now need to get the document(s) to determine any document based access
          * and we'll return the document(s) back to the controller too.
         */
-        $document = $modelClass::find($find_type, array(
+        $document = $ModelClass::find($find_type, array(
             'conditions' => $conditions,
             'limit' => $limit,
             'order' => Util::format_dot_order($order),
@@ -177,14 +200,8 @@ class MinervaController extends \lithium\action\Controller {
      * get the proper records and access.
     */
     public function index() {
-        // get the "_type" ... page_type, user_type, or block_type
-        $controller_pieces = explode('.', $this->request->params['controller']);
-        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
-        $model = Inflector::classify(Inflector::singularize($controller));
-        $modelClass = 'minerva\models\\'.$model;
-        $x_type = strtolower($model) . '_type';
-        // or set it to "all" if there wasn't a param passed
-        $type = ((isset($this->request->params[$x_type])) && (in_array($x_type, $this->library_fields))) ? $this->request->params[$x_type]:'all';
+        // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
+        extract($this->minerva_config);
         
         // Default options for pagination, merge with URL parameters
         $defaults = array('page' => 1, 'limit' => 10, 'order' => 'created.desc');
@@ -194,9 +211,9 @@ class MinervaController extends \lithium\action\Controller {
         }
         list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
         
-        // If there's a page/user/block_type passed, add it to the conditions, 'all' will show all pages.
-        if($type != 'all') {
-            $conditions = array($type => $this->request->params[$x_type]);
+        // If there's a page/user/block_type passed, add it to the conditions, '*' will show all pages.
+        if($document_type != '*') {
+            $conditions = array('document_type' => $content_type);
         } else {
             $conditions = array();
         }
@@ -205,13 +222,13 @@ class MinervaController extends \lithium\action\Controller {
         // NOTE: the values within this array for "search" include things like "weight" etc. and are not yet fully implemented...But will become more robust and useful.
         // Possible integration with Solr/Lucene, etc.
         if((isset($this->request->query['q'])) && (!empty($this->request->query['q']))) {
-            $search_schema = $modelClass::search_schema();
-            // If the "*_type" is set to "all" then we want to get all the model type's schemas, merge them into $schema
-            if($type == 'all') {
-            foreach(Util::list_types($model, array('exclude_minerva' => true)) as $library) {
-                $extendedModelClass = 'minerva\libraries\\' . $library;
-                $search_schema += $extendedModelClass::search_schema();
-            }
+            $search_schema = $ModelClass::search_schema();
+            // If the "document_type" is set to "*" then we want to get all the model content_type's schemas, merge them into $schema
+            if($document_type == '*') {
+                foreach(Util::list_types($model, array('exclude_minerva' => true)) as $library) {
+                    $extendedModelClass = 'minerva\libraries\\' . $library;
+                    $search_schema += $extendedModelClass::search_schema();
+                }
             }
             
             $search_conditions = array();
@@ -240,7 +257,7 @@ class MinervaController extends \lithium\action\Controller {
         }
         
         // Get some handy numbers
-        $total = $modelClass::find('count', array(
+        $total = $ModelClass::find('count', array(
             'conditions' => $conditions
         ));
         $page_number = $params['page'];
@@ -257,29 +274,17 @@ class MinervaController extends \lithium\action\Controller {
      * get the proper records and access.
     */
     public function create() {
-        // get the "_type" ... page_type, user_type, or block_type
-        $controller_pieces = explode('.', $this->request->params['controller']);
-        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
-        $model = Inflector::classify(Inflector::singularize($controller));
-        $modelClass = 'minerva\models\\'.$model;
-        $x_type = strtolower($model) . '_type';
-        // or set it to "all" if there wasn't a param passed
-        $type = ((isset($this->request->params[$x_type])) && (in_array($x_type, $this->library_fields))) ? $this->request->params[$x_type]:'all';
+        // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
+        extract($this->minerva_config);
         
         // this just checks access
         $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => false));
         
-        // Get the model class we should be using for this (it could be an extended class from a library)
-        $modelClass = $modelClass::getMinervaModel($model, $type);
-        
-        // Get the name for the page, so if another type library uses the "admin" (core) templates for this action, it will be shown
-        $display_name = $modelClass::display_name();
-        
         // Lock the schema. We don't want any unwanted data passed to be saved
-        $modelClass::meta('locked', true);
+        $ModelClass::meta('locked', true);
         
         // Get the fields so the view template can iterate through them and build the form
-        $fields = $modelClass::schema();
+        $fields = $ModelClass::schema();
         
         // Don't need to have these fields in the form
         unset($fields['_id']);
@@ -288,7 +293,7 @@ class MinervaController extends \lithium\action\Controller {
         
         // If data was passed, set some more data and save
         if ($this->request->data) {
-            $document = $modelClass::create();
+            $document = $ModelClass::create();
             $now = date('Y-m-d h:i:s');
             $this->request->data['created'] = $now;
             $this->request->data['modified'] = $now;
@@ -296,7 +301,7 @@ class MinervaController extends \lithium\action\Controller {
             $this->request->data[$x_type] = $type;
             $this->request->data['url'] = Util::unique_url(array(
                 'url' => Inflector::slug($this->request->data['title']),
-                'model' => $modelClass
+                'model' => $ModelClass
             ));
             $user = Auth::check('minerva_user');
             if($user) {
@@ -313,15 +318,15 @@ class MinervaController extends \lithium\action\Controller {
             
             // Save
             if($document->save($this->request->data)) {
-                FlashMessage::set('The content has been created successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
+                FlashMessage::write('The content has been created successfully.', array(), 'minerva_admin');
                 $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
             } else {
-                FlashMessage::set('The content could not be saved, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+                FlashMessage::write('The content could not be saved, please try again.', array(), 'minerva_admin');
             }
         }
         
         if(empty($document)) {                
-            $document = $modelClass::create(); // Create an empty page object
+            $document = $ModelClass::create(); // Create an empty page object
         }
         
         $this->set(compact('document', 'fields', 'display_name'));
@@ -334,12 +339,8 @@ class MinervaController extends \lithium\action\Controller {
      * get the proper records and access.
     */
     public function update() {
-        // get the "_type" ... page_type, user_type, or block_type
-        $controller_pieces = explode('.', $this->request->params['controller']);
-        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
-        $model = Inflector::classify(Inflector::singularize($controller));
-        $modelClass = 'minerva\models\\'.$model;
-        $x_type = strtolower($model) . '_type';
+        // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
+        extract($this->minerva_config);
         
         $conditions = array();
         // Use the pretty URL if provided
@@ -353,18 +354,11 @@ class MinervaController extends \lithium\action\Controller {
 		}
         
         // or set it to "all" if there is no *_type in the record (this part differs from create() because the type won't come from the route)
-        $type = $modelClass::find('first', array('conditions' => $conditions, 'fields' => array($x_type)))->$x_type;
+        $type = $ModelClass::find('first', array('conditions' => $conditions, 'fields' => array($x_type)))->$x_type;
         $type = (!empty($type)) ? $type:'all';
         
-        // Get the model class we should be using for this (it could be an extended class from a library)
-        
-        $modelClass = $modelClass::getMinervaModel($model, $type);
-        
-		// Get the name for the page, so if another type library uses the "admin" (core) templates for this action, it will be shown
-		$display_name = $modelClass::display_name();
-		
 		// Get the fields so the view template can build the form
-		$fields = $modelClass::schema();
+		$fields = $ModelClass::schema();
 		// Don't need to have these fields in the form
 		unset($fields['_id']);
         if($this->request->params['controller'] == 'users') {
@@ -396,10 +390,10 @@ class MinervaController extends \lithium\action\Controller {
 			
             // Save it
 			if($document->save($this->request->data)) {
-                //FlashMessage::set('The content has been updated successfully.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
+                FlashMessage::write('The content has been updated successfully.', array(), 'minerva_admin');
                 $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
 			} else {
-                //FlashMessage::set('The content could not be updated, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+                FlashMessage::write('The content could not be updated, please try again.', array(), 'minerva_admin');
             }
 		}
 	    
@@ -413,9 +407,8 @@ class MinervaController extends \lithium\action\Controller {
      * get the proper records and access.
     */
     public function delete() {
-        // get the "_type" ... page_type, user_type, or block_type
-        $model = Inflector::classify(Inflector::singularize($this->request->params['controller']));
-        $modelClass = 'minerva\models\\'.$model;
+        // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
+        extract($this->minerva_config);
         
         $conditions = array();
         if(isset($this->request->params['id'])) {
@@ -437,10 +430,10 @@ class MinervaController extends \lithium\action\Controller {
         ));
         
         if($document->delete()) {
-            FlashMessage::set('The content has been deleted.', array('options' => array('type' => 'success', 'pnotify_title' => 'Success', 'pnotify_opacity' => .8)));
+            FlashMessage::write('The content has been deleted.', array(), 'minerva_admin');
             $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
         } else {
-            FlashMessage::set('The content could not be deleted, please try again.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+            FlashMessage::write('The content could not be deleted, please try again.', array(), 'minerva_admin');
             $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
         }
     }

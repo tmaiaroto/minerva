@@ -5,7 +5,7 @@
 
 <div class="grid_12">
     	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
-	<?=$this->form->create($document); ?>
+	<?=$this->form->create($document, array('url' => array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'create'))); ?>
 	<fieldset class="admin">
 		<legend>Primary Information</legend>
 	    <?php
@@ -17,7 +17,7 @@
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('controller' => 'pages', 'action' => 'index')); ?>
+	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'index')); ?>
 	</fieldset>
 	
 </div>
@@ -29,15 +29,14 @@
 			<fieldset class="admin">
 			<?php
 			foreach($fields as $k => $v) {
-				if(isset($v['form']['position']) && $v['form']['position'] == 'options') {
-			?>	    
-			<?=$this->form->field($k, $v['form']);?>
-			
-			<?php
-					if(isset($v['form']['help_text'])) {
-						echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
+				if(isset($v['form'])) {
+					if(isset($v['form']['position']) && $v['form']['position'] == 'options') {
+						echo $this->form->field($k, $v['form']);
+						if(isset($v['form']['help_text'])) {
+							echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
+						}
 					}
-				} 
+				}
 			}
 			?>
 			</fieldset>
@@ -47,7 +46,7 @@
     <div class="box">
 		<h2>Create Other Page Types</h2>
 		<div class="block">
-			<?=$this->html->link_types('page', 'create'); ?>
+			<?=$this->minerva->link_types('page', 'create'); ?>
 		</div>
     </div>
 </div>
