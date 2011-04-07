@@ -4,7 +4,7 @@ use lithium\core\Libraries;
 // Add a minerva_models type
 Libraries::paths(array('minerva_models' => array(
 		'{:library}\minerva\models\{:name}',
-		'{:library}\extensions\job\{:class}\{:name}',
+		// '{:library}\extensions\models\{:class}\{:name}', // needed?
 	)
 ));
 

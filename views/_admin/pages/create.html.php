@@ -5,7 +5,7 @@
 
 <div class="grid_12">
     	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
-	<?=$this->form->create($document, array('url' => array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'create'))); ?>
+	<?=$this->form->create($document, array('url' => array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'create', 'document_type' => $document_type))); ?>
 	<fieldset class="admin">
 		<legend>Primary Information</legend>
 	    <?php

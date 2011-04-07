@@ -66,27 +66,26 @@ class Page extends \minerva\models\MinervaModel {
      * create/update and choose not to use the value from the 'form' key if you choose.
     */
     protected $_schema = array(
-	'page_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-	'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
-	'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this page (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
-	'published' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'position' => 'options')),
-	'owner_id' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
-	// add options field?? to all models?? libraries can store various data within this options field that contains array data.
-	// it's useful...BUT, it won't have validation. it's still good to store simple data that isn't harmful if left unvalidated or data that's set programatically so it's known and doesn't need to be validated.
+		'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
+		'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this page (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
+		'published' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'position' => 'options')),
+		'owner_id' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
+		// add options field?? to all models?? libraries can store various data within this options field that contains array data.
+		// it's useful...BUT, it won't have validation. it's still good to store simple data that isn't harmful if left unvalidated or data that's set programatically so it's known and doesn't need to be validated.
     );
-    
+	
     // Defined as normal and the library Page model's $validates is also defined as normal, they will be combined.
     public $validates = array(
-	'title' => array(
-	    array('notEmpty', 'message' => 'Title cannot be empty'),
-	)
+		'title' => array(
+			array('notEmpty', 'message' => 'Title cannot be empty'),
+		)
     );
     
     // Search schema will also be combined
     public $search_schema = array(
-	'title' => array(
-	    'weight' => 1
-	)
+		'title' => array(
+			'weight' => 1
+		)
     );
     
     // So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
@@ -95,11 +94,10 @@ class Page extends \minerva\models\MinervaModel {
     
     // TODO: ditch this method
     public function getLatestPages($options=array()) {
-	$defaults = array('conditions' => array(), 'limit' => 10);
-	$options += $defaults;
-	
-	return Page::find('all', array('limit' => $options['limit'], 'conditions' => $options['conditions']));
-    
+		$defaults = array('conditions' => array(), 'limit' => 10);
+		$options += $defaults;
+		
+		return Page::find('all', array('limit' => $options['limit'], 'conditions' => $options['conditions']));
     }
     
 }

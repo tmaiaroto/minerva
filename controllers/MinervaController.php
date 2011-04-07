@@ -29,6 +29,9 @@ class MinervaController extends \lithium\action\Controller {
     
     /**
      * Sets up some very important information that Minerva needs.
+     * Most notably, this is what extends schema, validation rules, etc.
+     * by ensuring the controller is using the proper model.
+     * 
      * This data is stored in the controller's "minerva_config" property.
      * Then calls the parent::_init() and continues like normal.
      *
@@ -41,15 +44,60 @@ class MinervaController extends \lithium\action\Controller {
         $this->request = $this->request ?: $this->_config['request'];
         
         $controller_pieces = explode('.', $this->request->params['controller']);
-        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
-        $model = Inflector::classify(Inflector::singularize($controller));
+        $this->minerva_config['relative_controller'] = $relative_controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
+        $this->minerva_config['model'] = $model = Inflector::classify(Inflector::singularize($relative_controller));
+        // set the model class, should be minerva\models\Page or minerva\models\Block etc.
         $ModelClass = 'minerva\models\\'.$model;
-        // in case it doesn't exist, just use the base MinervaModel
+        // in case it doesn't exist, use the base MinervaModel which we know does exist
         $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
-        // or set it to "*" if there wasn't a param passed
-        $this->minerva_config['document_type'] = $document_type = (isset($this->request->params['document_type'])) ? $this->request->params['document_type']:'*';
-        $this->minerva_config['ModelClass'] = $ModelClass::getMinervaModel($model, $document_type);
+        $document_type = $ModelClass::document_type();
+        // the document type can be grabbed from the model class, but if specifically set in the routing params, use that
+        if(isset($this->request->params['document_type']) && !empty($this->request->params['document_type'])) {
+            $document_type = $this->request->params['document_type'];
+        }
+        
+        // set the ModelClass again now based on the $document_type, which in most cases, matches the library name
+        // ignore and empty $document_type, that just means the base model class anyway
+        if(!empty($document_type)) {
+            $ModelClass = $ModelClass::getMinervaModel($model, $document_type);
+        }
+        
+        /**
+         * If getMinveraModel() couldn't find one... meaning the $document_type did NOT match the library name, 
+         * we need to search ALL minerva models to find the proper model. This is where a slight performance penalty
+         * comes in to play, so try to match library names to document_type values.
+         *
+         * If unavoidable, because there were two libraries of the same name that want to use Minerva, just know
+         * that all we're doing is looping through each model that's using Minerva ("minerva_models") and looking
+         * to match the document_type property. Once matched, we found the proper model class. So not too bad.
+         * 
+        */
+        if($ModelClass == 'minerva\models\MinervaModel') {
+            $all_minerva_models = $ModelClass::getAllMinervaModels($model);
+            if(empty($all_minerva_models)) {
+                // default back to minerva's model if nothing was found for some oddd reason
+                $ModelClass = 'minerva\models\\' . $model;
+            } else {
+                foreach($all_minerva_models as $Model) {
+                    if($Model::document_type() == $document_type) {
+                        $ModelClass = $Model;
+                    }
+                }
+            }
+            
+            // and of course no matter what we set, make sure it exists, otherwise default.
+            $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
+        }
+        
+        // Now the following will use the proper ModelClass to get the properties that we need in the controller.
+        $this->minerva_config['ModelClass'] = $ModelClass;
         $this->minerva_config['display_name'] = $ModelClass::display_name();
+        $this->minerva_config['library_name'] = $ModelClass::library_name();
+        $this->minerva_config['document_type'] = $document_type;
+        // redirect is a little tricky, routes can actually dictate the redirect after things like saving or deleting, by default it's to the index action of the current controller
+        $admin = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
+        $this->request->params += array('action_redirect' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index'));
+        $this->minerva_config['action_redirect'] = $this->request->params['action_redirect'];
         
         parent::_init();
     }
@@ -83,14 +131,10 @@ class MinervaController extends \lithium\action\Controller {
         
         // $action=null, $request=null, $find_type='first', $conditions=array(), $limit=null, $offset=0, $order=null
         // 1. Determine the proper model to be using
-        $controller_pieces = explode('.', $request->params['controller']);
-        $controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
-        $model = Inflector::classify(Inflector::singularize($controller));
-        $ModelClass = 'minerva\models\\'.$model;
-        $library = null;
-        $library_name_haystack = array();
+        extract($this->minerva_config);
+        // done! came from _init() ... cleaned that shit right up
         
-        // if the action is read, update, or delete then the document will be able to tell us the library name
+        // if the action is read, update, or delete then the document will be able to tell us the library name - otherwise it's going to be "minerva"
         if(($request->params['action'] == 'read') || ($request->params['action'] == 'update') || ($request->params['action'] == 'delete')) {
             // could be using the MongoId or the pretty URL in the route. Both work, but prefer the URL if set and there's no need to use both.
             $conditions = array();
@@ -100,45 +144,48 @@ class MinervaController extends \lithium\action\Controller {
             if(isset($request->params['url'])) {
                 $conditions = array('url' => $request->params['url']);
             }
-            $record = $ModelClass::first(array('request_params' => $request->params, 'conditions' => $conditions, 'fields' => $this->library_fields));
-            $library_name_haystack = ($record) ? $record->data():array();
-        } else {
-            // otherwise for index and create methods the library name is passed in the routes. as page_type or user_type or block_type
-            $library_name_haystack = $request->params;
-        }
-        
-        // get the library name
-        /*foreach($this->library_fields as $field) {
-            if(in_array($field, array_keys($library_name_haystack))) {
-                $library = (isset($library_name_haystack[$field])) ? $library_name_haystack[$field]:null;
+            $record = $ModelClass::first(array('request_params' => $request->params, 'conditions' => $conditions, 'fields' => array('document_type')));
+            // it should be an object...if it wasn't found that's a problem
+            if(is_object($record)) {
+                if($record->document_type) {
+                    // set the document_type to that of the document's from the database (still technically could be empty, that's ok)
+                    $this->minerva_config['document_type'] = $record->document_type;
+                    
+                    // ideally, the document_type should be the name of the library
+                    $MinervaModelClass = $ModelClass::getMinervaModel($model, $record->document_type);
+                    if(class_exists($MinervaModelClass)) {
+                        $this->minerva_config['ModelClass'] = $ModelClass = $MinervaModelClass;
+                        // but if not...we have to search for it
+                        // (minor performance penalty for the looping, but may be unavoidable)
+                    } else {
+                        // similar to the code in _init(), we're searching through all minerva models
+                        $all_minerva_models = $ModelClass::getAllMinervaModels($model);
+                        foreach($all_minerva_models as $MinervaModelClass) {
+                            if($MinervaModelClass::document_type() == $record->document_type) {
+                                $this->minerva_config['ModelClass'] = $ModelClass = $MinervaModelClass;
+                            }
+                        }
+                    }
+                    // finaly, we can set the proper $library_name (and the proper $ModelClass will be set now too)
+                    $this->minerva_config['library_name'] = $ModelClass::library_name();
+                    // also, we will need to set the display name
+                    $this->minerva_config['display_name'] = $ModelClass::display_name();
+                }
             }
-        }*/
-        $library = $library_name_haystack['library'];
-        
-        $class = '\minerva\libraries\\'.$library.'\models\\'.$model;
-        // Don't load the model if it doesn't exist
-        if(class_exists($class)) {
-            // instantiate it so it can apply its properties to the base model along with any filters, etc.
-            $ModelClass = new $class();
         }
       
         // 2. Authentication & Access Check for Core Minerva Controllers
         // (properties set in model for core controllers) ... transfer those settings to the controller
-        $controller_pieces = explode('::', $action);
-        if(count($controller_pieces) > 1) {
-            $action = $controller_pieces[1];
-        }
-        
-        $controllerClass = '\minerva\controllers\\'.$controller.'Controller';
+        $ControllerClass = '\minerva\controllers\\'.$relative_controller.'Controller';
         
         // If the $controllerClass doesn't exist, it means it's a controller that Minerva doesn't have. That means it's not core and the access can be set there on that controller.
-        if((isset($ModelClass::$access)) && (class_exists($controllerClass))) {
+        if((isset($ModelClass::$access)) && (class_exists($ControllerClass))) {
             // Don't completely replace core Minerva controller with new access rules, but append all the rules (giving the library model's access property priority)
-            $controllerClass::$access = $ModelClass::$access += $controllerClass::$access;
+            $ControllerClass::$access = $ModelClass::$access += $ControllerClass::$access;
         }
         
         // Get the rules for this action
-        $rules = (isset($controllerClass::$access[$request->params['action']])) ? $controllerClass::$access[$request->params['action']]:array();
+        $rules = (isset($ControllerClass::$access[$request->params['action']])) ? $ControllerClass::$access[$request->params['action']]:array();
         
         // Check access for the action in general
         //$action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['action']));
@@ -146,7 +193,7 @@ class MinervaController extends \lithium\action\Controller {
         $action_access = array();
         
         if(!empty($action_access)) {
-            FlashMessage::set($action_access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
+            FlashMessage::write($action_access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
             $this->redirect($action_access['redirect']);
         }
         
@@ -185,7 +232,6 @@ class MinervaController extends \lithium\action\Controller {
             }
         }
         
-        
         //read()
         // $document = $modelClass::find('first', array('conditions' => array('url' => $url), 'request_params' => $this->request->params));
         
@@ -212,8 +258,8 @@ class MinervaController extends \lithium\action\Controller {
         list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
         
         // If there's a page/user/block_type passed, add it to the conditions, '*' will show all pages.
-        if($document_type != '*') {
-            $conditions = array('document_type' => $content_type);
+        if(!empty($document_type)) {
+            $conditions = array('document_type' => $document_type);
         } else {
             $conditions = array();
         }
@@ -277,11 +323,7 @@ class MinervaController extends \lithium\action\Controller {
         // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
         extract($this->minerva_config);
         
-        // this just checks access
         $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => false));
-        
-        // Lock the schema. We don't want any unwanted data passed to be saved
-        $ModelClass::meta('locked', true);
         
         // Get the fields so the view template can iterate through them and build the form
         $fields = $ModelClass::schema();
@@ -298,18 +340,19 @@ class MinervaController extends \lithium\action\Controller {
             $this->request->data['created'] = $now;
             $this->request->data['modified'] = $now;
             // If a page type was passed in the params, we'll need it to save to the page document.
-            $this->request->data[$x_type] = $type;
+            $this->request->data['document_type'] = $document_type;
             $this->request->data['url'] = Util::unique_url(array(
                 'url' => Inflector::slug($this->request->data['title']),
                 'model' => $ModelClass
             ));
-            $user = Auth::check('minerva_user');
+            /*$user = Auth::check('minerva_user');
             if($user) {
                 $this->request->data['owner_id'] = $user['_id'];
             } else {
                 // TODO: possible for anonymous users to create things? do we need to put in any value here?
                 $this->request->data['owner_id'] = '';
-            }
+            }*/
+            $this->request->data['owner_id'] = '';
             
             // (note: this will only be useful for UsersController)
             if(($this->request->params['controller'] == 'users') && (isset($this->request->data['password']))) {
@@ -319,7 +362,8 @@ class MinervaController extends \lithium\action\Controller {
             // Save
             if($document->save($this->request->data)) {
                 FlashMessage::write('The content has been created successfully.', array(), 'minerva_admin');
-                $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
+                $this->redirect($action_redirect);
+        
             } else {
                 FlashMessage::write('The content could not be saved, please try again.', array(), 'minerva_admin');
             }
@@ -329,7 +373,7 @@ class MinervaController extends \lithium\action\Controller {
             $document = $ModelClass::create(); // Create an empty page object
         }
         
-        $this->set(compact('document', 'fields', 'display_name'));
+        $this->set(compact('document', 'fields', 'display_name', 'document_type'));
     }
     
     /**
@@ -339,8 +383,6 @@ class MinervaController extends \lithium\action\Controller {
      * get the proper records and access.
     */
     public function update() {
-        // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
-        extract($this->minerva_config);
         
         $conditions = array();
         // Use the pretty URL if provided
@@ -353,11 +395,13 @@ class MinervaController extends \lithium\action\Controller {
 			$conditions = array('_id' => $this->request->params['id']);
 		}
         
-        // or set it to "all" if there is no *_type in the record (this part differs from create() because the type won't come from the route)
-        $type = $ModelClass::find('first', array('conditions' => $conditions, 'fields' => array($x_type)))->$x_type;
-        $type = (!empty($type)) ? $type:'all';
+		// Get the document
+		$document = $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => 'first', 'conditions' => $conditions));
         
-		// Get the fields so the view template can build the form
+        // NOW get all the data we need from minerva_config because $this->getDocument() will have changed it for read/update/delete
+        extract($this->minerva_config);
+        
+        // Get the fields so the view template can build the form
 		$fields = $ModelClass::schema();
 		// Don't need to have these fields in the form
 		unset($fields['_id']);
@@ -366,11 +410,9 @@ class MinervaController extends \lithium\action\Controller {
             // unset password and add a "new_password" field for UsersController
             $fields['new_password'] = null;
         }
-		// If a *_type was passed in the params (and wasn't "all") we'll need it to save to the page document.
-		$fields[$x_type]['form']['value'] = ($type != 'all') ? $type:null;
-		
-		// Get the document
-		$document = $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => 'first', 'conditions' => $conditions));
+		// If a document_type isn't empty, set it in the form
+		$fields['document_type']['form']['value'] = (!empty($document_type)) ? $document_type:null;
+        
         
         // Update the record
 		if ($this->request->data) {

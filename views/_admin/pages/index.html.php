@@ -12,7 +12,7 @@
         <thead>
             <tr>
                 <th>Page Title</th>
-                <th>Page Type</th>
+                <th>Document Type</th>
                 <th>Owner</th>
                 <th>Last Modified</th>
                 <th>Created</th>
@@ -25,8 +25,8 @@
                 <?=$this->html->link($page->title, array('controller' => 'minerva.pages', 'action' => 'read', 'url' => $page->url)); ?>
             </td>
             <td>
-                <?php if(!empty($page->page_type)) {
-                    echo '<em>' . $page->page_type . '</em>';
+                <?php if(!empty($page->document_type)) {
+                    echo '<em>' . $page->document_type . '</em>';
                 } else {
                     echo '<em>page</em>';
                 } ?>
