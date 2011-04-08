@@ -240,15 +240,19 @@ class MinervaController extends \lithium\action\Controller {
          * If we're here, we now need to get the document(s) to determine any document based access
          * and we'll return the document(s) back to the controller too.
         */
-        $document = $ModelClass::find($find_type, array(
+        $options = array(
             'conditions' => $conditions,
             'limit' => $limit,
             'order' => Util::format_dot_order($order),
             'request_params' => $request->params // this is not used for Lithium's find() but gives some useful data if find() is filtered
-        ));
+        );
+        if($offset > 0) {
+            $options += array('offset' => $offset);
+        }
+        $document = $ModelClass::find($find_type, $options, array('request_params' => $request->params));
         
         // 4. Document Access Control
-        if($document) {
+        if($document && is_object($document)) {
             // add the document to the document access rules so it can be checked against
             $i=0;
             foreach($rules as $rule) {
@@ -256,12 +260,16 @@ class MinervaController extends \lithium\action\Controller {
                 $i++;
             }
             
-            //$document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['document']));
-            $document_access = array();
-            // TODO : put this back
+            $document_access = false;
+            if(isset($rules['document'])) {
+                //$document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['document']));
+                $document_access=array(); // TODO: PUT BACK ACCESS CHECK
+            }
             if(!empty($document_access)) {
-                FlashMessage::set($document_access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
-                $this->redirect($document_access['redirect']);
+                FlashMessage::set($document_access['message'], array('options' => array('type' => 'growl', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
+                return $this->redirect($document_access['redirect']);
+                // set the document to false if there's no access to it. the method may be accessible, but the document may not be. so setting it false essentially unsets it, but in a nicer way.
+                $document = false;
             }
         }
         
@@ -290,8 +298,11 @@ class MinervaController extends \lithium\action\Controller {
         }
         list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
         
-        // If there's a page/user/block_type passed, add it to the conditions, '*' will show all pages.
-        if(!empty($document_type)) {
+        // never allow a limit of 0
+        $limit = ($limit < 0) ? 1:$limit;
+        
+        // If there's a page/user/block_type passed, add it to the conditions, 'index' will show all pages and comes from routing. we allow /minerva/pages/index for example. though /minerva/pages works as does /minerva/pages/page:1/limit:1
+        if(!empty($document_type) && $document_type != 'index') {
             $conditions = array('document_type' => $document_type);
         } else {
             $conditions = array();
@@ -320,30 +331,33 @@ class MinervaController extends \lithium\action\Controller {
             }
             
         }
-        
         // Get the documents and the total
-        $documents = array();
-        if((int)$params['limit'] > 0) {
-            $documents = $this->getDocument(array(
-                'action' => $this->calling_method,
-                'request' => $this->request,
-                'find_type' => 'all',
-                'conditions' => $conditions,
-                'limit' => (int)$params['limit'],
-                'offset' => ($params['page'] - 1) * $limit,
-                'order' => $params['order']
-            ));
-        }
+        $documents = $this->getDocument(array(
+            'action' => $this->calling_method,
+            'request' => $this->request,
+            'find_type' => 'all',
+            'conditions' => $conditions,
+            'limit' => (int)$limit,
+            'offset' => ((int)$page - 1) * (int)$limit,
+            'order' => $params['order']
+        ));
         
         // Get some handy numbers
-        $total = $ModelClass::find('count', array(
+        /*$total = $ModelClass::find('count', array(
             'conditions' => $conditions
+        ));*/
+        // Get some handy numbers
+        $total = $this->getDocument(array(
+            'action' => $this->calling_method,
+            'request' => $this->request,
+            'find_type' => 'count'
         ));
-        $page_number = $params['page'];
-        $total_pages = ((int)$params['limit'] > 0) ? ceil($total / $params['limit']):0;
+        
+        $page_number = (int)$page;
+        $total_pages = ((int)$limit > 0) ? ceil($total / $limit):0;
         
         // Set data for the view template
-        $this->set(compact('documents', 'limit', 'page_number', 'total_pages', 'total'));
+        $this->set(compact('documents', 'limit', 'display_name', 'page_number', 'total_pages', 'total'));
     }
     
     /**

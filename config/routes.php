@@ -30,47 +30,6 @@ Router::connect("{$base}/{:args}\(", array(), function($request) {
 });
 
 /**
- * Handles Minerva's Assets
- * Path assets for example: /minerva/js/some_javascript.js
- * Also path them like that when using helpers, example: <?=$this->html->script('/minerva/js/some_javascript.js') ;?>
- * This goes for images, javascript, and style sheets.
- * 
-*/
-/*
-Router::connect("{$base}/{:path:js|css|img}/{:file}.{:type}", array(), function($request) {
-	$req = $request->params;
-	$file = dirname(__DIR__) . "/webroot/{$req['path']}/{$req['file']}.{$req['type']}";
-
-	if (!file_exists($file)) {
-		return;
-	}
-
-	return new Response(array(
-		'body' => file_get_contents($file),
-		'headers' => array('Content-type' => str_replace(
-			array('css', 'js'), array('text/css', 'text/javascript'), $req['type']
-		))
-	));
-});
-
-// for assets within a subdirectory or multiple subdirectories
-Router::connect("{$base}/{:path:js|css|img}/{:sub_dir:[0-9A-z\/\-]+}/{:file}.{:type}", array(), function($request) {
-	$req = $request->params;
-	$file = dirname(__DIR__) . "/webroot/{$req['path']}/{$req['sub_dir']}/{$req['file']}.{$req['type']}";
-
-	if (!file_exists($file)) {
-		return;
-	}
-
-	return new Response(array(
-		'body' => file_get_contents($file),
-		'headers' => array('Content-type' => str_replace(
-			array('css', 'js'), array('text/css', 'text/javascript'), $req['type']
-		))
-	));
-});
-*/
-/**
  * Here, we are connecting '/' (base path) to controller called 'Pages',
  * its action called 'view', and we pass a param to select the view file
  * to use (in this case, /app/views/pages/home.html.php)...
@@ -262,11 +221,23 @@ Router::connect("{$base}/blocks/{:action}/{:args}", array(
 
 */
 
-// Default blanket admin rules
-
-Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}", array(
+// Default Admin Routes
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:document_type}/page:{:page:[0-9]+}/limit:{:limit:[0-9]+}", array(
     'library' => 'minerva'
 ));
+
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:document_type}/page:{:page:[0-9]+}", array(
+    'library' => 'minerva'
+));
+
+// the following two routes are for pagination of anything else really, but notably a URL like: /minerva/pages/page:1/limit:1 or /minerva/pages/page:1
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/page:{:page:[0-9]+}/limit:{:limit:[0-9]+}", array(
+    'library' => 'minerva'
+));
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/page:{:page:[0-9]+}", array(
+    'library' => 'minerva'
+));
+
 Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:document_type}", array(
     'library' => 'minerva'
 ));
@@ -279,39 +250,14 @@ Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:url}",
     'library' => 'minerva'
 ));
 
-
-
-Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/index/{:document_type}", array(
-    'admin' => 'admin',
-    'action' => 'index',
-    'page' => 1, 'limit' => 10,
-    'document_type' => 'all'
-));
-Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/index/{:document_type}/page:{:page:[0-9]+}", array(
-    'admin' => 'admin',
-    'controller' => 'minerva.users',
-    'action' => 'index',
-    'page' => 1
-));
-Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/index/{:document_type}/page:{:page}/limit:{:limit}", array(
-    'admin' => 'admin',
-    'action' => 'index',
-    'page' => 1,
-    'limit' => 10
-));
-
-
-
 Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:args}", array(
-    'admin' => 'admin',
+    'library' => 'minerva'
+));
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}", array(
     'library' => 'minerva'
 ));
 
-
-// non admin
-Router::connect("{$base}/{:controller}/{:action}", array(
-    'library' => 'minerva'
-));
+// Non-admin Default Routes
 Router::connect("{$base}/{:controller}/{:action}/{:url}", array(
     'library' => 'minerva'
 ));
@@ -321,13 +267,17 @@ Router::connect("{$base}/{:controller}/{:action}/{:id}", array(
 Router::connect("{$base}/{:controller}/{:action}/{:args}", array(
     'library' => 'minerva'
 ));
+Router::connect("{$base}/{:controller}/{:action}", array(
+    'library' => 'minerva'
+));
 
 /**
  * Connect the testing routes.
  */
+/* TODO: specific minerva test dashboard?
 //if (!Environment::is('production')) {
 	Router::connect('/test/{:args}', array('controller' => '\lithium\test\Controller'));
 	Router::connect('/test', array('controller' => '\lithium\test\Controller'));
 //}
-
+*/
 ?>
