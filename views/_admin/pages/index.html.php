@@ -35,10 +35,10 @@
                 <?=$page->ownder_id; ?>
             </td>
             <td>
-                <?php //$this->time->to('nice', $page->modified->sec); ?>
+                <?=$this->minerva->date($page->modified->sec); ?>
             </td>
             <td>
-                <?php // $this->time->to('nice', $page->created->sec); ?>
+                <?=$this->minerva->date($page->created->sec); ?>
             </td>
             <td>
                 <?=$this->html->link('Edit', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'update', 'url' => $page->url)); ?> | 

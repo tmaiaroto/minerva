@@ -36,7 +36,8 @@
 			<?php echo $this->minervaMenu->render_admin_menu('main_administration'); ?>
 		</div>
 		<div class="clear" style="height: 10px;"></div>
-		LIBRARIES/MINERVA/_ADMIN/LAYOUTS/DEFAULT.HTML.PHP ... if this didn't exist, it would default back to the app's default layout<br />
+		
+		<?php // echo 'LIBRARIES/MINERVA/_ADMIN/LAYOUTS/DEFAULT.HTML.PHP ... if this didn\'t exist, it would default back to the app\'s default layout<br />'; ?>
 
 		<?php echo $this->content(); ?>		
 		

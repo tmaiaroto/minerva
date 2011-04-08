@@ -19,7 +19,7 @@
         <?php foreach($documents as $user) { ?>
         <tr>
             <td>
-                <?=$this->html->link($user->email, array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'read', 'id' => $user->_id)); ?>
+                <?=$this->html->link($user->email, array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'read', 'url' => $user->url)); ?>
             </td>
             <td>
                 <?php if(!empty($user->user_type)) {
@@ -35,8 +35,8 @@
                 <?=$this->minerva->date($user->created->sec); ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'update', 'id' => $user->_id)); ?> |
-                <?=$this->html->link('Delete', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'delete', 'id' => $user->_id), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $user->email . '?\')')); ?>
+                <?=$this->html->link('Edit', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'update', 'url' => $user->url)); ?> |
+                <?=$this->html->link('Delete', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'delete', 'url' => $user->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $user->email . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>
