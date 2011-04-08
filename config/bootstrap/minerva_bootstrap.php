@@ -88,7 +88,8 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		}
 	   
 		// The admin flag from routes helps give control over the templates to use
-		$admin = ((isset($params['request']->params['admin'])) && ($params['request']->params['admin'] == 1 || $params['request']->params['admin'] === true || $params['request']->params['admin'] == 'true')) ? true:false;
+		$admin = ((isset($params['request']->params['admin'])) && ($params['request']->params['admin'] == 1 || $params['request']->params['admin'] === true || $params['request']->params['admin'] == 'true' || $params['request']->params['admin'] == 'admin')) ? true:false;
+		
 		// The layout key from the routes give us even more control, it's the final authority on where to check, but things do cascade down
 		$layout = (isset($params['request']->params['layout'])) ? $params['request']->params['layout']:false;
 		// Also a template key from the routes again for more control and flexibility
@@ -200,24 +201,24 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		 * in the route that is optional, but we want to obey it.
 		*/    
 		if(!empty($layout)) {
-		// Layouts can be borrowed from other libraries, defined like: library.layout_template
-		$layout_pieces = explode('.', $layout);
-		$layout_library = false;
-		if(count($layout_pieces) > 1) {
-			$layout_library = $layout_pieces[0];
-			$layout = $layout_pieces[1];
-		}
-		array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $layout_library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . $layout . '.{:type}.php');
+			// Layouts can be borrowed from other libraries, defined like: library.layout_template (the type is defined in the route with its own key)
+			$layout_pieces = explode('.', $layout);
+			$layout_library = false;
+			if(count($layout_pieces) > 1) {
+				$layout_library = $layout_pieces[0];
+				$layout = $layout_pieces[1];
+			}
+			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $layout_library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . $layout . '.{:type}.php');
 		}
 		if(!empty($template)) {
-		// Templates can be borrowed from other libraries, defined like: library.template
-		$template_pieces = explode('.', $template);
-		$template_library = false;
-		if(count($template_pieces) > 1) {
-			$template_library = $template_pieces[0];
-			$template = $template_pieces[1];
-		}
-		array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $template_library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '{:controller}' . DIRECTORY_SEPARATOR . $template . '.{:type}.php');
+			// Templates can be borrowed from other libraries, defined like: library.template (the controller and type is defined in the route with their own keys)
+			$template_pieces = explode('.', $template);
+			$template_library = false;
+			if(count($template_pieces) > 1) {
+				$template_library = $template_pieces[0];
+				$template = $template_pieces[1];
+			}
+			array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $template_library . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '{:controller}' . DIRECTORY_SEPARATOR . $template . '.{:type}.php');
 		}
 		
 		// var_dump($params['options']['render']['paths']); // <--- this is a great thing to uncomment and browse the site for reference

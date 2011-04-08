@@ -150,8 +150,11 @@ class MinervaModel extends \lithium\data\Model {
      * @return class
     */
     public function getMinervaModel($model_name=null, $library_name=null) {
+		$default_class = 'minerva\models\\' . Inflector::classify($model_name);
+		// if $default_class doesn't exist, then we'll return MinervaModel which isn't great because it has no collection TODO: look into that. maybe give it one like a "lost and found" should really not happen if everything was routed properly and other things I would think would break first not even allowing a save
+		$class = (class_exists($default_class)) ? $default_class:__CLASS__;
 		$model = Libraries::locate('minerva_models', $library_name . '.' . $model_name);
-		return (class_exists($model)) ? $model:__CLASS__;
+		return (class_exists($model)) ? $model:$class;
     }
 	
 	/**

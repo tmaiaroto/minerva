@@ -17,7 +17,7 @@
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('controller' => 'users', 'action' => 'index')); ?>
+	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'index')); ?>
 	</fieldset>
 	
 </div>

@@ -47,7 +47,7 @@ class MinervaController extends \lithium\action\Controller {
         $this->minerva_config['relative_controller'] = $relative_controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
         $this->minerva_config['model'] = $model = Inflector::classify(Inflector::singularize($relative_controller));
         // set the model class, should be minerva\models\Page or minerva\models\Block etc.
-        $ModelClass = 'minerva\models\\'.$model;
+        $ModelClass = $DefaultModelClass = 'minerva\models\\'.$model;
         // in case it doesn't exist, use the base MinervaModel which we know does exist
         $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
         $document_type = $ModelClass::document_type();
@@ -72,12 +72,9 @@ class MinervaController extends \lithium\action\Controller {
          * to match the document_type property. Once matched, we found the proper model class. So not too bad.
          * 
         */
-        if($ModelClass == 'minerva\models\MinervaModel') {
+        if($ModelClass == 'minerva\models\MinervaModel' || $ModelClass == $DefaultModelClass) {
             $all_minerva_models = $ModelClass::getAllMinervaModels($model);
-            if(empty($all_minerva_models)) {
-                // default back to minerva's model if nothing was found for some oddd reason
-                $ModelClass = 'minerva\models\\' . $model;
-            } else {
+            if(!empty($all_minerva_models)) {
                 foreach($all_minerva_models as $Model) {
                     if($Model::document_type() == $document_type) {
                         $ModelClass = $Model;
@@ -86,7 +83,7 @@ class MinervaController extends \lithium\action\Controller {
             }
             
             // and of course no matter what we set, make sure it exists, otherwise default.
-            $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
+            $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
         }
         
         // Now the following will use the proper ModelClass to get the properties that we need in the controller.
@@ -111,9 +108,9 @@ class MinervaController extends \lithium\action\Controller {
         $redirects = array();
         $admin = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
         $default_redirects = array(
-            'create' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index'),
-            'update' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index'),
-            'delete' => array('admin' => $admin, 'controller' => $this->request->params['controller'], 'action' => 'index')
+            'create' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index'),
+            'update' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index'),
+            'delete' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index')
         );
         $ModelClass = $this->minerva_config['ModelClass'];
         $redirects = $ModelClass::action_redirects();

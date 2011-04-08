@@ -67,8 +67,14 @@ class Minerva extends \lithium\template\helper\Html {
         return "Hello {$name}!";
     }
     
-    public function date($value) {
-        return date('Y-M-d h:i:s', $value->sec);
+    public function date($value=null, $format='Y-M-d h:i:s') {
+		$date = '';
+		if(is_object($value)) {
+			$date = $value->sec;
+		} elseif(!empty($value)) {
+			$date = $value;
+		}
+        return date($format, $date);
     }
     
     /**
@@ -82,30 +88,36 @@ class Minerva extends \lithium\template\helper\Html {
      * @see minerva\libraries\util\Util::list_types()
     */
     public function link_types($model_name='Page', $action='create', $options=array()) {
-        $options += array('include_minerva' => true, 'admin' => true, 'library' => 'minerva', 'link_options' => array());
+        $options += array('include_minerva' => true, 'admin' => 'admin', 'library' => 'minerva', 'link_options' => array());
         $output = '';
 		
 		$model_class_name = Inflector::classify($model_name);
 		$models = Libraries::locate('minerva_models', $model_class_name);
-		$controller = $options['library'] . '.' . strtolower(Inflector::pluralize($model_name));
+		//$controller = $options['library'] . '.' . strtolower(Inflector::pluralize($model_name));
+		// no longer using library.controller syntax... see how that works
+		$controller = strtolower(Inflector::pluralize($model_name));
 		
         $output .= '<ul>';
 		
 		// if include_minerva is true, then show the basic link... ie.  /minerva/pages/create
 		if($options['include_minerva']) {
-			$output .= '<li>' . $this->link($model_class_name, array('admin' => $options['admin'], 'controller' => $controller, 'action' => $action), $options['link_options']) . '</li>';
+			$output .= '<li>' . $this->link($model_class_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action), $options['link_options']) . '</li>';
 		}
 		
 		if(is_array($models)) {
 			foreach($models as $model) {
 				$class_pieces = explode('\\', $model);
 				$type = $class_pieces[0];
-				$output .= '<li>' . $this->link($model::display_name(), array('admin' => $options['admin'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+				if(class_exists($model)) {
+					$output .= '<li>' . $this->link($model::display_name(), array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+				}
 			}
 		} else {
 			$class_pieces = explode('\\', $models);
 			$type = $class_pieces[0]; // the library name serves as the x_type
-			$output .= '<li>' . $this->link($models::display_name(), array('admin' => $options['admin'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+			if(class_exists($models)) {
+				$output .= '<li>' . $this->link($models::display_name(), array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+			}
 		}
         $output .= '</ul>';
 		

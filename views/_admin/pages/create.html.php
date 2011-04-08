@@ -5,7 +5,11 @@
 
 <div class="grid_12">
     	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
-	<?=$this->form->create($document, array('url' => array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'create', 'document_type' => $document_type))); ?>
+	<?php
+	// no longer need this:
+	// $this->form->create($document, array('url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'create', 'document_type' => $document_type));
+	?>
+	<?=$this->form->create($document); ?>
 	<fieldset class="admin">
 		<legend>Primary Information</legend>
 	    <?php
@@ -17,7 +21,7 @@
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'index')); ?>
+	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index')); ?>
 	</fieldset>
 	
 </div>

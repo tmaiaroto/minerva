@@ -22,7 +22,7 @@
         <?php foreach($documents as $page) { ?>
         <tr>
             <td>
-                <?=$this->html->link($page->title, array('controller' => 'minerva.pages', 'action' => 'read', 'url' => $page->url)); ?>
+                <?=$this->html->link($page->title, array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'read', 'url' => $page->url)); ?>
             </td>
             <td>
                 <?php if(!empty($page->document_type)) {
@@ -41,8 +41,8 @@
                 <?php // $this->time->to('nice', $page->created->sec); ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'update', 'url' => $page->url)); ?> | 
-				<?=$this->html->link('Delete', array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'delete', 'url' => $page->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $page->title . '?\')')); ?>
+                <?=$this->html->link('Edit', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'update', 'url' => $page->url)); ?> | 
+				<?=$this->html->link('Delete', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'delete', 'url' => $page->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $page->title . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>

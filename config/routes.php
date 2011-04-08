@@ -20,6 +20,7 @@ use lithium\action\Response;
 
 $config = Libraries::get('minerva');
 $base = isset($config['url']) ? $config['url'] : '/minerva';
+$admin_prefix = isset($config['admin_prefix']) ? $config['admin_prefix'] : 'admin';
 
 /**
  * Handles broken URL parsers by matching method URLs with no closing ) and redirecting.
@@ -73,16 +74,18 @@ Router::connect("{$base}/{:path:js|css|img}/{:sub_dir}/{:file}.{:type}", array()
  * its action called 'view', and we pass a param to select the view file
  * to use (in this case, /app/views/pages/home.html.php)...
 */
-Router::connect("{$base}", array('controller' => 'minerva.pages', 'action' => 'view', 'home'));
+Router::connect("{$base}", array('library' => 'minerva', 'controller' => 'pages', 'action' => 'view', 'home'));
 // and this is for the other static pages
 Router::connect("{$base}/page/{:args}", array('controller' => 'minerva.pages', 'action' => 'view'));
 
-Router::connect("{$base}/admin/{:args}", array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'view', 'home'));
+Router::connect("{$base}/admin", array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'view', 'home'));
+
 
 /**
  * ...and connect the rest of 'Pages' controller's urls.
  * note there's importance with naming the argument "url"
 */
+/*
 // "view" is static
 Router::connect("{$base}/page/{:url}", array('controller' => 'minerva.pages', 'action' => 'view'));
 // "read" is from the database
@@ -130,6 +133,7 @@ Router::connect("{$base}/pages/{:action}/{:args}", array(
     'admin' => true,
     'controller' => 'minerva.pages'
 ));
+*/
 
 /**
  * Connect the user stuff
@@ -138,12 +142,14 @@ Router::connect('/register', array('controller' => 'users', 'action' => 'registe
 Router::connect('/login', array('controller' => 'users', 'action' => 'login'));
 Router::connect('/logout', array('controller' => 'users', 'action' => 'logout'));
 // admin routes for users controller
+
+/*
 Router::connect('/users/read/{:id}', array(
     'admin' => true,
     'controller' => 'minerva.users',
     'action' => 'read'
 ));
-Router::connect("{$base}/users/create'", array(
+Router::connect("{$base}/users/create", array(
     'admin' => true,
     'controller' => 'minerva.users',
     'action' => 'create'
@@ -164,28 +170,28 @@ Router::connect("{$base}/users/delete/{:id}", array(
     'action' => 'delete'
 ));
 // and for index pages
-Router::connect("{$base}/users/index/{:document_type}", array(
-    'admin' => true,
+Router::connect("{$base}/{:admin}/users/index/{:document_type}", array(
+    'admin' => 'admin',
     'controller' => 'minerva.users',
     'action' => 'index',
     'page' => 1, 'limit' => 10,
     'user_type' => 'all'
 ));
-Router::connect("{$base}/users/index/{:document_type}/page:{:page:[0-9]+}", array(
-    'admin' => true,
+Router::connect("{$base}/{:admin}/users/index/{:document_type}/page:{:page:[0-9]+}", array(
+    'admin' => 'admin',
     'controller' => 'minerva.users',
     'action' => 'index',
     'page' => 1
 ));
-Router::connect("{$base}/users/index/{:document_type}/page:{:page}/limit:{:limit}", array(
+Router::connect("{$base}/{:admin}/users/index/{:document_type}/page:{:page}/limit:{:limit}", array(
     'admin' => true,
     'controller' => 'minerva.users',
     'action' => 'index',
     'page' => 1,
     'limit' => 10
 ));
-Router::connect("{$base}/users", array(
-    'admin' => true,
+Router::connect("{$base}/{:admin}/users", array(
+    'admin' => 'admin',
     'controller' => 'minerva.users',
     'action' => 'index'
 ));
@@ -193,10 +199,12 @@ Router::connect("{$base}/users/{:action}/{:args}", array(
     'admin' => false,
     'controller' => 'minerva.users'
 ));
+*/
 
 /**
  * Connect the static blocks
 */
+/*
 Router::connect("{$base}/block/{:args}", array(
     //'admin' => true,
     'controller' => 'minerva.blocks',
@@ -247,6 +255,69 @@ Router::connect("{$base}/blocks/index/{:document_type}/page:{:page}/limit:{:limi
 Router::connect("{$base}/blocks/{:action}/{:args}", array(
     'admin' => true,
     'controller' => 'minerva.blocks'
+));
+
+
+*/
+
+// Default blanket admin rules
+
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}", array(
+    'library' => 'minerva'
+));
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:document_type}", array(
+    'library' => 'minerva'
+));
+
+// read actions with both :id and :url
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:id}", array(
+    'library' => 'minerva'
+));
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:url}", array(
+    'library' => 'minerva'
+));
+
+
+
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/index/{:document_type}", array(
+    'admin' => 'admin',
+    'action' => 'index',
+    'page' => 1, 'limit' => 10,
+    'document_type' => 'all'
+));
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/index/{:document_type}/page:{:page:[0-9]+}", array(
+    'admin' => 'admin',
+    'controller' => 'minerva.users',
+    'action' => 'index',
+    'page' => 1
+));
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/index/{:document_type}/page:{:page}/limit:{:limit}", array(
+    'admin' => 'admin',
+    'action' => 'index',
+    'page' => 1,
+    'limit' => 10
+));
+
+
+
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:args}", array(
+    'admin' => 'admin',
+    'library' => 'minerva'
+));
+
+
+// non admin
+Router::connect("{$base}/{:controller}/{:action}", array(
+    'library' => 'minerva'
+));
+Router::connect("{$base}/{:controller}/{:action}/{:url}", array(
+    'library' => 'minerva'
+));
+Router::connect("{$base}/{:controller}/{:action}/{:id}", array(
+    'library' => 'minerva'
+));
+Router::connect("{$base}/{:controller}/{:action}/{:args}", array(
+    'library' => 'minerva'
 ));
 
 /**
