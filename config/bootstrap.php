@@ -15,6 +15,8 @@ if(!$tz) {
 }
 date_default_timezone_set($tz); 
 
+require __DIR__ . '/bootstrap/media.php';
+
 require __DIR__ . '/bootstrap/connections.php';
 
 require __DIR__ . '/bootstrap/session.php';

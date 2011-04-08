@@ -8,6 +8,7 @@ use \RecursiveIteratorIterator;
 use \RecursiveArrayIterator;
 use lithium\core\Libraries;
 use lithium\util\Set;
+use lithium\util\Inflector;
 
 class Util {
     
@@ -110,23 +111,26 @@ class Util {
     */
     public function list_types($model='Page', $options=array()) {
         $options += array('exclude_minerva' => false, 'exclude' => array(), 'library' => 'minerva');
-        $model = ucfirst($model);
         
         $types = array();
         
-        $model_class_name = Inflector::classify($model_name);
+        $model_class_name = Inflector::classify($model);
 		$models = Libraries::locate('minerva_models', $model_class_name);
-		$controller = $options['library'] . '.' . strtolower(Inflector::pluralize($model_name));
+		//$controller = $options['library'] . '.' . strtolower(Inflector::pluralize($model));
+        // no longer using the library.controller syntax
+        $controller = strtolower(Inflector::pluralize($model_class_name));
         
-        foreach($models as $class_path) {
-            $pieces = explode('\\', $class_path);
-            $types[] = $pieces[0];
+        if(is_array($models)) {
+            foreach($models as $class_path) {
+                $pieces = explode('\\', $class_path);
+                $types[] = $pieces[0];
+            }
+        } else {
+            $types[] = $models;
         }
         
-        var_dump($types);exit();
-        
         if($options['exclude_minerva'] === true) {
-            $options['exclude'][] = 'minerva\models\\' . $model;
+            $options['exclude'][] = 'minerva\models\\' . $model_class_name;
         }
         if(count($options['exclude']) > 0) {
             $i=0;

@@ -76,8 +76,10 @@ class MinervaController extends \lithium\action\Controller {
             $all_minerva_models = $ModelClass::getAllMinervaModels($model);
             if(!empty($all_minerva_models)) {
                 foreach($all_minerva_models as $Model) {
-                    if($Model::document_type() == $document_type) {
-                        $ModelClass = $Model;
+                    if(class_exists($Model)) {
+                        if($Model::document_type() == $document_type) {
+                            $ModelClass = $Model;
+                        }
                     }
                 }
             }

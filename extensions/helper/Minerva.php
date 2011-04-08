@@ -93,6 +93,7 @@ class Minerva extends \lithium\template\helper\Html {
 		
 		$model_class_name = Inflector::classify($model_name);
 		$models = Libraries::locate('minerva_models', $model_class_name);
+		
 		//$controller = $options['library'] . '.' . strtolower(Inflector::pluralize($model_name));
 		// no longer using library.controller syntax... see how that works
 		$controller = strtolower(Inflector::pluralize($model_name));
@@ -104,6 +105,15 @@ class Minerva extends \lithium\template\helper\Html {
 			$output .= '<li>' . $this->link($model_class_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action), $options['link_options']) . '</li>';
 		}
 		
+		// this used the util class... might want to consider using it to eliminate the use of Libraries class here and other classes if possible
+		// and just duplicate (sorta) logic
+		/*
+		foreach($types as $type) {
+			var_dump($type);
+			//$output .= '<li>' . $this->link($model_class_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action), $options['link_options']) . '</li>';
+		}*/
+		
+		
 		if(is_array($models)) {
 			foreach($models as $model) {
 				$class_pieces = explode('\\', $model);
@@ -114,11 +124,12 @@ class Minerva extends \lithium\template\helper\Html {
 			}
 		} else {
 			$class_pieces = explode('\\', $models);
-			$type = $class_pieces[0]; // the library name serves as the x_type
+			$type = $class_pieces[0]; // the library name serves as the document_type
 			if(class_exists($models)) {
 				$output .= '<li>' . $this->link($models::display_name(), array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
 			}
 		}
+		
         $output .= '</ul>';
 		
         return $output;

@@ -8,14 +8,14 @@
         </ul>
     </li>
     <li>
-        <?=$this->html->link('Blocks', array('admin' => true, 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')); ?>
+        <?=$this->html->link('Blocks', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')); ?>
         <ul>
             <li><?=$this->html->link('List All', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')); ?></li>
             <li><?=$this->html->link('Create New', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'create')); ?></li>
         </ul>
     </li>
     <li>
-        <?=$this->html->link('Users', array('admin' => true, 'library' => 'minerva', 'controller' => 'users', 'action' => 'index')); ?>
+        <?=$this->html->link('Users', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'index')); ?>
         <ul>
             <li><?=$this->html->link('List All', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'index')); ?></li>
             <li><?=$this->html->link('Create New', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'create')); ?></li>

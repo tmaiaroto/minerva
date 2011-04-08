@@ -36,6 +36,7 @@ Router::connect("{$base}/{:args}\(", array(), function($request) {
  * This goes for images, javascript, and style sheets.
  * 
 */
+/*
 Router::connect("{$base}/{:path:js|css|img}/{:file}.{:type}", array(), function($request) {
 	$req = $request->params;
 	$file = dirname(__DIR__) . "/webroot/{$req['path']}/{$req['file']}.{$req['type']}";
@@ -52,8 +53,8 @@ Router::connect("{$base}/{:path:js|css|img}/{:file}.{:type}", array(), function(
 	));
 });
 
-// for assets within a subdirectory 
-Router::connect("{$base}/{:path:js|css|img}/{:sub_dir}/{:file}.{:type}", array(), function($request) {
+// for assets within a subdirectory or multiple subdirectories
+Router::connect("{$base}/{:path:js|css|img}/{:sub_dir:[0-9A-z\/\-]+}/{:file}.{:type}", array(), function($request) {
 	$req = $request->params;
 	$file = dirname(__DIR__) . "/webroot/{$req['path']}/{$req['sub_dir']}/{$req['file']}.{$req['type']}";
 
@@ -68,13 +69,14 @@ Router::connect("{$base}/{:path:js|css|img}/{:sub_dir}/{:file}.{:type}", array()
 		))
 	));
 });
-
+*/
 /**
  * Here, we are connecting '/' (base path) to controller called 'Pages',
  * its action called 'view', and we pass a param to select the view file
  * to use (in this case, /app/views/pages/home.html.php)...
 */
 Router::connect("{$base}", array('library' => 'minerva', 'controller' => 'pages', 'action' => 'view', 'home'));
+
 // and this is for the other static pages
 Router::connect("{$base}/page/{:args}", array('controller' => 'minerva.pages', 'action' => 'view'));
 
