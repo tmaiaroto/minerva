@@ -8,6 +8,7 @@ class MinervaModel extends \lithium\data\Model {
     
     protected $_schema = array(
         '_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
+		'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
         'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
 		'document_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false))

@@ -221,6 +221,18 @@ Router::connect("{$base}/blocks/{:action}/{:args}", array(
 
 */
 
+// Admin create routes.
+// The routes below won't work for create, it must see {:document_type} as {:url} (because it comes first), which we want for read, update, delete... and normally "create" wouldn't have anything after it in a typical app... we don't want to call the param "url" when it comes to "create" so we need these routes to give it the name of "document_type"
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/create/{:document_type}", array(
+    'library' => 'minerva',
+    'action' => 'create'
+));
+
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/create", array(
+    'library' => 'minerva',
+    'action' => 'create'
+));
+
 // Default Admin Routes
 Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:document_type}/page:{:page:[0-9]+}/limit:{:limit:[0-9]+}", array(
     'library' => 'minerva'
@@ -238,21 +250,20 @@ Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/page:{:p
     'library' => 'minerva'
 ));
 
-Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:document_type}", array(
+// all documents will have a unique URL even if it's the MongoId just copied over into that field
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:url}", array(
     'library' => 'minerva'
 ));
 
-// read actions with both :id and :url
-Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:id}", array(
-    'library' => 'minerva'
-));
-Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:url}", array(
+Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:document_type}", array(
     'library' => 'minerva'
 ));
 
 Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}/{:args}", array(
     'library' => 'minerva'
 ));
+
+// ending with the least sepcific
 Router::connect("{$base}/{:admin:$admin_prefix}/{:controller}/{:action}", array(
     'library' => 'minerva'
 ));

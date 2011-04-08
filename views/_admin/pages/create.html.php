@@ -21,7 +21,7 @@
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index')); ?>
+	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index', 'document_type' => $document_type)); ?>
 	</fieldset>
 	
 </div>

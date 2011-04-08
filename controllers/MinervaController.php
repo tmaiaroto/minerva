@@ -55,37 +55,47 @@ class MinervaController extends \lithium\action\Controller {
         if(isset($this->request->params['document_type']) && !empty($this->request->params['document_type'])) {
             $document_type = $this->request->params['document_type'];
         }
+        // there are two specific "create" routes to handle a conflict in the routing
+        // alternatively, we could use the "{:args}" route... but "create" action is the only case this is a problem (for now)
+        /*
+        if($this->request->params['action'] == 'create') {
+            if(isset($this->request->params['args'][0])) {
+                $document_type = $this->request->params['args'][0];
+            }
+        }
+        */
         
         // set the ModelClass again now based on the $document_type, which in most cases, matches the library name
         // ignore and empty $document_type, that just means the base model class anyway
         if(!empty($document_type)) {
             $ModelClass = $ModelClass::getMinervaModel($model, $document_type);
-        }
-        
-        /**
-         * If getMinveraModel() couldn't find one... meaning the $document_type did NOT match the library name, 
-         * we need to search ALL minerva models to find the proper model. This is where a slight performance penalty
-         * comes in to play, so try to match library names to document_type values.
-         *
-         * If unavoidable, because there were two libraries of the same name that want to use Minerva, just know
-         * that all we're doing is looping through each model that's using Minerva ("minerva_models") and looking
-         * to match the document_type property. Once matched, we found the proper model class. So not too bad.
-         * 
-        */
-        if($ModelClass == 'minerva\models\MinervaModel' || $ModelClass == $DefaultModelClass) {
-            $all_minerva_models = $ModelClass::getAllMinervaModels($model);
-            if(!empty($all_minerva_models)) {
-                foreach($all_minerva_models as $Model) {
-                    if(class_exists($Model)) {
-                        if($Model::document_type() == $document_type) {
-                            $ModelClass = $Model;
+            
+            /**
+             * If getMinveraModel() couldn't find one... meaning the $document_type did NOT match the library name, 
+             * we need to search ALL minerva models to find the proper model. This is where a slight performance penalty
+             * comes in to play, so try to match library names to document_type values.
+             *
+             * If unavoidable, because there were two libraries of the same name that want to use Minerva, just know
+             * that all we're doing is looping through each model that's using Minerva ("minerva_models") and looking
+             * to match the document_type property. Once matched, we found the proper model class. So not too bad.
+             * 
+            */
+            if($ModelClass == 'minerva\models\MinervaModel' || $ModelClass == $DefaultModelClass) {
+                $all_minerva_models = $ModelClass::getAllMinervaModels($model);
+                if(!empty($all_minerva_models)) {
+                    foreach($all_minerva_models as $Model) {
+                        if(class_exists($Model)) {
+                            if($Model::document_type() == $document_type) {
+                                $ModelClass = $Model;
+                            }
                         }
                     }
                 }
+                
+                // and of course no matter what we set, make sure it exists, otherwise default.
+                $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
             }
             
-            // and of course no matter what we set, make sure it exists, otherwise default.
-            $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
         }
         
         // Now the following will use the proper ModelClass to get the properties that we need in the controller.
@@ -171,12 +181,22 @@ class MinervaController extends \lithium\action\Controller {
         if(($request->params['action'] == 'read') || ($request->params['action'] == 'update') || ($request->params['action'] == 'delete')) {
             // could be using the MongoId or the pretty URL in the route. Both work, but prefer the URL if set and there's no need to use both.
             $conditions = array();
-            if(isset($request->params['id'])) {
-                $conditions = array('_id' => $request->params['id']);
-            }
+            // ALL models will use a 'url' field, even if it's just the _id that gets put there.
             if(isset($request->params['url'])) {
-                $conditions = array('url' => $request->params['url']);
+               $conditions = array(
+                    'url' => $request->params['url']
+                ); 
+            } 
+            /* // If using {:args} route...
+            if(isset($request->params['args'][0])) {
+                $conditions = array(
+                    'url' => $request->params['args'][0]
+                );
+            } else {
+                // TODO: redirect. document not found.
             }
+            */
+            
             $record = $ModelClass::first(array('request_params' => $request->params, 'conditions' => $conditions, 'fields' => array('document_type')));
             // it should be an object...if it wasn't found that's a problem
             if(is_object($record)) {
@@ -186,7 +206,7 @@ class MinervaController extends \lithium\action\Controller {
                     
                     // ideally, the document_type should be the name of the library
                     $MinervaModelClass = $ModelClass::getMinervaModel($model, $record->document_type);
-                    if(class_exists($MinervaModelClass)) {
+                    if(is_string($MinervaModelClass) && class_exists($MinervaModelClass)) {
                         $this->minerva_config['ModelClass'] = $ModelClass = $MinervaModelClass;
                         // but if not...we have to search for it
                         // (minor performance penalty for the looping, but may be unavoidable)
@@ -199,6 +219,7 @@ class MinervaController extends \lithium\action\Controller {
                             }
                         }
                     }
+                    
                     // finaly, we can set the proper $library_name (and the proper $ModelClass will be set now too)
                     $this->minerva_config['library_name'] = $ModelClass::library_name();
                     // also, we will need to set the display name
