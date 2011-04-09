@@ -21,7 +21,7 @@
 </head>
 <body>
 	<h1>
-		<a href="/admin">Minerva</a>
+		<a href="/minerva">Minerva</a>
 	</h1>
 
 	<?php echo $this->content(); ?>		
@@ -29,6 +29,6 @@
 	<div class="footer">
 		Powered by <?php echo $this->html->link('Lithium', 'http://li3.rad-dev.org'); ?>.
 	</div>
-	<!-- layout template: /minerva/views/layouts/default.html.php -->
+	<!-- layout template: /app/libraries/minerva/views/layouts/default.html.php -->
 </body>
 </html>

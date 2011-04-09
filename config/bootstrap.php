@@ -15,6 +15,13 @@ if(!$tz) {
 }
 date_default_timezone_set($tz); 
 
+/**
+ * The error configuration allows you to use the filter system along with the advanced matching
+ * rules of the `ErrorHandler` class to provide a high level of control over managing exceptions in
+ * your application, with no impact on framework or application code.
+ */
+require __DIR__ . '/bootstrap/errors.php';
+
 require __DIR__ . '/bootstrap/media.php';
 
 require __DIR__ . '/bootstrap/connections.php';
