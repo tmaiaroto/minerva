@@ -43,60 +43,6 @@ Router::connect("{$base}/admin", array('admin' => true, 'controller' => 'minerva
 
 
 /**
- * ...and connect the rest of 'Pages' controller's urls.
- * note there's importance with naming the argument "url"
-*/
-/*
-// "view" is static
-Router::connect("{$base}/page/{:url}", array('controller' => 'minerva.pages', 'action' => 'view'));
-// "read" is from the database
-Router::connect("{$base}/pages/read/{:url}", array('controller' => 'minerva.pages', 'action' => 'read'));
-
-// Admin routes for pages controller
-Router::connect("{$base}/pages/create/{:document_type}", array(
-    'admin' => true,
-    'controller' => 'minerva.pages',
-    'action' => 'create'
-));
-Router::connect("{$base}/pages/update/{:url}", array(
-    'admin' => true,
-    'controller' => 'minerva.pages',
-    'action' => 'update'
-));
-Router::connect("{$base}/pages/delete/{:url}", array(
-    'admin' => true,
-    'controller' => 'minerva.pages',
-    'action' => 'delete'
-));
-
-// and for index pages (note by default it uses a page_type of "all" and is intended to be an admin action)
-Router::connect("{$base}/pages/index/{:document_type}", array(
-    'admin' => true,
-    'controller' => 'minerva.pages',
-    'action' => 'index',
-    'page' => 1, 'limit' => 10,
-    'document_type' => '*'
-));
-Router::connect("{$base}/pages/index/{:document_type}/page:{:page:[0-9]+}", array(
-    'admin' => true,
-    'controller' => 'minerva.pages',
-    'action' => 'index',
-    'page' => 1
-));
-Router::connect("{$base}pages/index/{:document_type}/page:{:page}/limit:{:limit}", array(
-    'admin' => true,
-    'controller' => 'minerva.pages',
-    'action' => 'index',
-    'page' => 1,
-    'limit' => 10
-));
-Router::connect("{$base}/pages/{:action}/{:args}", array(
-    'admin' => true,
-    'controller' => 'minerva.pages'
-));
-*/
-
-/**
  * Connect the user stuff
 */
 Router::connect('/register', array('controller' => 'users', 'action' => 'register'));
@@ -104,63 +50,6 @@ Router::connect('/login', array('controller' => 'users', 'action' => 'login'));
 Router::connect('/logout', array('controller' => 'users', 'action' => 'logout'));
 // admin routes for users controller
 
-/*
-Router::connect('/users/read/{:id}', array(
-    'admin' => true,
-    'controller' => 'minerva.users',
-    'action' => 'read'
-));
-Router::connect("{$base}/users/create", array(
-    'admin' => true,
-    'controller' => 'minerva.users',
-    'action' => 'create'
-));
-Router::connect("{$base}/users/create/{:document_type}", array(
-    'admin' => true,
-    'controller' => 'minerva.users',
-    'action' => 'create'
-));
-Router::connect("{$base}/users/update/{:id}", array(
-    'admin' => true,
-    'controller' => 'minerva.users',
-    'action' => 'update'
-));
-Router::connect("{$base}/users/delete/{:id}", array(
-    'admin' => true,
-    'controller' => 'minerva.users',
-    'action' => 'delete'
-));
-// and for index pages
-Router::connect("{$base}/{:admin}/users/index/{:document_type}", array(
-    'admin' => 'admin',
-    'controller' => 'minerva.users',
-    'action' => 'index',
-    'page' => 1, 'limit' => 10,
-    'user_type' => 'all'
-));
-Router::connect("{$base}/{:admin}/users/index/{:document_type}/page:{:page:[0-9]+}", array(
-    'admin' => 'admin',
-    'controller' => 'minerva.users',
-    'action' => 'index',
-    'page' => 1
-));
-Router::connect("{$base}/{:admin}/users/index/{:document_type}/page:{:page}/limit:{:limit}", array(
-    'admin' => true,
-    'controller' => 'minerva.users',
-    'action' => 'index',
-    'page' => 1,
-    'limit' => 10
-));
-Router::connect("{$base}/{:admin}/users", array(
-    'admin' => 'admin',
-    'controller' => 'minerva.users',
-    'action' => 'index'
-));
-Router::connect("{$base}/users/{:action}/{:args}", array(
-    'admin' => false,
-    'controller' => 'minerva.users'
-));
-*/
 
 /**
  * Connect the static blocks
@@ -219,6 +108,18 @@ Router::connect("{$base}/blocks/{:action}/{:args}", array(
 ));
 
 
+*/
+
+/*
+ // an example using 'layoute' and 'template'
+Router::connect('/custom', array(
+    'admin' => 'admin',
+    'library' => 'minerva',
+    'controller' => 'pages',
+    'action' => 'index',
+    'layout' => 'minerva.default',
+    'template' => 'minerva.create'
+));
 */
 
 // Admin create routes.
