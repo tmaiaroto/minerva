@@ -17,11 +17,19 @@ use \lithium\data\Connections;
 // 	'database' => 'app_name'
 // ));
 
-Connections::add('default', array(	
-	'type' => 'database',
-	'adapter' =>  'MongoDb', 
-	'database' => 'minerva', 
-	'host' => 'localhost'
+Connections::add('default', array(
+    'production' => array(
+        'type' => 'database',
+        'adapter' =>  'MongoDb', 
+        'database' => 'minerva', 
+        'host' => 'localhost'
+    ),
+    'development' => array(
+        'type' => 'database',
+        'adapter' =>  'MongoDb', 
+        'database' => 'minerva_dev', 
+        'host' => 'localhost'
+    )
 ));
 
 Connections::add('test', array('type' =>  'MongoDb', 'database' => 'test', 'host' => 'localhost'));

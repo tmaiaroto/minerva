@@ -15,7 +15,8 @@
  * So we have a graceful fallback system if a template isn't found in one location.
  * It will go all the way back to loading a missing template and layout file in fact.
  * That doesn't mean "404" pages and it doesn't mean it's not possible to see a white page still,
- * but it helps.
+ * but it helps. When errors are turned on in a production environment, then 404 pages get rendered.
+ * See errors.php
  * 
  * All this is applied to the Dispatcher::_callable() so it happens really early on in the dispatcher process.
  * This allows other plugins to apply their filters aftward; keep in mind the order in which libraries are
@@ -23,9 +24,6 @@
 */
 
 use lithium\action\Dispatcher;
-use lithium\util\Inflector;
-use lithium\net\http\Media;
-use lithium\security\Auth;
 use lithium\core\Libraries;
 use lithium\template\View;
 use \Exception;

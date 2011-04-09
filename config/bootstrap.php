@@ -30,8 +30,11 @@ require __DIR__ . '/bootstrap/session.php';
 
 require __DIR__ . '/bootstrap/auth.php';
 
-// This file sets some filters required for the CMS.
-require __DIR__ . '/bootstrap/minerva_bootstrap.php';
+/**
+ * The templates.php file applies a filter on the dispatcher so that a more robust
+ * template system is put into place. This is critical to Minerva.
+*/
+require __DIR__ . '/bootstrap/templates.php';
 
 // This sets up minerva's access system. Don't use it if you don't want.
 //require __DIR__ . '/bootstrap/access.php';
