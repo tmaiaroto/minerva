@@ -21,7 +21,7 @@
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index', 'document_type' => $document_type)); ?>
+	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index', 'document_type' => $document_type)); ?>
 	</fieldset>
 	
 </div>
@@ -50,7 +50,7 @@
     <div class="box">
 		<h2>Create Other Page Types</h2>
 		<div class="block">
-			<?=$this->minerva->link_types('page', 'create'); ?>
+			<?=$this->minervaHtml->link_types('page', 'create'); ?>
 		</div>
     </div>
 </div>

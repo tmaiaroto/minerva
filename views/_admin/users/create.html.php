@@ -7,7 +7,7 @@
 	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
 	<?=$this->form->create($document); ?>
 	<?=$this->minervaForm->form_section($fields, 'main', array('fieldset' => 'admin', 'legend' => 'Primary Information')); ?>
-	<?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'index')); ?>
+	<?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => $this->minervaHtml->admin_prefix, 'controller' => 'users', 'library' => 'minerva', 'action' => 'index')); ?>
 </div>
 
 <div class="grid_4">

@@ -33,21 +33,21 @@
                 <?=$block->ownder_id; ?>
             </td>
             <td>
-                <?=$block->modified; ?>
+                <?=$this->minervaHtml->date($block->modified->sec); ?>
             </td>
             <td>
-                <?=$block->created; ?>
+                <?=$this->minervaHtml->date($block->created->sec); ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', array('admin' => true, 'controller' => 'blocks', 'action' => 'update', 'url' => $block->url)); ?> | 
-		<?=$this->html->link('Delete', '/blocks/delete/' . $block->url, array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $block->title . '?\')')); ?>
+                <?=$this->html->link('Edit', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'update', 'url' => $block->url)); ?> | 
+				<?=$this->html->link('Delete', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'delete', 'url' => $block->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $block->title . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>
     </table>
 
 <?php $block_type = (isset($this->_request->params['block_type'])) ? $this->_request->params['block_type']:'all'; ?>
-<?=$this->paginator->pagination($total, $limit, $page_number, array('args' => array('block_type' => $block_type))); ?>
+<?//$this->paginator->pagination($total, $limit, $page_number, array('args' => array('block_type' => $block_type))); ?>
 <br />
 <em>Showing page <?=$page_number; ?> of <?=$total_pages; ?>. <?=$total; ?> total record<?php echo ((int) $total > 1 || (int) $total == 0) ? 's':''; ?>.</em><br />
 <em>Template rendered from /views/blocks/index.html.php (core Minerva blocks index).</em>
@@ -57,13 +57,13 @@
     <div class="box">
         <h2>Search for Content</h2>
 	    <div class="block">
-		<?=$this->html->query_form(array('label' => 'Query ')); ?>
+		<?=$this->minervaHtml->query_form(array('label' => 'Query ')); ?>
             </div>
     </div>
     <div class="box">
 	<h2>Create Block</h2>
 	<div class="block">
-	    <?=$this->html->link_types('block', 'create', array('exclude_minerva' => false)); ?>
+	    <?=$this->minervaHtml->link_types('block', 'create'); ?>
 	</div>
     </div>
 </div>

@@ -17,7 +17,36 @@ use li3_flash_message\extensions\storage\FlashMessage;
 use lithium\template\View;
 use lithium\core\Libraries;
 
-class Minerva extends \lithium\template\helper\Html {
+class MinervaHtml extends \lithium\template\helper\Html {
+
+	/**
+	 * Set some useful data for this helper.
+	*/
+	public function _init() {
+		parent::_init();
+		
+		$config = Libraries::get('minerva');
+		$this->base = isset($config['url']) ? $config['url'] : '/minerva';
+		$this->admin_prefix = isset($config['admin_prefix']) ? $config['admin_prefix'] : 'admin';
+		// setting core_minerva_models is just helpful for convenience with display reasons in the methods below
+		$this->core_minerva_models = array(
+			'Page',
+			'Block',
+			'User',
+			'Menu'
+		);
+	}
+
+	/**
+	 * Simply returns the admin prefix.
+	 * Of course the admin_prefix could also be returned by using:
+	 * $this->minervaHtml->admin_prefix
+	 *
+	 * @return String The admin prefix
+	*/
+	public function admin_prefix() {
+		return $this->admin_prefix;
+	}
 
 	/**
 	 * We want to use our own little helper so that everything is shorter to write and
@@ -67,14 +96,24 @@ class Minerva extends \lithium\template\helper\Html {
         return "Hello {$name}!";
     }
     
+	/**
+	 * Basic date function.
+	 * TODO: Make a better one
+	 *
+	 * @param $value The date object from MongoDB (or a unix time, ie. MongoDate->sec)
+	 * @param $format The format to return the date in
+	 * @return String The parsed date
+	*/
     public function date($value=null, $format='Y-M-d h:i:s') {
 		$date = '';
 		if(is_object($value)) {
-			$date = $value->sec;
+			$date = date($format, $value->sec);
+		} elseif(is_numeric($value)) {
+			$date = date($format, $value);
 		} elseif(!empty($value)) {
 			$date = $value;
 		}
-        return date($format, $date);
+        return $date;
     }
     
     /**
@@ -88,7 +127,7 @@ class Minerva extends \lithium\template\helper\Html {
      * @see minerva\libraries\util\Util::list_types()
     */
     public function link_types($model_name='Page', $action='create', $options=array()) {
-        $options += array('include_minerva' => true, 'admin' => 'admin', 'library' => 'minerva', 'link_options' => array());
+        $options += array('include_minerva' => true, 'admin' => $this->admin_prefix, 'library' => 'minerva', 'link_options' => array());
         $output = '';
 		
 		$model_class_name = Inflector::classify($model_name);
@@ -113,20 +152,25 @@ class Minerva extends \lithium\template\helper\Html {
 			//$output .= '<li>' . $this->link($model_class_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action), $options['link_options']) . '</li>';
 		}*/
 		
-		
 		if(is_array($models)) {
 			foreach($models as $model) {
 				$class_pieces = explode('\\', $model);
 				$type = $class_pieces[0];
 				if(class_exists($model)) {
-					$output .= '<li>' . $this->link($model::display_name(), array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+					$display_name = $model::display_name();
+					// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
+					$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type):$display_name;
+					$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
 				}
 			}
 		} else {
 			$class_pieces = explode('\\', $models);
 			$type = $class_pieces[0]; // the library name serves as the document_type
 			if(class_exists($models)) {
-				$output .= '<li>' . $this->link($models::display_name(), array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+				$display_name = $models::display_name();
+				// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
+				$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type):$display_name;
+				$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
 			}
 		}
 		

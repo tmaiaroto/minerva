@@ -6,20 +6,8 @@
 <div class="grid_12">  
 	<?php // $this->form->config(array('templates' => array('error' => '<div class="error"{:options}>{:content}</div>'))); ?>
 	<?=$this->form->create($document); ?>
-	<fieldset class="admin">
-		<legend>Primary Information</legend>
-	    <?php
-		foreach($fields as $k => $v) {
-			if(!isset($v['form']['position']) || $v['form']['position'] != 'options') {
-		?>	    
-		<?=$this->form->field($k, $v['form']);?>
-		<?php
-			} 
-	    }
-		?>
-	    <?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('controller' => 'blocks', 'action' => 'index')); ?>
-	</fieldset>
-	
+	<?=$this->minervaForm->form_section($fields, 'main', array('fieldset' => 'admin', 'legend' => 'Primary Information')); ?>
+	<?=$this->form->submit('Add ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')); ?>
 </div>
 
 <div class="grid_4">

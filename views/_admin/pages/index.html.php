@@ -22,7 +22,7 @@
         <?php foreach($documents as $page) { ?>
         <tr>
             <td>
-                <?=$this->html->link($page->title, array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'read', 'url' => $page->url)); ?>
+                <?=$this->html->link($page->title, array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'pages', 'action' => 'read', 'url' => $page->url)); ?>
             </td>
             <td>
                 <?php if(!empty($page->document_type)) {
@@ -35,14 +35,14 @@
                 <?=$page->ownder_id; ?>
             </td>
             <td>
-                <?=$this->minerva->date($page->modified->sec); ?>
+                <?=$this->minervaHtml->date($page->modified->sec); ?>
             </td>
             <td>
-                <?=$this->minerva->date($page->created->sec); ?>
+                <?=$this->minervaHtml->date($page->created->sec); ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'update', 'url' => $page->url)); ?> | 
-				<?=$this->html->link('Delete', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'delete', 'url' => $page->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $page->title . '?\')')); ?>
+                <?=$this->html->link('Edit', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'pages', 'action' => 'update', 'url' => $page->url)); ?> | 
+				<?=$this->html->link('Delete', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'pages', 'action' => 'delete', 'url' => $page->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $page->title . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>
@@ -59,13 +59,13 @@
     <div class="box">
         <h2>Search for Content</h2>
 	    <div class="block">
-		<?=$this->minerva->query_form(array('label' => 'Query ')); ?>
+		<?=$this->minervaHtml->query_form(array('label' => 'Query ')); ?>
             </div>
     </div>
     <div class="box">
 	<h2>Create Content</h2>
 	<div class="block">
-	    <?=$this->minerva->link_types('page', 'create'); ?>
+	    <?=$this->minervaHtml->link_types('page', 'create'); ?>
 	</div>
     </div>
 </div>

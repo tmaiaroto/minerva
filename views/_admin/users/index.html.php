@@ -19,7 +19,7 @@
         <?php foreach($documents as $user) { ?>
         <tr>
             <td>
-                <?=$this->html->link($user->email, array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'read', 'url' => $user->url)); ?>
+                <?=$this->html->link($user->email, array('admin' => $this->minervaHtml->admin_prefix, 'controller' => 'users', 'library' => 'minerva', 'action' => 'read', 'url' => $user->url)); ?>
             </td>
             <td>
                 <?php if(!empty($user->user_type)) {
@@ -29,14 +29,14 @@
                 } ?>
             </td>
             <td>
-                <?=$this->minerva->date($user->modified->sec); ?>
+                <?=$this->minervaHtml->date($user->modified->sec); ?>
             </td>
             <td>
-                <?=$this->minerva->date($user->created->sec); ?>
+                <?=$this->minervaHtml->date($user->created->sec); ?>
             </td>
             <td>
-                <?=$this->html->link('Edit', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'update', 'url' => $user->url)); ?> |
-                <?=$this->html->link('Delete', array('admin' => 'admin', 'controller' => 'users', 'library' => 'minerva', 'action' => 'delete', 'url' => $user->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $user->email . '?\')')); ?>
+                <?=$this->html->link('Edit', array('admin' => $this->minervaHtml->admin_prefix, 'controller' => 'users', 'library' => 'minerva', 'action' => 'update', 'url' => $user->url)); ?> |
+                <?=$this->html->link('Delete', array('admin' => $this->minervaHtml->admin_prefix, 'controller' => 'users', 'library' => 'minerva', 'action' => 'delete', 'url' => $user->url), array('onClick' => 'return confirm(\'Are you sure you want to delete ' . $user->email . '?\')')); ?>
             </td>
         </tr>
         <?php } ?>
@@ -53,13 +53,13 @@
     <div class="box">
         <h2>Search for Users</h2>
 	    <div class="block">
-		<?=$this->minerva->query_form(array('label' => 'Query ')); ?>
+		<?=$this->minervaHtml->query_form(array('label' => 'Query ')); ?>
             </div>
     </div>
     <div class="box">
 	<h2>Create User</h2>
 	<div class="block">
-	    <?=$this->minerva->link_types('user', 'create'); ?>
+	    <?=$this->minervaHtml->link_types('user', 'create'); ?>
 	</div>
     </div>
 </div>
