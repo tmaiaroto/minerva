@@ -3,8 +3,7 @@ use lithium\core\Libraries;
 
 // Add a minerva_models type
 Libraries::paths(array('minerva_models' => array(
-		'{:library}\minerva\models\{:name}',
-		// '{:library}\extensions\models\{:class}\{:name}', // needed?
+		'{:library}\minerva\models\{:name}'
 	)
 ));
 
@@ -38,4 +37,12 @@ require __DIR__ . '/bootstrap/templates.php';
 
 // This sets up minerva's access system. Don't use it if you don't want.
 //require __DIR__ . '/bootstrap/access.php';
+
+/**
+ * The dependencies.php file applies a filter on the dispatcher so that anytime Minerva
+ * is called, it will check for the proper dependencies. Minvera requires several other
+ * Lithium libraries in order to function properly. However, once you have these dependencies,
+ * you could safely comment out this line and save the system a few function calls.
+*/
+require __DIR__ . '/bootstrap/dependencies.php';
 ?>

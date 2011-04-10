@@ -15,7 +15,7 @@
 <!doctype html>
 <html>
 <head>
-	<?php echo $this->html->charset(); ?>
+	<?php echo $this->html->charset('UTF-8'); ?>
 	<title>Unhandled exception</title>
 	<?php echo $this->html->style(array('debug', 'lithium')); ?>
 	<?php echo $this->scripts(); ?>

@@ -47,36 +47,11 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		);
 		$params['minerva_controllers_using_static'] = isset($config['controllers_using_static']) ? $config['controllers_using_static'] += $default_static : $default_static;
 		
-		
-		// Dependency checks for the CMS
-		$library_deps = array(
-			'li3_flash_message'
-		);
-		
-		$missing_deps = array();
-		foreach($library_deps as $library) {
-			if(Libraries::get($library) == null) {
-				$missing_deps[] = $library;
-			//	throw new Exception('Hey! You don\'t have that library!');
-			}
-		}
-		
-		// TODO: render a template for this
-		if(!empty($missing_deps)) {
-			$view = new View(array('loader' => 'Simple', 'renderer' => 'Simple'));
-			$message =  'You are missing the following libraries that Minerva depends on:<br />';
-			foreach($missing_deps as $library) {
-				$message .= $library . '<br />';
-			}
-			$message .= '<br /><br />You will need to ensure that you have these libraries yourself for now, but in the future there will hopefully be an option to automatically download and install them.';
-			
-			echo $view->render(array('element' => $message));
-			exit();
-		}
-		
 		/**
 		 * The following code will set all the template and layout paths for Minerva.
-		 * 
+		 * The last path to check will be a path to a missing template and before that,
+		 * paths to the core Minerva library's views folder. Depending on the routing
+		 * parameters, other paths will be checked.
 		*/
 		
 		// The admin flag from routes helps give control over the templates to use
