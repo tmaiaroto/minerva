@@ -68,7 +68,11 @@ class Util {
         $options += array('url' => null, 'id' => null, 'model' => null, 'separator' => '-');
         if((!$options['url']) || (!$options['model'])) {
             return null;
-        }        
+        }
+        
+        // all URLs are lowercase
+        $options['url'] = strtolower($options['url']);
+        
         $records = $options['model']::find('all', array('fields' => array('url'), 'conditions' => array('url' => array('like' => '/'.$options['url'].'/'))));
         $conflicts = array();
         
@@ -95,7 +99,7 @@ class Util {
                 $i++;
                 }
         }        
-        return strtolower($options['url']);
+        return $options['url'];
     }
     
     /**

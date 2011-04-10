@@ -19,6 +19,8 @@ class MinervaModel extends \lithium\data\Model {
     static $access = array();
     public $document_type = '';
 	public $action_redirects = array();
+	public $url_field = null;
+	public $url_separator = '-';
 	protected $_meta = array(
 		'locked' => true
 	);
@@ -43,6 +45,10 @@ class MinervaModel extends \lithium\data\Model {
 		
 		// Replace any action_redirect properties (holds redirects for each core Minerva controller method, ie. create, update, and delete)
 		$class::_object()->action_redirects = static::_object()->action_redirects;
+		
+		// Replace any URL field and URL separator values
+		$class::_object()->url_field = static::_object()->url_field;
+		$class::_object()->url_separator = static::_object()->url_separator;
 		
 		// Set the library name for this model
 		$model_path = Libraries::path(get_class(static::_object()));
@@ -118,6 +124,28 @@ class MinervaModel extends \lithium\data\Model {
 		return (isset($class::_object()->document_type)) ? $class::_object()->document_type:null;
     }
 	
+	/**
+	 * Returns the URL field(s) for the current model.
+	 * If it's not set, it will return null. The controller will need to make a decision about the URL then.
+	 *
+	 * @return String
+	*/
+	public function url_field() {
+		$class =  __CLASS__;
+		return (isset($class::_object()->url_field) && !empty($class::_object()->url_field)) ? $class::_object()->url_field:null;
+	}
+	
+	/**
+	 * Returns the URL separator.
+	 * Default is '-'
+	 *
+	 * @return String
+	*/
+	public function url_separator() {
+		$class =  __CLASS__;
+		return (isset($class::_object()->url_separator) && !empty($class::_object()->url_separator)) ? $class::_object()->url_separator:'-';
+	}
+	
     /**
      * Returns the search schema for the model.
      * Note: If this model has been extended by another model then
@@ -172,6 +200,7 @@ class MinervaModel extends \lithium\data\Model {
 		}
 		return $models_array;
 	}
+	
     
 }
 ?>

@@ -388,7 +388,7 @@ class MinervaController extends \lithium\action\Controller {
      * get the proper records and access.
     */
     public function create() {
-        // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
+        // first, get all the data we need. this will set $document_type, $type, $modelClass, and $display_name
         extract($this->minerva_config);
         
         $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => false));
@@ -400,8 +400,6 @@ class MinervaController extends \lithium\action\Controller {
         
         // Don't need to have these fields in the form
         unset($fields['_id']);
-        // If a page type was passed in the params, we'll need it to save to the page document.
-        //$fields[$x_type]['form']['value'] = ($type != 'all') ? $type:null;
         
         // If data was passed, set some more data and save
         if ($this->request->data) {
@@ -411,10 +409,36 @@ class MinervaController extends \lithium\action\Controller {
             $this->request->data['modified'] = $now;
             // If a page type was passed in the params, we'll need it to save to the page document.
             $this->request->data['document_type'] = $document_type;
+            
+            // Generate the URL
+            $url = '';
+            $url_field = $ModelClass::url_field();
+            $url_separator = $ModelClass::url_separator();
+            if($url_field != '_id' && !empty($url_field)) {
+                if(is_array($url_field)) {
+                    foreach($url_field as $field) {
+                        if(isset($this->request->data[$field]) && $field != '_id') {
+                            $url .= $this->request->data[$field] . ' ';
+                        }
+                    }
+                    $url = Inflector::slug(trim($url), $url_separator);
+                } else {
+                    $url = Inflector::slug($this->request->data[$url_field], $url_separator);
+                }
+            }
+            
+            // Last check for the URL...if it's empty for some reason set it to "document"
+            if(empty($url)) {
+                $url = 'document';
+            }
+            
+            // Then get a unique URL from the desired URL (numbers will be appended if URL is duplicate) this also ensures the URLs are lowercase
             $this->request->data['url'] = Util::unique_url(array(
-                'url' => Inflector::slug($this->request->data['title']),
+                'url' => $url,
                 'model' => $ModelClass
             ));
+            
+            // TODO: put this back
             /*$user = Auth::check('minerva_user');
             if($user) {
                 $this->request->data['owner_id'] = $user['_id'];
