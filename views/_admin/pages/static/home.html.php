@@ -1,5 +1,3 @@
-ADMIN HOME - If I didn't exist, /app/views/pages/home.html.php would be used.
-
 <?php
 /**
  * Typically we want the controller to send data to the view (meaning it will call the find() method),
