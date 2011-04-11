@@ -78,20 +78,31 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		/**
 		 * STATIC VIEWS
 		 * Special situation; "blocks" and "pages" and "menus" have "static" templates that don't require a datasource.
-		 * This is only the case for the "view" action on these controllers. 
+		 * This is only the case for the "view" action on these controllers.
+		 * 
+		 * If keeping all templates outside of the minerva plugin is desired, for organization or cleanliness,
+		 * you can put templates in your main app under the appropriate directories.
+		 * Layouts under /app/views/layouts/static/...
+		 * Templates under /app/views/pages/static/... or /app/views/menus/static... or /app/views/blocks/static...
 		*/
 		if(($params['request']->params['action'] == 'view') && (in_array($params['request']->params['controller'], $params['minerva_controllers_using_static']))) {
 			$params['options']['render']['paths']['layout'] = array(
 				'{:library}/views/layouts/static/{:layout}.{:type}.php',
+				LITHIUM_APP_PATH . '/views/layouts/static/{:layout}.{:type}.php',
 				'{:library}/views/layouts/{:layout}.{:type}.php'
 			);
 			$params['options']['render']['paths']['template'] = array(
-				'{:library}/views/{:controller}/static/{:template}.{:type}.php'
+				'{:library}/views/{:controller}/static/{:template}.{:type}.php',
+				LITHIUM_APP_PATH . '/views/{:controller}/static/{:template}.{:type}.php'
 			);
 			
 			// ADMIN STATIC VIEWS
 			// Hey, static views can be for just the admin interface as well and those will take priority if the admin flag is set.
 			if($admin === true) {
+				// Again, we want to allow layouts and templates to be put into the main app ... Maybe...
+				//array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/views/_admin/layouts/{:layout}.{:type}.php');
+				//array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/views/_admin/{:controller}/static/{:template}.{:type}.php');
+				// The minerva library still gets the preference though
 				array_unshift($params['options']['render']['paths']['layout'], '{:library}/views/_admin/layouts/{:layout}.{:type}.php');
 				array_unshift($params['options']['render']['paths']['template'], '{:library}/views/_admin/{:controller}/static/{:template}.{:type}.php');
 			}
