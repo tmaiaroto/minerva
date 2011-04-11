@@ -44,9 +44,12 @@ class PagesController extends \minerva\controllers\MinervaController {
     static $access = array(
         'index' => array(
             'action' => array(
-                array('rule' => 'allowManagers', 'redirect' => '/users/login')
+                array('rule' => 'allowAll')
             ),
-            'admin' => array(), // maybe??
+            // optional, by default it's restrictive and uses the rule: 'allowManagers'
+            'admin_action' => array(
+                // array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
             'document' => array() // not used
         ),
         'create' => array(

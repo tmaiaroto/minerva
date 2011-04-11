@@ -29,6 +29,6 @@
         </ul>
     </li>
     <li class="menu_last">
-        <a href="/users/logout">Logout</a>
+        <?=$this->html->link('Logout', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'logout')); ?>
     </li>
 </ul>

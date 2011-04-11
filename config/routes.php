@@ -39,16 +39,27 @@ Router::connect("{$base}", array('library' => 'minerva', 'controller' => 'pages'
 // and this is for the other static pages
 Router::connect("{$base}/page/{:args}", array('controller' => 'minerva.pages', 'action' => 'view'));
 
-Router::connect("{$base}/admin", array('admin' => true, 'controller' => 'minerva.pages', 'action' => 'view', 'home'));
+Router::connect("{$base}/{$admin_prefix}", array('admin' => 'admin', 'controller' => 'pages', 'action' => 'view', 'home'));
 
 
 /**
- * Connect the user stuff
+ * Connect the user stuff so people can login, logout, and register
 */
-Router::connect('/register', array('controller' => 'users', 'action' => 'register'));
-Router::connect('/login', array('controller' => 'users', 'action' => 'login'));
-Router::connect('/logout', array('controller' => 'users', 'action' => 'logout'));
-// admin routes for users controller
+Router::connect("{$base}/register", array('library' => 'minerva', 'controller' => 'users', 'action' => 'register'));
+Router::connect("{$base}/login", array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'));
+Router::connect("{$base}/logout", array('library' => 'minerva', 'controller' => 'users', 'action' => 'logout'));
+Router::connect("{$base}/users/register", array('library' => 'minerva', 'controller' => 'users', 'action' => 'register'));
+Router::connect("{$base}/users/login", array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'));
+Router::connect("{$base}/users/logout", array('library' => 'minerva', 'controller' => 'users', 'action' => 'logout'));
+/**
+ * Also, the admin routes for users controller
+*/
+Router::connect("{$base}/{$admin_prefix}/register", array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'register'));
+Router::connect("{$base}/{$admin_prefix}/login", array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'));
+Router::connect("{$base}/{$admin_prefix}/logout", array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'logout'));
+Router::connect("{$base}/{$admin_prefix}/users/register", array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'register'));
+Router::connect("{$base}/{$admin_prefix}/users/login", array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'));
+Router::connect("{$base}/{$admin_prefix}/users/logout", array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'logout'));
 
 
 /**

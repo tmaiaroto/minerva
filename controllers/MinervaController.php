@@ -2,15 +2,15 @@
 namespace minerva\controllers;
 
 /*
-use li3_access\security\Access;
-use \lithium\security\Auth;
-use \lithium\storage\Session;
 
 use \lithium\util\String;
 
 use \lithium\util\Inflector;
 */
 
+use \lithium\storage\Session;
+use li3_access\security\Access;
+use \lithium\security\Auth;
 use minerva\extensions\util\Util;
 use \lithium\util\Set;
 use \lithium\util\Inflector;
@@ -105,6 +105,17 @@ class MinervaController extends \lithium\action\Controller {
         $this->minerva_config['document_type'] = $document_type;
         $this->minerva_config['admin'] = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
         
+        // Also good to set the redirect url here for after logging in (last requested URL)
+        // ...but we don't want to set it to any of the following
+        $controller_action_whitelist = array(
+            'users.login',
+            'users.logout',
+            'users.register'
+        );
+        if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
+            Session::write('beforeAuthURL', '/' . $this->request->url);
+        }
+        
         parent::_init();
     }
     
@@ -122,7 +133,9 @@ class MinervaController extends \lithium\action\Controller {
         $default_redirects = array(
             'create' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index'),
             'update' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index'),
-            'delete' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index')
+            'delete' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index'),
+            'logout' => '/',
+            'register' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login')
         );
         $ModelClass = $this->minerva_config['ModelClass'];
         $redirects = $ModelClass::action_redirects();
@@ -241,15 +254,38 @@ class MinervaController extends \lithium\action\Controller {
         // Get the rules for this action
         $rules = (isset($ControllerClass::$access[$request->params['action']])) ? $ControllerClass::$access[$request->params['action']]:array();
         
-        // Check access for the action in general
-        //$action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['action']));
-        // TODO: put this back on
-        $action_access = array();
+        // There's going to be two sets of action access rules. One for non-admin actions and one for admin actions.
+        // If there's no 'action' or 'admin_action' keys for access on the controller's properties then allow access.
+        if(isset($this->minerva_config['admin']) && $this->minerva_config['admin'] === false) {
+            // Check access for the action in general
+            // default is empty, so we're going to allow access by default on non-admin actions.
+            $action_access = array();
+            if(isset($rules['action']) && !empty($rules['action'])) {
+                $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['action']));
+            }
+        } else {
+            // Else, it has to be an action accessed with the admin flag, right? ($this->minerva_config['admin'] won't be true, it will contain a string with the admin prefix)
+            // by default, don't allow access to any admin action
+            if(!isset($rules['admin_action']) || empty($rules['admin_action'])) {
+                $rules['admin_action'] = array(
+                    'rule' => 'allowManagers',
+                    'message' => 'Sorry, you must be an administrator to access that section.',
+                    'redirect' => array(
+                        'admin' => 'admin',
+                        'library' => 'minerva',
+                        'controller' => 'users',
+                        'action' => 'login'
+                        )
+                    );
+            }
+            $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['admin_action']));
+        }
         
         if(!empty($action_access)) {
-            FlashMessage::write($action_access['message'], array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
+            FlashMessage::write($action_access['message'], array(), 'minerva_admin');
             $this->redirect($action_access['redirect']);
         }
+        
         
         // Before getting documents, make sure the calling method actually wanted to get documents.
         if($find_type === false) {
@@ -273,6 +309,10 @@ class MinervaController extends \lithium\action\Controller {
         $document = $ModelClass::find($find_type, $options, array('request_params' => $request->params));
         
         // 4. Document Access Control
+        
+        // Get the rules for this action
+        $rules = (isset($ControllerClass::$access[$request->params['action']])) ? $ControllerClass::$access[$request->params['action']]:array();
+        
         if($document && is_object($document)) {
             // add the document to the document access rules so it can be checked against
             $i=0;

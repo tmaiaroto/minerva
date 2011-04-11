@@ -94,7 +94,7 @@ class UsersController extends \minerva\controllers\MinervaController {
         ));
 		 
 		if(!$document) {
-			FlashMessage::set('The user could not be found.', array('options' => array('type' => 'error', 'pnotify_title' => 'Error', 'pnotify_opacity' => .8)));
+			FlashMessage::write('The user could not be found.', array(), 'minerva_admin');
 			$this->redirect('/users');
 		}
 		
@@ -162,6 +162,9 @@ class UsersController extends \minerva\controllers\MinervaController {
      * 
     */
     public function register() {
+		// get the redirects (again, call AFTER $this->getDocument() because the $ModelClass will have changed)
+        $action_redirects = $this->getRedirects();
+		
         // Get the fields so the view template can iterate through them and build the form
         $fields = User::schema();
         // Don't need to have these fields in the form
@@ -190,14 +193,14 @@ class UsersController extends \minerva\controllers\MinervaController {
 			// TODO: make a wizard that will set this so there's no chance of some user registering and becoming an admin
 			$users = User::find('count');
 			if(empty($users)) {
-			$this->request->data['role'] = 'administrator';
-			$this->request->data['active'] = true;
+				$this->request->data['role'] = 'administrator';
+				$this->request->data['active'] = true;
 			}
 			
 			// Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
 			if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
-			//$this->request->data['user_type'] = 'user';
-			$this->request->data['user_type'] = null;
+				//$this->request->data['user_type'] = 'user';
+				$this->request->data['user_type'] = null;
 			}
 			
 			if((isset($this->request->data['password'])) && (!empty($this->request->data['password']))) {
@@ -206,7 +209,7 @@ class UsersController extends \minerva\controllers\MinervaController {
 		
             if($user->save($this->request->data, array('validate' => $rules))) {
                 //$this->redirect(array('controller' => 'users', 'action' => 'index'));
-                $this->redirect('/');
+               $this->redirect($action_redirects['register']);
             } else {
 				$this->request->data['password'] = '';
 			}
@@ -250,11 +253,11 @@ class UsersController extends \minerva\controllers\MinervaController {
         }
         
         if($record->save($data, array('validate' => false))) {
-            FlashMessage::set('User successfully created.', array('type' => 'success'));
+            FlashMessage::write('User successfully created.', array(), 'minerva_admin');
             $this->redirect(array('controller' => 'users', 'action' => 'login'));
         } else {
-            FlashMessage::set('Could not create the user record, please try again.', array('type' => 'error'));
-            $this->redirect('/'); // probably should redirect to a page where you can enter the code manually or a retry or something. should notify the user to try again.
+            FlashMessage::write('Could not create the user record, please try again.', array(), 'minerva_admin');
+			$this->redirect('/'); // probably should redirect to a page where you can enter the code manually or a retry or something. should notify the user to try again.
         }
     }
 
@@ -282,12 +285,12 @@ class UsersController extends \minerva\controllers\MinervaController {
 				$user_record->save(array('last_login_ip' => $_SERVER['REMOTE_ADDR'], 'last_login_time' => date('Y-m-d h:i:s')));
 			}
             
-            FlashMessage::set('You\'ve successfully logged in.');
+			FlashMessage::write('You\'ve successfully logged in.', array(), 'minerva_admin');
             $this->redirect($url);
             //$this->redirect(array('controller' => 'pages', 'action' => 'index'));
         } else {
             if($this->request->data) {
-                FlashMessage::set('You entered an incorrect username and/or password.', array('type' => 'error'));
+				FlashMessage::write('You entered an incorrect username and/or password.', array(), 'minerva_admin');
             }
         }
         $data = $this->request->data;
@@ -295,9 +298,12 @@ class UsersController extends \minerva\controllers\MinervaController {
     }
 
     public function logout() {
+		// get the redirects (again, call AFTER $this->getDocument() because the $ModelClass will have changed)
+        $action_redirects = $this->getRedirects();
+		
         Auth::clear('minerva_user');
-		FlashMessage::set('You\'ve successfully logged out.');
-        $this->redirect(array('action' => 'login'));
+		FlashMessage::write('You\'ve successfully logged out.', array(), 'minerva_admin');
+        $this->redirect($action_redirects['logout']);
     }
 	
 	/**

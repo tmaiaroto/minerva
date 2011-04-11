@@ -1,0 +1,32 @@
+.input_help {
+    clear: left;
+    display: block;
+    margin-top: 0;
+}
+.input_help_right {
+    float: left;
+    display: block;
+    padding: 35px 0 0 15px;
+}
+.input div, .input .in_use_error {
+    display: block;
+    float: left;
+}
+.input div {
+    margin-bottom: 10px;
+    width: 295px;
+}
+.input {
+    clear: left;
+}
+.submit {
+    clear: left;
+    display: block;
+}
+.error {
+    color: #bf0000;
+    padding: 0px;
+}
+.input_error_right {
+    padding: 35px 0 0 15px;
+}

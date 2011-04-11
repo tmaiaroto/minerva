@@ -20,7 +20,7 @@
 <div class="grid_5" id="right_grid">
     <div id="right_column">
         <div class="box">
-            <p>If you don't have an account yet, you can register for free by <a href="/register">clicking here.</a></p>
+            <p>If you don't have an account yet, you can register for free by <?=$this->html->link('clicking here.', array('library' => 'minerva', 'controller' => 'users', 'action' => 'register')); ?></p>
             <?php /*
             <div id="fb_login">
                 <p>Alternatively, you can login if you have a Facebook account, without having to register!<br />

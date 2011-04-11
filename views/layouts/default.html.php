@@ -11,7 +11,8 @@
 <head>
 	<?php echo $this->html->charset('UTF-8');?>
 	<title>Minerva > <?php echo $this->title(); ?></title>
-	<?php echo $this->html->style(array('debug', 'lithium')); ?>	
+	<?php echo $this->html->style(array('lithium', '/minerva/css/minerva')); ?>
+	<?php $this->html->script(array('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'), array('inline' => false)); ?>
 	<?php echo $this->html->link('Icon', null, array('type' => 'icon')); ?>
 		
 	<?php
@@ -20,11 +21,15 @@
 	?>
 </head>
 <body>
-	<h1>
-		<a href="/minerva">Minerva</a>
-	</h1>
-
-	<?php echo $this->content(); ?>		
+	<div id="container">
+		<div id="header">
+			<h1>
+				<a href="/minerva">Minerva</a>
+			</h1>
+		</div>
+		<div id="content">
+			<?php echo $this->content(); ?>
+		</div>
 		
 	<div class="footer">
 		Powered by <?php echo $this->html->link('Lithium', 'http://li3.rad-dev.org'); ?>.

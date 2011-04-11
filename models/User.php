@@ -26,10 +26,9 @@ class User extends \minerva\models\MinervaModel {
 		'approval_code' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
 		'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
-		//'profile_pics' => array('type' => 'string'),
 		'last_login_ip' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'last_login_time' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false))
-		//'file' => array('type' => 'string', 'form' => array('type' => 'file'))
+		//'profile_pics' => array('type' => 'string') // todo
 	);
 	
 	public $search_schema = array(
@@ -60,6 +59,10 @@ class User extends \minerva\models\MinervaModel {
 	
 	// So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
 	public $display_name = 'User';
+	
+	public $action_redirects = array(
+		'logout' => '/'
+	);
 	
 	public static function __init() {
 		$class =  __CLASS__;
