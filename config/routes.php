@@ -8,7 +8,6 @@
 
 use \lithium\net\http\Router;
 use \lithium\core\Environment;
-use lithium\core\Libraries;
 use lithium\action\Response;
 
 /**
@@ -17,10 +16,9 @@ use lithium\action\Response;
  */
 // Router::namespace('/admin', array('admin' => true));
 
+$base = MINERVA_BASE_URL;
+$admin_prefix = MINERVA_ADMIN_PREFIX;
 
-$config = Libraries::get('minerva');
-$base = isset($config['url']) ? $config['url'] : '/minerva';
-$admin_prefix = isset($config['admin_prefix']) ? $config['admin_prefix'] : 'admin';
 
 /**
  * Handles broken URL parsers by matching method URLs with no closing ) and redirecting.

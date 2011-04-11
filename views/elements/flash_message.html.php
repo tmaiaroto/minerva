@@ -86,6 +86,10 @@ if((isset($message)) && (!empty($message))) {
 		background: #000;
 		color: #fff;
 		border: 0;
+		-moz-border-radius: 5px;
+		-webkit-border-radius: 5px;
+		-khtml-border-radius: 5px;
+		border-radius: 5px;
 	}
 	.ui-pnotify-shadow {
 		background: #777;

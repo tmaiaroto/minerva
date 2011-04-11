@@ -289,20 +289,32 @@ class UsersController extends \minerva\controllers\MinervaController {
             $this->redirect(array('controller' => 'users', 'action' => 'login'));
         } else {
             FlashMessage::write('Could not create the user record, please try again.', array(), 'minerva_admin');
-			$this->redirect('/'); // probably should redirect to a page where you can enter the code manually or a retry or something. should notify the user to try again.
+			$this->redirect(MINERVA_BASE_URL); // probably should redirect to a page where you can enter the code manually or a retry or something. should notify the user to try again.
         }
     }
 
     
     public function login() {
         $user = Auth::check('minerva_user', $this->request);
+		// 'triedAuthRedirect' so we don't end up in a redirect loop
+		if (!Session::check('triedAuthRedirect')) {
+			Session::write('triedAuthRedirect', false);
+		}
         if ($user) {
-            // TODO: Put in a $redirectURL property so it can be controlled and option for the following redirect true/false for taking a user back to the page they first requested.
-            // Also TODO: Make flash messages set in some sort of config, possibly even the model properties too
-            $url = '/';
+			$url = MINERVA_BASE_URL;
             if (Session::check('beforeAuthURL')) {
-                $url = Session::read('beforeAuthURL');
-                Session::delete('beforeAuthURL');				
+				$url = Session::read('beforeAuthURL');
+				
+				// 'triedAuthRedirect' so we don't end up in a redirect loop
+				$triedAuthRedirect = Session::read('triedAuthRedirect');
+				if($triedAuthRedirect === true || $triedAuthRedirect == '1') {
+					$url = MINERVA_BASE_URL;
+					Session::delete('triedAuthRedirect');
+				} else {
+					Session::write('triedAuthRedirect', true);
+				}
+				
+                Session::delete('beforeAuthURL');
             }
             // Save last login IP and time
             //$user_record = User::find('first', array('conditions' => array('_id' => new \MongoId($user['_id']))));
@@ -316,17 +328,27 @@ class UsersController extends \minerva\controllers\MinervaController {
             if($user_record) {
 				$user_record->save(array('last_login_ip' => $_SERVER['REMOTE_ADDR'], 'last_login_time' => date('Y-m-d h:i:s')));
 			}
-            
-			FlashMessage::write('You\'ve successfully logged in.', array(), 'minerva_admin');
-            $this->redirect($url);
-            //$this->redirect(array('controller' => 'pages', 'action' => 'index'));
+           
+			// only set a flash message if this is a login. it could be a redirect from somewhere else that has restricted access
+			$flash_message = FlashMessage::read('minerva_admin');
+			if(!isset($flash_message['message']) || empty($flash_message['message'])) {
+				FlashMessage::write('You\'ve successfully logged in.', array(), 'minerva_admin');
+			}
+			$this->redirect($url);
         } else {
             if($this->request->data) {
 				FlashMessage::write('You entered an incorrect username and/or password.', array(), 'minerva_admin');
             }
         }
         $data = $this->request->data;
-        return compact('data');
+		
+		// Also get the Facebook login URL if present
+		$fb_login_url = false;
+		if (Session::check('fb_login_url')) {
+            $fb_login_url = Session::read('fb_login_url');
+		}
+		
+        return compact('data', 'fb_login_url');
     }
 
     public function logout() {

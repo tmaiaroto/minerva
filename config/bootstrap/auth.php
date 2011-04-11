@@ -10,7 +10,7 @@ use \lithium\security\Auth;
 
 Auth::config(array(
 	'minerva_user' => array(
-	    'adapter' => 'Form',
+	    'adapter' => 'Minerva',
 	    'model'  => 'User',
 	    'fields' => array('email', 'password'),
 	    'scope'  => array('active' => true),

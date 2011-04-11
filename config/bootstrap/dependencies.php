@@ -17,12 +17,17 @@ Dispatcher::applyFilter('run', function($self, $params, $chain) {
     
     // Only apply the following when using the minerva library
 	if(isset($params['request']->params['library']) && $params['request']->params['library'] == 'minerva') {
-        
+		$config = Libraries::get('minerva');
+		
         // Check for these libraries for the CMS - these can be specified as key => value or just a value if not providing a link.
 		$library_deps = array(
 			'li3_flash_message' => 'http://dev.lithify.me/li3_flash_message',
             'li3_access' => 'https://github.com/tmaiaroto/li3_access'
 		);
+		
+		if(isset($config['facebook'])) {
+			$library_deps += array('li3_facebook' => 'https://github.com/tmaiaroto/li3_facebook');
+		}
 		
 		$missing_deps = array();
 		foreach($library_deps as $k => $v) {

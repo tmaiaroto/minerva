@@ -1,12 +1,16 @@
 <?php
 namespace minerva\models;
 
-use \lithium\util\Validator;
+use lithium\util\Validator;
 use lithium\util\Inflector;
 use lithium\util\String;
+use lithium\security\Auth;
 
-use \minerva\util\Email;
-use \minerva\util\Util;
+use minerva\util\Email;
+use minerva\extensions\util\Util;
+use li3_facebook\extension\FacebookProxy;
+use \Exception;
+
 // use app\models\Asset;
 
 class User extends \minerva\models\MinervaModel {
@@ -15,6 +19,7 @@ class User extends \minerva\models\MinervaModel {
 	
 	// I get appended to with the plugin's User model.
 	protected $_schema = array(
+		'facebook_uid' => array('type' => 'string'),
 		'first_name' => array('type' => 'string', 'form' => array('label' => 'First Name')),
 		'last_name' => array('type' => 'string', 'form' => array('label' => 'Last Name')),
 		'email' => array('type' => 'string', 'form' => array('label' => 'E-mail', 'autocomplete' => 'off')),
@@ -147,6 +152,63 @@ class User extends \minerva\models\MinervaModel {
 		}
 		
 		return $name;
+	}
+	
+	/**
+	 * Handles a Facebook user.
+	 * If the user does not yet exist in the local database, they will be added.
+	 * However, Facebook doesn't allow us to store any personal information about the user.
+	 * So we're just going to store their Facebook uid and also a created, modified date, etc.
+	 * Then for existing users, we'll update the last login time and IP.
+	 *
+	 * @param $facebook_uid String This will be the user's uid passed from the Facebook API
+	*/
+	public function handle_facebook_user($facebook_uid=null) {
+		if(empty($facebook_uid)) {
+			return false;
+		}
+		
+		$me = null;
+		try {
+			$me = FacebookProxy::api('/me');
+		} catch(Exception $e) {
+			error_log($e);
+		}
+		
+		if(empty($me)) {
+			return false;
+		}
+		
+		$now = date('Y-m-d h:i:s');
+		
+        // If logged in via Facebook Connect, see if the user exists in the local DB, if not, save it.
+        $user = User::find('first', array('conditions' => array('facebook_uid' => $me['id'])));
+		$user_data = false;
+		
+		if(!$user) {
+			// Save the new user
+			$user_document = User::create();
+			$user_data = array(
+				'facebook_uid' => $me['id'],
+				'confirmed' => true,
+				'active' => true,
+				'url' => Util::unique_url(array('url' => 'fb-user', 'model' => 'minerva\models\User')),
+				'created' => $now,
+				'modified' => $now,
+				'last_login_time' => $now,
+				'last_login_ip' => $_SERVER['REMOTE_ADDR'],
+				'email' => null,
+				'password' => null,
+				'role' => 'registered_facebook_user',
+				'profile_pics' => array('primary' => true, 'url' => 'http://graph.facebook.com/'.$facebook_uid.'/picture?type=square')
+			);
+			$user_document->save($user_data, array('validate' => false));
+		} else {
+			$user_data = $user->data();
+		}
+		
+		return $user_data;
+		
 	}
 
 }

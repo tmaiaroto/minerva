@@ -21,12 +21,7 @@
     <div id="right_column">
         <div class="box">
             <p>If you don't have an account yet, you can register for free by <?=$this->html->link('clicking here.', array('library' => 'minerva', 'controller' => 'users', 'action' => 'register')); ?></p>
-            <?php /*
-            <div id="fb_login">
-                <p>Alternatively, you can login if you have a Facebook account, without having to register!<br />
-                <a href="<?php echo Session::read('fb_login_url'); ?>"><img src="/img/family_spoon/fb-login-button.png" alt="Login with Facebook" /></a></p>
-            </div>
-            */ ?>
+            <?= $this->minervaHtml->facebook_login(); ?>
         </div>
     </div>
 </div>

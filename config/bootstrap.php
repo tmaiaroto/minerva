@@ -14,6 +14,13 @@ if(!$tz) {
 }
 date_default_timezone_set($tz); 
 
+// Get minerva's configuration for various reasons
+$minerva_config = Libraries::get('minerva');
+$base_url = isset($config['url']) ? $config['url'] : '/minerva';
+$admin_prefix = isset($config['admin_prefix']) ? $config['admin_prefix'] : 'admin';
+define('MINERVA_BASE_URL', $base_url);
+define('MINERVA_ADMIN_PREFIX', $admin_prefix);
+
 /**
  * The error configuration allows you to use the filter system along with the advanced matching
  * rules of the `ErrorHandler` class to provide a high level of control over managing exceptions in
@@ -39,6 +46,13 @@ require __DIR__ . '/bootstrap/access.php';
  * template system is put into place. This is critical to Minerva.
 */
 require __DIR__ . '/bootstrap/templates.php';
+
+/**
+ * Minerva integrates with Facebook, optionally, but by design.
+ * If Minerva's config has a 'facebook' key with 'appId' and 'secret' then it will use the
+ * li3_facebook library and it will become a dependency.
+*/
+require __DIR__ . '/bootstrap/facebook.php';
 
 /**
  * The dependencies.php file applies a filter on the dispatcher so that anytime Minerva

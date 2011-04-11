@@ -6,7 +6,7 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-namespace minerva\extensions\adapter\session;
+namespace minerva\extensions\adapter\storage\session;
 
 use lithium\data\Entity;
 use lithium\core\Libraries;
