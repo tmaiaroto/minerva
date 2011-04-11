@@ -43,10 +43,9 @@
     </table>
 
 <?php $user_type = (isset($this->_request->params['user_type'])) ? $this->_request->params['user_type']:'all'; ?>
-<?//$this->paginator->pagination($total, $limit, $page_number, array('args' => array('user_type' => $user_type))); ?>
+<?=$this->minervaPaginator->paginate($page_number, $total, $limit); ?>
 <br />
-<em>Showing page <?=$page_number; ?> of <?=$total_pages; ?>. <?=$total; ?> total record<?php echo ((int) $total > 1 || (int) $total == 0) ? 's':''; ?>.</em><br />
-<em>Template rendered from /views/users/index.html.php (core Minerva users index).</em>
+<em>Showing page <?=$page_number; ?> of <?=$total_pages; ?>. <?=$total; ?> total record<?php echo ((int) $total > 1 || (int) $total == 0) ? 's':''; ?>.</em>
 </div>
 
 <div class="grid_4">
