@@ -187,6 +187,11 @@ class UsersController extends \minerva\controllers\MinervaController {
         // Save
         if ($this->request->data) {
             $user = User::create();
+			
+			$now = date('Y-m-d h:i:s');
+            $this->request->data['created'] = $now;
+            $this->request->data['modified'] = $now;
+			
 			$this->request->data['role'] = 'registered_user'; // set basic user, always hard coded and set
 			
 			// IF this is the first user ever created, then they will be an administrator
