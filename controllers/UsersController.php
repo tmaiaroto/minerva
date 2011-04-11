@@ -1,13 +1,15 @@
 <?php
 namespace minerva\controllers;
-use minerva\models\User;
-use li3_flash_message\extensions\storage\FlashMessage;
-use li3_access\security\Access;
+
 use \lithium\security\Auth;
 use \lithium\storage\Session;
 use \lithium\util\Set;
 use \lithium\util\String;
-use minerva\libraries\util\Util;
+use \lithium\util\Inflector;
+use minerva\models\User;
+use minerva\extensions\util\Util;
+use li3_flash_message\extensions\storage\FlashMessage;
+use li3_access\security\Access;
 
 class UsersController extends \minerva\controllers\MinervaController {
 	
@@ -157,18 +159,20 @@ class UsersController extends \minerva\controllers\MinervaController {
     }
     
     /**
-     * Register is basically the same as create. It just lets us use a separeate "register" template in addition to a "create" one.
-     * However, it's a front-end action and as such it can never allow a user role to be set to anything more than a regular user.
-     * 
+     * Registers as a basic Minerva user.
+     * Other libraries will need to replace this method and route registration depending on the desired
+     * functionality for the application.
     */
     public function register() {
-		// get the redirects (again, call AFTER $this->getDocument() because the $ModelClass will have changed)
+		// first, get all the data we need. this will set $document_type, $type, $modelClass, and $display_name
+        extract($this->minerva_config);
+		// get the redirects
         $action_redirects = $this->getRedirects();
 		
         // Get the fields so the view template can iterate through them and build the form
-        $fields = User::schema();
+        $fields = $ModelClass::schema();
         // Don't need to have these fields in the form
-        unset($fields[User::key()]);
+        unset($fields['_id']);
         
         $rules = array(
             'email' => array(
@@ -181,17 +185,45 @@ class UsersController extends \minerva\controllers\MinervaController {
                 array('notEmptyHash', 'message' => 'Password cannot be empty.'),
                 array('moreThanFive', 'message' => 'Password must be at least 6 characters long.')
             )
-            // TODO: password confirm
         );
         
         // Save
         if ($this->request->data) {
-            $user = User::create();
+            $user = $ModelClass::create();
 			
 			$now = date('Y-m-d h:i:s');
             $this->request->data['created'] = $now;
             $this->request->data['modified'] = $now;
 			
+			// Generate the URL
+            $url = '';
+            $url_field = $ModelClass::url_field();
+            $url_separator = $ModelClass::url_separator();
+            if($url_field != '_id' && !empty($url_field)) {
+                if(is_array($url_field)) {
+                    foreach($url_field as $field) {
+                        if(isset($this->request->data[$field]) && $field != '_id') {
+                            $url .= $this->request->data[$field] . ' ';
+                        }
+                    }
+                    $url = Inflector::slug(trim($url), $url_separator);
+                } else {
+                    $url = Inflector::slug($this->request->data[$url_field], $url_separator);
+                }
+            }
+            
+            // Last check for the URL...if it's empty for some reason set it to "user"
+            if(empty($url)) {
+                $url = 'user';
+            }
+            
+            // Then get a unique URL from the desired URL (numbers will be appended if URL is duplicate) this also ensures the URLs are lowercase
+            $this->request->data['url'] = Util::unique_url(array(
+                'url' => $url,
+                'model' => $ModelClass
+            ));
+			
+			// Set the user's role...
 			$this->request->data['role'] = 'registered_user'; // set basic user, always hard coded and set
 			
 			// IF this is the first user ever created, then they will be an administrator
@@ -202,18 +234,13 @@ class UsersController extends \minerva\controllers\MinervaController {
 				$this->request->data['active'] = true;
 			}
 			
-			// Make sure there's a user type (default is "user" a normal user that might have access to the backend based on their role)
-			if((!isset($this->request->data['user_type'])) || (empty($this->request->data['user_type']))) {
-				//$this->request->data['user_type'] = 'user';
-				$this->request->data['user_type'] = null;
-			}
-			
+			// Set the password, it has to be hashed
 			if((isset($this->request->data['password'])) && (!empty($this->request->data['password']))) {
 				$this->request->data['password'] = String::hash($this->request->data['password']);
 			}
 		
             if($user->save($this->request->data, array('validate' => $rules))) {
-                //$this->redirect(array('controller' => 'users', 'action' => 'index'));
+				FlashMessage::write('User registration successful.', array(), 'minerva_admin');
                $this->redirect($action_redirects['register']);
             } else {
 				$this->request->data['password'] = '';

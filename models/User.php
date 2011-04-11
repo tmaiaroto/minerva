@@ -29,6 +29,9 @@ class User extends \minerva\models\MinervaModel {
 		//'profile_pics' => array('type' => 'string') // todo
 	);
 	
+	// For the prety URL, use the first and last name together...If that ends up being empty, it'll default to "user" and then "user-1" etc. for dupes
+	public $url_field = array('first_name', 'last_name');
+	
 	public $search_schema = array(
 		'email' => array(
 			'weight' => 1
