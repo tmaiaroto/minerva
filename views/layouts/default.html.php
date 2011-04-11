@@ -35,7 +35,7 @@
 		Powered by <?php echo $this->html->link('Lithium', 'http://li3.rad-dev.org'); ?>.
 	</div>
 	<?=$this->minervaHtml->flash(); ?>
-	<?=$this->minervaHtml->facebook_init(); ?>
+	<?=$this->minervaSocial->facebook_init(); ?>
 	<!-- layout template: /app/libraries/minerva/views/layouts/default.html.php -->
 </body>
 </html>

@@ -16,7 +16,6 @@ use lithium\util\Inflector;
 use li3_flash_message\extensions\storage\FlashMessage;
 use lithium\template\View;
 use lithium\core\Libraries;
-use lithium\storage\Session;
 
 class MinervaHtml extends \lithium\template\helper\Html {
 
@@ -26,7 +25,7 @@ class MinervaHtml extends \lithium\template\helper\Html {
 	public function _init() {
 		parent::_init();
 		
-		$minerva_config = Libraries::get('minerva');
+		//$minerva_config = Libraries::get('minerva'); // not currently needed with the constants
 		$this->base = MINERVA_BASE_URL;
 		$this->admin_prefix = MINERVA_ADMIN_PREFIX;
 		// setting core_minerva_models is just helpful for convenience with display reasons in the methods below
@@ -36,14 +35,6 @@ class MinervaHtml extends \lithium\template\helper\Html {
 			'User',
 			'Menu'
 		);
-		
-		// If using Facebook
-		$this->facebook_app_id = false;
-		$this->facebook_locale = 'en_US';
-		if(isset($minerva_config['facebook'])) {
-			$this->facebook_app_id = $minerva_config['facebook']['appId'];
-			$this->facebook_locale = (isset($minerva_config['facebook']['locale'])) ? $minerva_config['facebook']['locale']:$this->facebook_locale;
-		}
 	}
 
 	/**
@@ -256,73 +247,5 @@ class MinervaHtml extends \lithium\template\helper\Html {
         return $output;
     }
     
-	/**
-	 * Displays a basic Facebook Connect login button.
-	 * Works with the PHP SDK to get the login URL.
-	 *
-	 * @param $options Array
-	 * @return String
-	*/
-	public function facebook_login(array $options = array()) {
-		$defaults = array(
-			'div' => 'fb_login',
-			'button_image' => '/minerva/img/fb-login-button.png',
-			'button_alt' => 'Login with Facebook',
-			'additional_copy' => null
-		);
-		$options += $defaults;
-		$output = '';
-		
-		$fb_login_url = Session::read('fb_login_url');
-		if(!empty($fb_login_url)) {
-			if($options['div'] !== false) {
-				$output .= '<div id="' . $options['div'] . '">' . $options['additional_copy'];
-			}
-			
-			$output .= '<a href="' . $fb_login_url . '"><img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] .'" /></a>';
-			
-			if($options['div'] !== false) {
-				$output .= '</div>';
-			}
-		}
-		
-		return $output;
-	}
-	
-	/**
-	 * Embeds the Facebook JavaScript SDK
-	 * Facebook app id, locale, etc. is set in app/bootstrap/libraries.php
-	 * with configuration options for Libraries::add('minerva').
-	 * ex.
-	 * Libraries::add('minerva', array(
-	 *     'facebook' => array(
-	 *         'appId' => 0000,
-	 *         'secret' => 0000,
-	 *         'locale' => 'en_US'
-	 *     )
-	 * ))
-	 *
-	 * TODO: add other options to be passed... like "status", "cookie" and "xfbml"
-	 *
-	 * @param $async Boolean Whether or not to embed it so it loads asynchronously
-	 * @param $debug Boolean Whether or not to use the debug version
-	 * @return String The HTML embed code
-	*/
-	public function facebook_init($async=true, $debug=false) {
-		$script = 'all.js';
-		if($debug === true) {
-			$script = 'core.debug.js';
-		}
-		$output = '';
-		if($this->facebook_app_id) {
-			if($async) {
-				$output = "<div id=\"fb-root\"></div><script>window.fbAsyncInit = function() { FB.init({appId: '".$this->facebook_app_id."', status: true, cookie: true, xfbml: true}); }; (function() { var e = document.createElement('script'); e.async = true; e.src = document.location.protocol + '//connect.facebook.net/".$this->facebook_locale."/".$script."'; document.getElementById('fb-root').appendChild(e); }());</script>";
-			} else {
-				$output = "<div id=\"fb-root\"></div><script src=\"http://connect.facebook.net/".$this->facebook_locale."/".$fb_script."\"></script><script>FB.init({ appId  : '".$this->facebook_app_id."', status : true, cookie : true, xfbml : true });</script>";
-			}
-		}
-		return $output;
-	}
-	
 }
 ?>

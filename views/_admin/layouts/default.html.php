@@ -47,7 +47,7 @@
 		</div>
 	</div>
 	<?=$this->minervaHtml->flash(); ?>
-	<?=$this->minervaHtml->facebook_init(); ?>
+	<?=$this->minervaSocial->facebook_init(); ?>
 	<!-- layout template: /minerva/views/layouts/default.html.php -->
 </body>
 </html>
