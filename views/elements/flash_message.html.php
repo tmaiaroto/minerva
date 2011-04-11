@@ -85,7 +85,7 @@ if((isset($message)) && (!empty($message))) {
 	.ui-pnotify-container {
 		background: #000;
 		color: #fff;
-		border-color: #555;
+		border: 0;
 	}
 	.ui-pnotify-shadow {
 		background: #777;

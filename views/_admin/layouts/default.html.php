@@ -14,7 +14,7 @@
 	<?php //echo $this->html->style(array('debug', 'lithium')); ?>	
 	<?php echo $this->html->link('Icon', null, array('type' => 'icon')); ?>
 	<?php	// Flip between "960" and "grid" style sheets for fluid vs. fixed 960gs
-		echo $this->html->style(array('/minerva/css/reset', '/minerva/css/text', '/minerva/css/960', '/minerva/css/layout', '/minerva/css/nav', '/minerva/css/jquery/themes/smoothness/jquery-ui-1.8.6.custom.css'), array('inline' => false));	
+		echo $this->html->style(array('/minerva/css/reset', '/minerva/css/text', '/minerva/css/960', '/minerva/css/layout', '/minerva/css/nav', '/minerva/css/jquery/themes/smoothness/jquery-ui-1.8.6.custom.css', '/minerva/css/minerva_admin'), array('inline' => false));	
 		echo '<!--[if IE 6]>'.$this->html->style('/minerva/css/ie6').'<![endif]-->';
 		echo '<!--[if IE 7]>'.$this->html->style('/minerva/css/ie').'<![endif]-->';
 		echo $this->html->script(array('/minerva/js/jquery/jquery-1.4.4.min.js', '/minerva/js/jquery/jquery-ui-1.8.6.custom.min.js', '/minerva/js/jquery-fluid16.js'), array('inline' => false));

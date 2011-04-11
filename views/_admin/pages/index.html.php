@@ -49,10 +49,9 @@
     </table>
 
 <?php $page_type = (isset($this->_request->params['page_type'])) ? $this->_request->params['page_type']:'all'; ?>
-<?//$this->paginator->pagination($total, $limit, $page_number, array('args' => array('page_type' => $page_type))); ?>
+<?=$this->minervaPaginator->paginate($page_number, $total, $limit); ?>
 <br />
-<em>Showing page <?=$page_number; ?> of <?=$total_pages; ?>. <?=$total; ?> total record<?php echo ((int) $total > 1 || (int) $total == 0) ? 's':''; ?>.</em><br />
-<em>Template rendered from /views/pages/index.html.php (core Minerva pages index).</em>
+<em>Showing page <?=$page_number; ?> of <?=$total_pages; ?>. <?=$total; ?> total record<?php echo ((int) $total > 1 || (int) $total == 0) ? 's':''; ?>.</em>
 </div>
 
 <div class="grid_4">

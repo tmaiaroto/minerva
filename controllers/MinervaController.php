@@ -411,7 +411,8 @@ class MinervaController extends \lithium\action\Controller {
         $total = $this->getDocument(array(
             'action' => $this->calling_method,
             'request' => $this->request,
-            'find_type' => 'count'
+            'find_type' => 'count',
+            'conditions' => $conditions
         ));
         
         $page_number = (int)$page;

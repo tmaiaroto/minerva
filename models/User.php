@@ -15,24 +15,22 @@ class User extends \minerva\models\MinervaModel {
 	
 	// I get appended to with the plugin's User model.
 	protected $_schema = array(
-		'_id' => array('type' => 'id', 'form' => array('type' => 'hidden', 'label' => false)),
-		'user_type' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'email' => array('type' => 'string', 'search' => array('weight' => 1), 'form' => array('label' => 'E-mail', 'autocomplete' => 'off')),
+		'first_name' => array('type' => 'string', 'form' => array('label' => 'First Name')),
+		'last_name' => array('type' => 'string', 'form' => array('label' => 'Last Name')),
+		'email' => array('type' => 'string', 'form' => array('label' => 'E-mail', 'autocomplete' => 'off')),
 		'new_email' => array('type' => 'string', 'form' => array('label' => false, 'type' => 'hidden')),
 		//'username' => array('type' => 'string', 'form' => array('label' => 'Username')), // going to use e-mail for username
 		'password' => array('type' => 'string', 'form' => array('label' => 'Password', 'type' => 'password', 'autocomplete' => 'off')),
 		'role' => array('type' => 'string', 'form' => array('type' => 'select', 'label' => 'User Role', 'position' => 'options')),
 		'active' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'label' => 'Active', 'position' => 'options')),
 		'approval_code' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
-		'created' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
-		'modified' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false)),
 		'last_login_ip' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false)),
 		'last_login_time' => array('type' => 'date', 'form' => array('type' => 'hidden', 'label' => false))
 		//'profile_pics' => array('type' => 'string') // todo
 	);
 	
 	public $search_schema = array(
-		'body' => array(
+		'email' => array(
 			'weight' => 1
 		)
 	);
@@ -45,12 +43,12 @@ class User extends \minerva\models\MinervaModel {
 	
 	public $validates = array(
 		'email' => array(
-                    array('notEmpty', 'message' => 'E-mail cannot be empty.'),
+            array('notEmpty', 'message' => 'E-mail cannot be empty.'),
 		    array('email', 'message' => 'E-mail is not valid.'),
 		 //   array('uniqueEmail', 'message' => 'Sorry, this e-mail address is already registered.'),
                 ),
 		'password' => array(
-                    array('notEmpty', 'message' => 'Password cannot be empty.'),
+            array('notEmpty', 'message' => 'Password cannot be empty.'),
 		    array('notEmptyHash', 'message' => 'Password cannot be empty.'),
 		    array('moreThanFive', 'message' => 'Password must be at least 6 characters long.')
 		)
@@ -120,6 +118,32 @@ class User extends \minerva\models\MinervaModel {
 	public function user_roles() {
 		$class =  __CLASS__;
 		return $class::_object()->_user_roles;
+	}
+	
+	/** 
+	 * Gets the name for a user given their id.
+	 * This method is intended to be overwritten by other User models.
+	 * For example, a plugin that provides a type of user from Facebook would benefit from this
+	 * since you can't store names from Facebook in your local database as per Facebook's terms.
+	 * 
+	 * @param $id String The user id
+	 * @return String The user's name if found
+	*/
+	public function get_name($id=false) {
+		if(!$id) {
+			return false;
+		}
+		
+		$name = '';
+		$user_doc = User::find('first', array('conditions' => array('_id' => $id)));
+		if(isset($user_doc->first_name) && !empty($user_doc->first_name)) {
+			$name = $user_doc->first_name;
+		}
+		if(isset($user_doc->last_name) && !empty($user_doc->last_name)) {
+			$name .= ' ' . $user_doc->last_name;
+		}
+		
+		return $name;
 	}
 
 }

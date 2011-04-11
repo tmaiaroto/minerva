@@ -2,6 +2,8 @@
 	<?=$this->form->create($user, array('action' => 'register', 'onSubmit' => 'return submitCheck();')); ?>
 	    <fieldset class="register">
                 <legend>Register</legend>
+				<div class="input"><?=$this->form->field('first_name', array('label' => 'First Name'));?></div>
+				<div class="input"><?=$this->form->field('last_name', array('label' => 'Last Name'));?></div>
                 <div class="input"><?=$this->form->field('email', array('label' => 'E-mail (also your username)', 'id' => 'email_input'));?><div class="input_help_right">Please enter your e-mail address.</div></div>
                 <div class="input"><?=$this->form->field('password', array('label' => 'Password', 'id' => 'password_input'));?><div class="input_help_right">Choose a password at least 6 characters long.</div></div>
                 <div class="input"><?=$this->form->field('password_confirm', array('label' => 'Confirm Password', 'id' => 'password_confirm_input'));?><div class="input_help_right">Just to be sure, type your password again.</div></div>

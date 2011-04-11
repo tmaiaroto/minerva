@@ -88,8 +88,47 @@ class MinervaHtml extends \lithium\template\helper\Html {
 			'layout' => 'blank',
 			'library' => 'minerva'
 		));
-
+	}
 	
+	/**
+	 * A little helpful method that returns the current URL for the page.
+	 * 
+	 * @param $include_domain Boolean Whether or not to include the domain or just the request uri (true by default)
+	 * @param $include_querystring Boolean Whether or not to also include the querystring (true by default)
+	 * @return String
+	*/
+	public function here($include_domain=true, $include_querystring=true, $include_paging=true) {
+		$pageURL = 'http';
+		if ((isset($_SERVER['HTTPS'])) && ($_SERVER['HTTPS'] == 'on')) {$pageURL .= 's';}
+		$pageURL .= '://';
+		if ($_SERVER['SERVER_PORT'] != '80') {
+			$pageURL .= $_SERVER['SERVER_NAME'].':'.$_SERVER['SERVER_PORT'].$_SERVER['REQUEST_URI'];
+		} else {
+			$pageURL .= $_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
+		}
+		
+		if($include_domain === false) {
+			$pageURL = $_SERVER['REQUEST_URI'];
+		}
+		
+		// always remove the querystring, we'll tack it back on at the end if we want to keep it
+		if($include_querystring === false) {
+			parse_str($_SERVER['QUERY_STRING'], $vars);
+			unset($vars['url']);
+			$querystring = http_build_query($vars);
+			if(!empty($querystring)) {
+				$pageURL = substr($pageURL, 0, -(strlen($querystring) + 1));
+			}
+		}
+		
+		// note, this also ditches the querystring
+		if($include_paging === false) {
+			$base_url = explode('/', $pageURL);
+			$base_url = array_filter($base_url, function($val) { return (!stristr($val, 'page:') && !stristr($val, 'limit:')); });
+			$pageURL = implode('/', $base_url);
+		}
+		
+		return $pageURL;
 	}
 
     public function greeting($name) {
