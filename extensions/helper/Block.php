@@ -61,13 +61,14 @@ class Block extends \lithium\template\Helper {
 	 * Admin templates are always pulled from minerva/views/blocks/static/...
 	 *
 	 * @param $template string[required] The name of the template file
+	 * @param $library string[optional] The name of the library (will always look in the main app before showing a missing template warning)
 	 * @return Mixed the html/css from the rendered page/view template
 	*/
-	public function render_admin_block($template=null) {
+	public function render_admin_block($template=null, $library='minerva') {
 		if(empty($template)) {
 			return '';
 		}
-		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'minerva', 'template' => $template, 'layout' => 'blank', 'type' => 'html', 'admin' => true);
+		$options = array('library' => $library, 'template' => $template, 'admin' => 'admin');
 		return $this->render($options);
 	}
 	
@@ -77,14 +78,14 @@ class Block extends \lithium\template\Helper {
 	 * If the path needs to be changed, use render() instead.
 	 *
 	 * @param $template string[required] The name of the template file
+	 * @param $library string[optional] The name of the library (will always look in the main app before showing a missing template warning)
 	 * @return Mixed the html/css from the rendered page/view template
 	*/
-	public function render_block($template=null) {
+	public function render_block($template=null, $library='minerva') {
 		if(empty($template)) {
 			return '';
 		}
-		$options = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'minerva', 'template' => $template, 'layout' => 'blank', 'type' => 'html');
-		return $this->render($options);
+		return $this->render(array('template' => $template, 'library' => $library));
 	}
 	
 	/**
@@ -93,73 +94,60 @@ class Block extends \lithium\template\Helper {
 	 * @param $options array[required]
 	 * @return Mixed the html/css from the rendered page/view template or JavaScript code with an AJAX call to load local content or false if something went wrong
 	*/
-	public function render($options=array()) {
-		$defaults = array('url' => null, 'curl_options' => array(), 'method' => 'php', 'library' => 'minerva', 'views_folder' => 'blocks' . DIRECTORY_SEPARATOR . 'static', 'template' => null, 'layout' => 'blank', 'type' => 'html', 'admin' => false);
+	public function render($options=array(), $data=array()) {
+		$defaults = array(
+			// unrelated to View class
+			'url' => null,
+			'curl_options' => array(),
+			'curl_body_only' => false,
+			'method' => 'php',
+			
+			// these are all options passed to View
+			'admin' => false,
+			'controller' => 'blocks',
+			'library' => 'minerva', 
+			'type' => 'html',
+			'layout' => 'blank',
+			'template' => '',
+			//'paths' => array() // TODO: this
+		);
 		$options += $defaults;
+		
+		if($options['method'] == 'curl' && !empty($options['url'])) {
+			$default_curl_options = array(CURLOPT_HEADER => 0, CURLOPT_RETURNTRANSFER => 1);
+			$options['curl_options'] += $defaults['curl_options'];
+			
+			$ch = curl_init($options['url']);
+			curl_setopt_array($ch, $options['curl_options']);
+			$data = curl_exec($ch);
+			
+			// special option that will parse the results returned from cURL and if it's an HTML document, only include the body.
+			// TODO: stuff like this...
+			if($curl_body_only) {
+			}
+			
+			curl_close($ch);
+			
+			return $data;	
+		}
 		
 		/** 
 		 *  Method by default is set to php, meaning we are going to get the content for the block now and render it with the page.
-		 *  This allows us to cache the block content because the server is aware of it.
-		 *  Both the normal "File" renderer to render templates can be used and also a custom "Curl" renderer that can be used 
-		 *  to load any URL using the cURL library.
+		 *  This allows us to cache the block content because the server is aware of it. <-- TODO: 
 		 */
 		if($options['method'] == 'php') {
-			// By default, missing
-			$template_path = array(
-				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR .  'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_missing' . DIRECTORY_SEPARATOR . 'missing_block_template.{:type}.php'
-			);
-			
-			// We're going to try to grab the block template from common (note by default it's checking blocks/static)
-			array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR .  'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
-			// If requesting a template from a specific library, put that ahead in the list to check first
-			if(!empty($options['library'])) {
-				array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $options['library'] . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');				
-			} 
-			
-			// For admin blocks, check the admin paths first IF the admin flag was set to true (can not render admin blocks without explicitly saying to do so)
-			if($options['admin'] === true) {
-				// "admin" blocks have templates saved in minerva/views/blocks/static and this is the default place to look
-				//array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
-				// but we can override those in the common library's "_admin" folder
-				array_unshift($template_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR .  'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_admin' . DIRECTORY_SEPARATOR . $options['views_folder'] . DIRECTORY_SEPARATOR . '{:template}.{:type}.php');
-			}
-			
-			// Now a similar thing for the layout templates, but we want to use empty layouts because we don't want <html> tags etc. but we will still cascade and check a few locations
-			// NOTE: This layout isn't a "static" layout, it's just an empty "blank" one... It can be changed but the paths aren't looking in the layouts/static folder.
-			// This is because a block isn't necessarily "static" content. It can be, but doesn't have to be. Static folders are used for the templates because blocks can be static and menus are ALWAYS static.
-			$layout_path = array(
-				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
-				//LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'views'. DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php',
-				LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_missing' . DIRECTORY_SEPARATOR . 'missing_layout.{:type}.php'
-			);
-			
-			if($options['admin'] === true) {
-				array_unshift($layout_path, LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . '_admin' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . '{:layout}.{:type}.php');
-			}
-			
-			// If a template was specified, we need to set the paths and our renderer becomes File.
-			if(!empty($options['template'])) { 
-				$viewOptions['renderer'] = 'File'; // Should be by default, but ensure it is.
-				$viewOptions['library'] = $options['library']; // The defaults will set this to null or 'static', but each library can have its own
-				$viewOptions['paths'] = array(
-			        //'template' => '{:library}/views/'.$options['folder'].'/{:template}.{:type}.php',
-				'template' => $template_path,
-			        //'layout'   => '{:library}/views/layouts/{:layout}.{:type}.php',
-				'layout' => $layout_path
-			    );			    
-			}
-			// var_dump($viewOptions['paths']); // <-- helpful info
-			
-			// If a URL was specified, then we definitely don't want to use the File renderer, we want to use the Curl adapter.
-			// Also ensure that both a url and template weren't specified, if so, use the template File renderer (above).
-			if((!empty($options['url'])) && (empty($options['template']))) {
-				$viewOptions['renderer'] = 'Curl'; 
+			// Get the current paths (they were setup in minerva/config/bootstrap/templates.php)
+			$view = $this->_context->view();
+			$paths = $view->_config['paths'];
+			// Add to the paths, admin template locations if admin was specified. It will still default back to non-admin and the main app
+			if(!empty($options['admin'])) {
+				array_unshift($paths['layout'], '{:library}/views/_admin/layouts/{:layout}.{:type}.php');
+				array_unshift($paths['template'], '{:library}/views/_admin/{:controller}/static/{:template}.{:type}.php');
 			}
 			
 			// Instantiate a View class instance with the options we'll need for the renderer, paths, etc.
-			$view = new View($viewOptions);
-			
-			return $view->render('all', array('content' => 'this is not used'), $options);
+			$new_view = new View(array('paths' => $paths));
+			return $new_view->render('all', $data, $options);
 		}
 		
 		/** 
@@ -168,24 +156,20 @@ class Block extends \lithium\template\Helper {
 		 *  instead of waiting on the block content to load before continuing on to other parts of the page. 
 		 *  
 		 *  NOTE: You can't call remote hosts due to security restrictions. So this may not be the method for everyone.
-		 *  But if multiple http get requests to the web server isn't particularly a problem, this could make for a very
+		 *  But if multiple http get requests to the same web server isn't particularly a problem, this could make for a very
 		 *  fast loading, nice user experience, while at the same time being a very easy way to load content into your block area.
+		 *
+		 *  Also good for rendering "elements" and various "API" type components within the same domain.
 		 */ 
 		if($options['method'] == 'ajax') {	
-			
-			// Find the URL to load() with JavaScript 
-			//if(!empty($options['requestAction'])) { 
-				
-			//}
-			
 			// TODO: add a spinner graphic, use a $.ajax() and make the success remove the spinner
-			// jQuery should be included in the layout already in noConflict mode			
-			$ajax_code = '<script type="text/javascript">jQuery(document).ready(function($) {';					
-			$ajax_code .= '$(\'#result\').load(\''.$options['url'].'\');'; // NOTE: this can be used to load an external URL			
+			// jQuery should be included in the layout already in noConflict mode
+			$id = 'div_' . uniqid();
+			$ajax_code = '<div id="'.$id.'"></div><script type="text/javascript">$(document).ready(function() {';					
+			$ajax_code .= '$.get(\''.$options['url'].'\', function(data) { $(\'#'.$id.'\').html(data); });'; 
 			$ajax_code .= '});</script>';
 			
 			return $ajax_code;
-
 		}
 		
 	}

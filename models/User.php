@@ -8,7 +8,7 @@ use lithium\security\Auth;
 
 use minerva\util\Email;
 use minerva\extensions\util\Util;
-use li3_facebook\extension\FacebookProxy;
+use li3_facebook\extensions\FacebookProxy;
 use \Exception;
 
 // use app\models\Asset;

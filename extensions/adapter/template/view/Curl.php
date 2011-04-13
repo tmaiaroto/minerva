@@ -1,14 +1,9 @@
 <?php
-/**
- * Lithium: the most rad php framework
- *
- * @copyright     Copyright 2010, Union of RAD (http://union-of-rad.org)
- * @license       http://opensource.org/licenses/bsd-license.php The BSD License
- */
-
-namespace minerva\extensions\adapter\view;
+namespace minerva\extensions\adapter\template\view;
 
 /**
+ * TODO: see about fixing this adapter
+ *  
  * This view adapter renders content using the PHP cURL library.
  * It is meant to be a way to render external data instead of your conventional view templates from local disk.
  * All of the options for cURL can be passed to take full advantage.

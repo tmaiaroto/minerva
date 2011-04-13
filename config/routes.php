@@ -35,7 +35,7 @@ Router::connect("{$base}/{:args}\(", array(), function($request) {
 Router::connect("{$base}", array('library' => 'minerva', 'controller' => 'pages', 'action' => 'view', 'home'));
 
 // and this is for the other static pages
-Router::connect("{$base}/page/{:args}", array('controller' => 'minerva.pages', 'action' => 'view'));
+Router::connect("{$base}/page/{:args}", array('controller' => 'pages', 'action' => 'view'));
 
 Router::connect("{$base}/{$admin_prefix}", array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'view', 'home'));
 

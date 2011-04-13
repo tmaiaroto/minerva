@@ -28,6 +28,7 @@ use minerva\libraries\util\Util;
 */
 
 use \lithium\security\Auth;
+use li3_access\security\Access;
 use \lithium\util\Set;
 use lithium\util\Inflector;
 
@@ -90,6 +91,9 @@ class PagesController extends \minerva\controllers\MinervaController {
             'action' => array(
                 array('rule' => 'allowAll', 'redirect' => '/users/login')
             ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
             'document' => array()
         )
     );
@@ -105,24 +109,17 @@ class PagesController extends \minerva\controllers\MinervaController {
     public function view() {
         $path = func_get_args();
         
-        // If route has the "admin" key set to true then render template from Minerva's views/pages/static folder
-        if((isset($this->request->params['admin'])) && ($this->request->params['admin'] === true)) {
-            // todo: make rule and check access class
-            $user = Auth::check('minerva_user');
-            // obviously this needs to be somewhere controllable
-            if(!in_array($user['role'], array('administrator', 'content_editor'))) {
-            $this->redirect('/users/login');
-            }
-        } 
-        
         if (empty($path)) {
             $path = array('home');
         }
         
         // this doesn't get any documents, it just checks access. the false "find_type" key is preventing a db query
-        $this->getDocument(array('action' => __METHOD__, 'request' => $this->request, 'find_type' => false));
+        $document = $this->getDocument(array('action' => __METHOD__, 'request' => $this->request, 'find_type' => false));
         
-        $this->render(array('template' => join('/', $path)));
+        // getDocument() will return true or false depending on access rules. and it could redirect as well.
+        if($document) {
+           $this->render(array('template' => join('/', $path)));
+        }
     }	
     
     /**

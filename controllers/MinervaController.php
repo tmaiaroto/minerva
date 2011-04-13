@@ -284,6 +284,17 @@ class MinervaController extends \lithium\action\Controller {
         if(!empty($action_access)) {
             FlashMessage::write($action_access['message'], array(), 'minerva_admin');
             $this->redirect($action_access['redirect']);
+            /**
+             * We need to return false at this point because we've already set a redirect,
+             * but the rest of the code could still execute. This is mostly unnoticed, but is very
+             * noticable for the view() actions for static pages/menus/blocks/etc.
+             * Those view() actions call $this->render() if this getDocument() method doesn't return false.
+             * So those pages would still be accessible.
+             * IF access is allowed and the action wasn't requesting a document from the database, then
+             * the $find_type will be true and as you can see below, this method will return true.
+             * Again, if returning true, those static view() methods will render a static template.
+            */
+            return false;
         }
         
         

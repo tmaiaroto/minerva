@@ -57,18 +57,19 @@ class BlocksController extends \minerva\controllers\MinervaController {
     );
     
     public function view() {
-		if((isset($this->request->params['admin'])) && ($this->request->params['admin'] === true)) {
-			if (empty($path)) {
-			$path = array('static', 'example');
-			} else {
-			$path = array('static', func_get_args());
-			}
-		} else {
-			if (empty($path)) {
-			$path = array('example');
-			}
-		}
-		$this->render(array('template' => join('/', $path), 'layout' => 'blank'));
+		$path = func_get_args();
+        
+        if (empty($path)) {
+            $path = array('example');
+        }
+        
+        // this doesn't get any documents, it just checks access. the false "find_type" key is preventing a db query
+        $document = $this->getDocument(array('action' => __METHOD__, 'request' => $this->request, 'find_type' => false));
+        
+        // getDocument() will return true or false depending on access rules. and it could redirect as well.
+        if($document) {
+           $this->render(array('template' => join('/', $path), 'layout' => 'blank'));
+        }
     }
 	
     // TODO: add caching

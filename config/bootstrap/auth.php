@@ -22,4 +22,5 @@ Auth::config(array(
 	    )
 	)
 ));
+
 ?>

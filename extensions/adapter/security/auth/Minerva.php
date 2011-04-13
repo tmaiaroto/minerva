@@ -10,7 +10,7 @@ namespace minerva\extensions\adapter\security\auth;
 
 use lithium\security\Auth;
 use lithium\core\Libraries;
-use li3_facebook\extension\FacebookProxy;
+use li3_facebook\extensions\FacebookProxy;
 use lithium\storage\Session;
 use minerva\models\User;
 use \Exception;
