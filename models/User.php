@@ -19,7 +19,7 @@ class User extends \minerva\models\MinervaModel {
 	
 	// I get appended to with the plugin's User model.
 	protected $_schema = array(
-		'facebook_uid' => array('type' => 'string'),
+		'facebook_uid' => array('type' => 'string', 'form' => array('label' => 'Facebook User Id')),
 		'first_name' => array('type' => 'string', 'form' => array('label' => 'First Name')),
 		'last_name' => array('type' => 'string', 'form' => array('label' => 'Last Name')),
 		'email' => array('type' => 'string', 'form' => array('label' => 'E-mail', 'autocomplete' => 'off')),
@@ -46,7 +46,8 @@ class User extends \minerva\models\MinervaModel {
 	protected $_user_roles = array(
 		'administrator' => 'Administrator',
 		'content_editor' => 'Content Editor',
-		'registered_user' => 'Registered User'
+		'registered_user' => 'Registered User',
+		'registered_facebook_user' => 'Facebook User'
 	);
 	
 	public $validates = array(

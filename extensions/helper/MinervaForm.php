@@ -25,6 +25,12 @@ class MinervaForm extends \lithium\template\helper\Form {
 	 * @return String HTML form fields with optional fieldset and legend
 	*/
 	public function form_section($schema=array(), $position=null, $options=array()) {
+		// in case it wasn't passed, but it exists in the data in the view template as "fields"
+		if(empty($schema))  {
+			$data = $this->_context->data();
+			$schema = (isset($data['fields'])) ? $data['fields']:array();
+		}
+		
 		$defaults = array('legend' => false, 'fieldset' => false);
 		$options += $defaults;
 	
@@ -48,19 +54,20 @@ class MinervaForm extends \lithium\template\helper\Form {
                 // note: 'position' => false will not show it... at which point, i'm not sure why the 'form' key was even defined
                 $v['form']['position'] = (isset($v['form']['position'])) ? $v['form']['position']:'main';
 				if(($v['form']['position'] == $position) && ($v['form']['position'] != false)) {
+					// ensure there's some sort of type set (empty string will be regular text input)
                     $v['form']['type'] = (isset($v['form']['type'])) ? $v['form']['type']:'';
 					switch($v['form']['type']) {
 						case 'text':
 						case 'input':
 						default:
-							$output .= $this->field($k, $v['form']);
+							$output .= $this->_context->form->field($k, $v['form']);
 							break;
 						case 'select':
 							$output .= '<div>';
 							if(isset($v['form']['label'])) {
-								$output .= $this->label($k, $v['form']['label']);
+								$output .= $this->_context->form->label($k, $v['form']['label']);
 							}
-							$output .= $this->select($k, $v['form']['options']);
+							$output .= $this->_context->form->select($k, $v['form']['options']);
 							$output .= '</div>';
 							break;
 					}

@@ -91,6 +91,17 @@ class MinervaModel extends \lithium\data\Model {
     }
 	
 	/**
+	 * Similiar to the display_name() method, this returns the validation
+	 * rules for the model. 
+	 *
+	 * @return Array
+	*/
+	public function validation_rules() {
+		$class =  __CLASS__;
+		return $class::_object()->validates;
+    }
+	
+	/**
 	 * Returns the action_redirect property for the model.
 	 * This property is used to control where certain actions redirect to.
 	 * For example, after updating a record.
@@ -157,12 +168,12 @@ class MinervaModel extends \lithium\data\Model {
      * @return array
     */
     public function search_schema($field=null) {
-	$class =  __CLASS__;
-	$self = $class::_object();
-	if (is_string($field) && $field) {
-	    return isset($self->search_schema[$field]) ? $self->search_schema[$field] : array();
-	}
-	return $self->search_schema;
+		$class =  __CLASS__;
+		$self = $class::_object();
+		if (is_string($field) && $field) {
+			return isset($self->search_schema[$field]) ? $self->search_schema[$field] : array();
+		}
+		return $self->search_schema;
     }
     
     /**

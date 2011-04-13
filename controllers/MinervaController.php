@@ -1,18 +1,12 @@
 <?php
 namespace minerva\controllers;
 
-/*
-
-use \lithium\util\String;
-
-use \lithium\util\Inflector;
-*/
-
 use \lithium\storage\Session;
 use li3_access\security\Access;
 use \lithium\security\Auth;
 use minerva\extensions\util\Util;
 use \lithium\util\Set;
+use \lithium\util\String;
 use \lithium\util\Inflector;
 use minerva\models\Page;
 use li3_flash_message\extensions\storage\FlashMessage;
@@ -463,6 +457,9 @@ class MinervaController extends \lithium\action\Controller {
         
         // If data was passed, set some more data and save
         if ($this->request->data) {
+            // We need to get the validation rules unfortunately because they may need to change based on what's going on
+            $validation_rules = $ModelClass::validation_rules();
+            
             $document = $ModelClass::create();
             $now = date('Y-m-d h:i:s');
             $this->request->data['created'] = $now;
@@ -510,10 +507,16 @@ class MinervaController extends \lithium\action\Controller {
             // (note: this will only be useful for UsersController)
             if(($this->request->params['controller'] == 'users') && (isset($this->request->data['password']))) {
                 $this->request->data['password'] = String::hash($this->request->data['password']);
+                
+                // We need to remove some validation rules if this user is a Facebook user
+                if(isset($this->request->data['facebook_uid']) && !empty($this->request->data['facebook_uid']) && is_numeric($this->request->data['facebook_uid'])) {
+                    unset($validation_rules['email']);
+                    unset($validation_rules['password']);
+                }
             }
             
             // Save
-            if($document->save($this->request->data)) {
+            if($document->save($this->request->data, array('validate' => $validation_rules))) {
                 FlashMessage::write('The content has been created successfully.', array(), 'minerva_admin');
                 $this->redirect($action_redirects['create']);
             } else {
@@ -562,14 +565,17 @@ class MinervaController extends \lithium\action\Controller {
         if($this->request->params['controller'] == 'users') {
             unset($fields['password']);
             // unset password and add a "new_password" field for UsersController
-            $fields['new_password'] = null;
+            $fields['new_password'] = array('type' => 'string', 'form' => array('label' => 'New Password', 'type' => 'password', 'autocomplete' => 'off'));
         }
 		// If a document_type isn't empty, set it in the form
 		$fields['document_type']['form']['value'] = (!empty($document_type)) ? $document_type:null;
         
         // Update the record
 		if ($this->request->data) {
-			// Set some data
+			// We need to get the validation rules unfortunately because they may need to change based on what's going on
+            $validation_rules = $ModelClass::validation_rules();
+            
+            // Set some data
             $this->request->data['modified'] = date('Y-m-d h:i:s');
             
             // (note: the password stuff is only useful for UsersController)
@@ -581,10 +587,16 @@ class MinervaController extends \lithium\action\Controller {
                     $this->request->data['password'] = String::hash($this->request->data['new_password']);
                     unset($this->request->data['new_password']);
                 }
+                
+                // We need to remove some validation rules if this user is a Facebook user
+                if(isset($this->request->data['facebook_uid']) && !empty($this->request->data['facebook_uid']) && is_numeric($this->request->data['facebook_uid'])) {
+                    unset($validation_rules['email']);
+                    unset($validation_rules['password']);
+                }
             }
 			
             // Save it
-			if($document->save($this->request->data)) {
+			if($document->save($this->request->data, array('validate' => $validation_rules))) {
                 FlashMessage::write('The content has been updated successfully.', array(), 'minerva_admin');
                 $this->redirect($action_redirects['update']);
 			} else {
