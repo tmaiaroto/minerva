@@ -208,12 +208,20 @@ class Block extends \lithium\template\Helper {
 	 *  In this case...We're talking about getting a dynamic block from the database.
 	 *  While the requestAction() can call any controller/action, request() just calls the blocks controller's read method.
 	 *  This leaves just one simple argument to be passed, the "URL" of the block.
+	 *
+	 *  @param $url String The URL for the dynamic block held in the database
+	 *  @return Array The data from that record.
 	*/	
 	public function request($url=null) {
 		if(!$url) {
 			return false;
 		}
-		return $this->requestAction(array('controller' => 'blocks', 'action' => 'read', 'args' => $url));		
+		$data = array();
+		$block = $this->requestAction(array('controller' => 'blocks', 'action' => 'read', 'args' => $url));
+		if(is_object($block)) {
+			$data = $block->data();
+		}
+		return $data;
 	}
 	
 }

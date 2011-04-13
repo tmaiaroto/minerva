@@ -172,3 +172,5 @@ if (!empty($solutions)) {
 	<li><a href="http://rad-dev.org/lithium">Lithium Source</a></li>
 	<li><a href="irc://irc.freenode.net/#li3">#li3 irc channel</a></li>
 </ul>
+
+<?php // var_dump($this->block->request('dynamic')); ?>

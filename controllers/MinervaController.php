@@ -43,77 +43,85 @@ class MinervaController extends \lithium\action\Controller {
     protected function _init() {
         $this->request = $this->request ?: $this->_config['request'];
         
-        $controller_pieces = explode('.', $this->request->params['controller']);
-        $this->minerva_config['relative_controller'] = $relative_controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
-        $this->minerva_config['model'] = $model = Inflector::classify(Inflector::singularize($relative_controller));
-        // set the model class, should be minerva\models\Page or minerva\models\Block etc.
-        $ModelClass = $DefaultModelClass = 'minerva\models\\'.$model;
-        // in case it doesn't exist, use the base MinervaModel which we know does exist
-        $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
-        $document_type = $ModelClass::document_type();
-        // the document type can be grabbed from the model class, but if specifically set in the routing params, use that
-        if(isset($this->request->params['document_type']) && !empty($this->request->params['document_type'])) {
-            $document_type = $this->request->params['document_type'];
-        }
-        // there are two specific "create" routes to handle a conflict in the routing
-        // alternatively, we could use the "{:args}" route... but "create" action is the only case this is a problem (for now)
-        /*
-        if($this->request->params['action'] == 'create') {
-            if(isset($this->request->params['args'][0])) {
-                $document_type = $this->request->params['args'][0];
-            }
-        }
+        /**
+         * The only time I can think that there wouldn't be $this->request is from requestAction() on the Block helper.
+         * TODO: Ensure that all this is not required by that helper's method.
+         * For now this if() will prevent some errors.
         */
-        
-        // set the ModelClass again now based on the $document_type, which in most cases, matches the library name
-        // ignore and empty $document_type, that just means the base model class anyway
-        if(!empty($document_type)) {
-            $ModelClass = $ModelClass::getMinervaModel($model, $document_type);
-            
-            /**
-             * If getMinveraModel() couldn't find one... meaning the $document_type did NOT match the library name, 
-             * we need to search ALL minerva models to find the proper model. This is where a slight performance penalty
-             * comes in to play, so try to match library names to document_type values.
-             *
-             * If unavoidable, because there were two libraries of the same name that want to use Minerva, just know
-             * that all we're doing is looping through each model that's using Minerva ("minerva_models") and looking
-             * to match the document_type property. Once matched, we found the proper model class. So not too bad.
-             * 
+        if(!empty($this->request)) {
+            $controller_pieces = explode('.', $this->request->params['controller']);
+            $this->minerva_config['relative_controller'] = $relative_controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
+            $this->minerva_config['model'] = $model = Inflector::classify(Inflector::singularize($relative_controller));
+            // set the model class, should be minerva\models\Page or minerva\models\Block etc.
+            $ModelClass = $DefaultModelClass = 'minerva\models\\'.$model;
+            // in case it doesn't exist, use the base MinervaModel which we know does exist
+            $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
+            $document_type = $ModelClass::document_type();
+            // the document type can be grabbed from the model class, but if specifically set in the routing params, use that
+            if(isset($this->request->params['document_type']) && !empty($this->request->params['document_type'])) {
+                $document_type = $this->request->params['document_type'];
+            }
+            // there are two specific "create" routes to handle a conflict in the routing
+            // alternatively, we could use the "{:args}" route... but "create" action is the only case this is a problem (for now)
+            /*
+            if($this->request->params['action'] == 'create') {
+                if(isset($this->request->params['args'][0])) {
+                    $document_type = $this->request->params['args'][0];
+                }
+            }
             */
-            if($ModelClass == 'minerva\models\MinervaModel' || $ModelClass == $DefaultModelClass) {
-                $all_minerva_models = $ModelClass::getAllMinervaModels($model);
-                if(!empty($all_minerva_models)) {
-                    foreach($all_minerva_models as $Model) {
-                        if(class_exists($Model)) {
-                            if($Model::document_type() == $document_type) {
-                                $ModelClass = $Model;
+            
+            // set the ModelClass again now based on the $document_type, which in most cases, matches the library name
+            // ignore and empty $document_type, that just means the base model class anyway
+            if(!empty($document_type)) {
+                $ModelClass = $ModelClass::getMinervaModel($model, $document_type);
+                
+                /**
+                 * If getMinveraModel() couldn't find one... meaning the $document_type did NOT match the library name, 
+                 * we need to search ALL minerva models to find the proper model. This is where a slight performance penalty
+                 * comes in to play, so try to match library names to document_type values.
+                 *
+                 * If unavoidable, because there were two libraries of the same name that want to use Minerva, just know
+                 * that all we're doing is looping through each model that's using Minerva ("minerva_models") and looking
+                 * to match the document_type property. Once matched, we found the proper model class. So not too bad.
+                 * 
+                */
+                if($ModelClass == 'minerva\models\MinervaModel' || $ModelClass == $DefaultModelClass) {
+                    $all_minerva_models = $ModelClass::getAllMinervaModels($model);
+                    if(!empty($all_minerva_models)) {
+                        foreach($all_minerva_models as $Model) {
+                            if(class_exists($Model)) {
+                                if($Model::document_type() == $document_type) {
+                                    $ModelClass = $Model;
+                                }
                             }
                         }
                     }
+                    
+                    // and of course no matter what we set, make sure it exists, otherwise default.
+                    $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
                 }
                 
-                // and of course no matter what we set, make sure it exists, otherwise default.
-                $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
             }
             
-        }
-        
-        // Now the following will use the proper ModelClass to get the properties that we need in the controller.
-        $this->minerva_config['ModelClass'] = $ModelClass;
-        $this->minerva_config['display_name'] = $ModelClass::display_name();
-        $this->minerva_config['library_name'] = $ModelClass::library_name();
-        $this->minerva_config['document_type'] = $document_type;
-        $this->minerva_config['admin'] = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
-        
-        // Also good to set the redirect url here for after logging in (last requested URL)
-        // ...but we don't want to set it to any of the following
-        $controller_action_whitelist = array(
-            'users.login',
-            'users.logout',
-            'users.register'
-        );
-        if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
-            Session::write('beforeAuthURL', '/' . $this->request->url);
+            // Now the following will use the proper ModelClass to get the properties that we need in the controller.
+            $this->minerva_config['ModelClass'] = $ModelClass;
+            $this->minerva_config['display_name'] = $ModelClass::display_name();
+            $this->minerva_config['library_name'] = $ModelClass::library_name();
+            $this->minerva_config['document_type'] = $document_type;
+            $this->minerva_config['admin'] = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
+            
+            // Also good to set the redirect url here for after logging in (last requested URL)
+            // ...but we don't want to set it to any of the following
+            $controller_action_whitelist = array(
+                'users.login',
+                'users.logout',
+                'users.register'
+            );
+            if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
+                Session::write('beforeAuthURL', '/' . $this->request->url);
+            }
+            
         }
         
         parent::_init();
@@ -490,15 +498,14 @@ class MinervaController extends \lithium\action\Controller {
                 'model' => $ModelClass
             ));
             
-            // TODO: put this back
-            /*$user = Auth::check('minerva_user');
+            // Set the owner
+            $user = Auth::check('minerva_user');
             if($user) {
                 $this->request->data['owner_id'] = $user['_id'];
             } else {
                 // TODO: possible for anonymous users to create things? do we need to put in any value here?
                 $this->request->data['owner_id'] = '';
-            }*/
-            $this->request->data['owner_id'] = '';
+            }
             
             // (note: this will only be useful for UsersController)
             if(($this->request->params['controller'] == 'users') && (isset($this->request->data['password']))) {
