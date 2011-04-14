@@ -132,25 +132,68 @@ class User extends \minerva\models\MinervaModel {
 	
 	/** 
 	 * Gets the name for a user given their id.
-	 * This method is intended to be overwritten by other User models.
-	 * For example, a plugin that provides a type of user from Facebook would benefit from this
-	 * since you can't store names from Facebook in your local database as per Facebook's terms.
-	 * 
-	 * @param $id String The user id
-	 * @return String The user's name if found
+	 * This id can be either a MongoId for getting a user's name from the local database
+	 * or it can be a Facebook id or any other id given the $service is defined.
+	 * External services like Facebook will have their values stored in APC for no more than
+	 * 24hrs, or whatever the services' terms of use allow.
+	 *
+	 * @param $id String The user id, either a MongoId or a Facebook id ... or ...
+	 * @param $service Mixed The service to use, either false/'local' for Minerva's MongoDB or 'facebook' for Facebook ... or ...
+	 * @return Mixed The user's name on success, false on failure
 	*/
-	public function get_name($id=false) {
+	public function get_name($id=false, $service=false) {
 		if(!$id) {
 			return false;
 		}
 		
-		$name = '';
+		$name = false;
 		$user_doc = User::find('first', array('conditions' => array('_id' => $id)));
 		if(isset($user_doc->first_name) && !empty($user_doc->first_name)) {
 			$name = $user_doc->first_name;
 		}
 		if(isset($user_doc->last_name) && !empty($user_doc->last_name)) {
 			$name .= ' ' . $user_doc->last_name;
+		}
+		
+		// if name is still empty but it's a facebook user, get their name from fb. - prefer the locally stored user name (facebook users will be able to define a name under their account settings, but facebook user names are never stored directly from facebook)
+		if((empty($name)) && (isset($user_doc->facebook_uid))) {
+			$name = User::get_name_from_facebook($user_doc->facebook_uid);
+		}
+		
+		return $name;
+	}
+	
+	/**
+	 * Get a user's name from Facebook using their FB id.
+	 * Facebook user's names are cached for 24hrs (for performance reasons)
+	 * as per Facebook's terms.
+	 *
+	 * @param $id String The user's Facebook id
+	 * @return Mixed The user's name on success, false on failure
+	*/
+	public function get_name_from_facebook($id=false) {
+		if(!$id) {
+			return false;
+		}
+		
+		// Get the cached FB user name. NOTE: Cache expires every 24hrs as per FB's terms.
+		// However, it's just not feasible to hit FB's servers for every user name because we could have many requests per page and it just takes too long.
+		$name = Cache::read('default', $id);
+		if(empty($name)) {
+			$fb_user = false;
+			$fb_user_data = file_get_contents('https://graph.facebook.com/'.$id);
+			if(!empty($fb_user_data)) {
+				$fb_user = json_decode($fb_user_data);
+			}
+			if($fb_user) {
+				$name = $fb_user->first_name;
+				$name .= ' ' . $fb_user->last_name;
+				// if the name is STILL empty, try the name property. shouldn't be though.
+				if(empty($name)) {
+					$name = $fb_user->name;
+				}
+			}
+			Cache::write('default', $id, $name, '+1 day');
 		}
 		
 		return $name;

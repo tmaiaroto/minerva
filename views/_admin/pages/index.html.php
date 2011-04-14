@@ -32,7 +32,7 @@
                 } ?>
             </td>
             <td>
-                <?=$page->ownder_id; ?>
+                <?=$this->minervaHtml->owner_name($page); ?>
             </td>
             <td>
                 <?=$this->minervaHtml->date($page->modified->sec); ?>

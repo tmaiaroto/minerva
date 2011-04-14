@@ -136,6 +136,37 @@ class MinervaHtml extends \lithium\template\helper\Html {
     }
     
 	/**
+	 * Show's the owner's full name and optionally links to the user's record.
+	 * 
+	 * @param $document Object
+	 * @param $options Array An array of options, such as whether or not to return a link to the user's record, etc.
+	 * @return String HTML
+	*/
+	public function owner_name($document=false, array $options=array()) {
+		$defaults = array(
+			'link_to_user_record' => true
+		);
+		$options += $defaults;
+		
+		$request = $this->_context->request();
+		$name = '';
+		
+		if($document) {
+			$name = (isset($document->_owner->_name) && !empty($document->_owner->_name)) ? $document->_owner->_name:$name;
+		}
+		
+		if($options['link_to_user_record']) {
+			if(isset($request->params['admin'])) {
+				$name = $this->link($name, array('admin' => $this->admin_prefix(), 'library' => 'minerva', 'controller' => 'users', 'action' => 'read', 'url' => $document->_owner->url));
+			} else {
+				$name = $this->link($name, array('library' => 'minerva', 'controller' => 'users', 'action' => 'read', 'url' => $document->_owner->url));
+			}
+		}
+		
+		return $name;
+	}
+	
+	/**
 	 * Basic date function.
 	 * TODO: Make a better one
 	 *

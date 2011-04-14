@@ -9,9 +9,9 @@
     <table>
         <thead>
             <tr>
-                <th>User E-mail</th>
+                <th>E-mail/Facebook ID</th>
                 <th>User Type</th>
-                <th>Last Modified</th>
+                <th>Role</th>
                 <th>Created</th>
                 <th>Actions</th>
             </tr>
@@ -19,7 +19,11 @@
         <?php foreach($documents as $user) { ?>
         <tr>
             <td>
+				<?php if(!empty($user->email)) { ?>
                 <?=$this->html->link($user->email, array('admin' => $this->minervaHtml->admin_prefix, 'controller' => 'users', 'library' => 'minerva', 'action' => 'read', 'url' => $user->url)); ?>
+				<?php } else { ?>
+				<?=$this->html->link($user->facebook_uid, array('admin' => $this->minervaHtml->admin_prefix, 'controller' => 'users', 'library' => 'minerva', 'action' => 'read', 'url' => $user->url)); ?>
+				<?php } ?>
             </td>
             <td>
                 <?php if(!empty($user->user_type)) {
@@ -29,7 +33,7 @@
                 } ?>
             </td>
             <td>
-                <?=$this->minervaHtml->date($user->modified->sec); ?>
+                <?=$user->role; ?>
             </td>
             <td>
                 <?=$this->minervaHtml->date($user->created->sec); ?>

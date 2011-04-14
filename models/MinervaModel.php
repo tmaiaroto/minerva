@@ -211,7 +211,6 @@ class MinervaModel extends \lithium\data\Model {
 		}
 		return $models_array;
 	}
-	
     
 }
 ?>

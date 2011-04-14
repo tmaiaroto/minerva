@@ -9,6 +9,7 @@ use \lithium\util\Set;
 use \lithium\util\String;
 use \lithium\util\Inflector;
 use minerva\models\Page;
+use minerva\models\User;
 use li3_flash_message\extensions\storage\FlashMessage;
 
 class MinervaController extends \lithium\action\Controller {
@@ -417,6 +418,34 @@ class MinervaController extends \lithium\action\Controller {
             'offset' => ((int)$page - 1) * (int)$limit,
             'order' => $params['order']
         ));
+        
+        // TODO: is there a better way to do this??? 
+        // Set the user names (a "JOIN")
+        if(is_object($documents)) {
+            $owner_ids = array();
+            foreach($documents as $document) {
+                $owner_ids[] = $document->owner_id;
+            }
+            
+            // Make ONE query PER find() for the index listing
+            if(!empty($owner_ids)) {
+                $owner_documents = User::find('all', array('conditions' => array('_id' => $owner_ids)));
+                $owners = array();
+                if(is_object($owner_documents)) {
+                    foreach($owner_documents as $user) {
+                        $user->_name = User::get_name((string)$user->_id);
+                        $owners[(string)$user->_id] = $user->data();
+                    }
+                }
+            }
+            
+            // Set the owners
+            foreach($documents as $document) {
+                $document->_owner = $owners[(string)$document->owner_id];
+            }
+        }
+        ////////// END "JOIN" process for owners (user model)
+        
         
         // Get some handy numbers
         /*$total = $ModelClass::find('count', array(
