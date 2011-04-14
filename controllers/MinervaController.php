@@ -110,6 +110,8 @@ class MinervaController extends \lithium\action\Controller {
             $controller_action_whitelist = array(
                 'users.login',
                 'users.logout',
+                'users.register',
+                'users.is_email_in_use',
                 'users.register'
             );
             if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
