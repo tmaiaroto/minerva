@@ -68,7 +68,8 @@ class User extends \minerva\models\MinervaModel {
 	public $display_name = 'User';
 	
 	public $action_redirects = array(
-		'logout' => '/'
+		'logout' => '/',
+		'register' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login')
 	);
 	
 	public static function __init() {
