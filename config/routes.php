@@ -19,7 +19,6 @@ use lithium\action\Response;
 $base = MINERVA_BASE_URL;
 $admin_prefix = MINERVA_ADMIN_PREFIX;
 
-
 /**
  * Handles broken URL parsers by matching method URLs with no closing ) and redirecting.
  */
