@@ -71,7 +71,11 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		
 		// if admin is true, then look for admin templates first
 		if($admin === true) {
+			// if another library is using Minerva's templates for the admin interface, {:library} won't be "minerva" so hard code the path...but also allow that {:library} to provide its own template which would be looked for first
+			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . '/views/_admin/layouts/{:layout}.{:type}.php');
 			array_unshift($params['options']['render']['paths']['layout'], '{:library}/views/_admin/layouts/{:layout}.{:type}.php');
+			
+			// note: we don't have to do the same thing for the view template because the {:controller} isn't going to be within the minerva library
 			array_unshift($params['options']['render']['paths']['template'], '{:library}/views/_admin/{:controller}/{:template}.{:type}.php');
 		}
 		
