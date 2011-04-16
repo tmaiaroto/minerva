@@ -17,19 +17,28 @@ use \lithium\data\Connections;
 // 	'database' => 'app_name'
 // ));
 
+// Connection information can be set from the main app with Libraries::add('minerva', array('connections' => array(...)));
+$production = (isset($minerva_config['connections']['production'])) ? $minerva_config['connections']['production']:array();
+$production_defaults = array(
+    'type' => 'database',
+    'adapter' =>  'MongoDb', 
+    'database' => 'minerva', 
+    'host' => 'localhost'
+);
+$production += $production_defaults;
+
+$development = (isset($minerva_config['connections']['development'])) ? $minerva_config['connections']['development']:array();
+$development_defaults = array(
+    'type' => 'database',
+    'adapter' =>  'MongoDb', 
+    'database' => 'minerva_dev', 
+    'host' => 'localhost'
+);
+$development += $development_defaults;
+
 Connections::add('default', array(
-    'production' => array(
-        'type' => 'database',
-        'adapter' =>  'MongoDb', 
-        'database' => 'minerva', 
-        'host' => 'localhost'
-    ),
-    'development' => array(
-        'type' => 'database',
-        'adapter' =>  'MongoDb', 
-        'database' => 'minerva_dev', 
-        'host' => 'localhost'
-    )
+    'production' => $production,
+    'development' => $development
 ));
 
 Connections::add('test', array('type' =>  'MongoDb', 'database' => 'test', 'host' => 'localhost'));
