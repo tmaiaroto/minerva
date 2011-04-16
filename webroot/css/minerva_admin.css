@@ -75,6 +75,7 @@ h1#branding {
 	background: url('/minerva/img/minerva-logo-red.png') no-repeat;
 	padding-left: 25px;
 	padding-top: 40px;
+	border-bottom: 1px solid #8c0b02;
 }
 h1#branding a {
 	width: 194px;
@@ -84,6 +85,10 @@ h1#branding a {
 }
 #admin_header {
 	background: url('/minerva/img/admin-header-bg-red.png') #6c120a repeat-x;
+}
+ul#main_administration_menu {
+	/*border-top: 1px solid #2c2c2c;*/
+	border-top: 1px solid #111;
 }
 ul#main_administration_menu li a, ul#main_administration_menu {
 	background: #222;
