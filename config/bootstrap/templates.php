@@ -30,14 +30,8 @@ use \Exception;
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
     
-	$use_minerva_templates = false;
-	if(isset($params['request']->params['library'])) {
-		$lib_config = Libraries::get($params['request']->params['library']);
-		$use_minerva_templates = (isset($lib_config['use_minerva_templates'])) ? true:false;
-	}
-	
-	// Only apply the following when using the minerva library
-	if((isset($params['request']->params['library']) && $params['request']->params['library'] == 'minerva') || ($use_minerva_templates === true)) {
+	// Only apply the following when using the minerva library OR if the "minerva" parameter has been set (so libraries can use Minerva's templates)
+	if((isset($params['request']->params['library']) && $params['request']->params['library'] == 'minerva') || (isset($params['request']->params['minerva']))) {
 		// Pass through a few Minerva configuration variables
 		$config = Libraries::get('minerva');
 		$params['minerva_base'] = isset($config['base_url']) ? $config['base_url'] : '/minerva';
