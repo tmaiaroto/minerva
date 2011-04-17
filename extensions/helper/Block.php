@@ -139,6 +139,14 @@ class Block extends \lithium\template\Helper {
 			// Get the current paths (they were setup in minerva/config/bootstrap/templates.php)
 			$view = $this->_context->view();
 			$paths = $view->_config['paths'];
+			
+			// add to the template path
+			array_unshift($paths['template'], '{:library}/views/{:controller}/static/{:template}.{:type}.php');
+			
+			// add to the layout path, first unshift minerva's layout (so by default "blank" doesn't need to be copied) then look in the library's layout path
+			array_unshift($paths['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . '/views/layouts/{:layout}.{:type}.php');
+			array_unshift($paths['layout'], '{:library}/views/layouts/{:layout}.{:type}.php');
+			
 			// Add to the paths, admin template locations if admin was specified. It will still default back to non-admin and the main app
 			if(!empty($options['admin'])) {
 				array_unshift($paths['layout'], '{:library}/views/_admin/layouts/{:layout}.{:type}.php');
