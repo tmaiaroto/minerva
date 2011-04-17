@@ -47,6 +47,10 @@ class Minerva extends \lithium\security\auth\adapter\Form {
             
             // IF we even are using Facebook
             if(isset($minerva_config['facebook'])) {
+				$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://';
+				$minerva_config['facebook']['login_url'] = (isset($minerva_config['facebook']['login_url'])) ? $minerva_config['facebook']['login_url']:array();
+				$minerva_config['facebook']['logout_url'] = (isset($minerva_config['facebook']['logout_url'])) ? $minerva_config['facebook']['logout_url']:array('next' => $protocol . $_SERVER['HTTP_HOST'] . MINERVA_BASE_URL . '/users/logout');
+				
                 $facebook_config = Libraries::get('li3_facebook');
                 if($facebook_config) {
                     $session = FacebookProxy::getSession();
@@ -64,8 +68,7 @@ class Minerva extends \lithium\security\auth\adapter\Form {
                     
                     // If $uid is set, then write the fb_logout_url session key
                     if (!empty($uid)) {
-                        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://';
-                        Session::write('fb_logout_url',FacebookProxy::getLogoutUrl(array('next' => $protocol . $_SERVER['HTTP_HOST'] . MINERVA_BASE_URL . '/users/logout')));
+                        Session::write('fb_logout_url',FacebookProxy::getLogoutUrl($minerva_config['facebook']['logout_url']));
                         
                         // Also, set Auth and return the user data
                         $user_data = User::handle_facebook_user($uid);
@@ -77,7 +80,7 @@ class Minerva extends \lithium\security\auth\adapter\Form {
                         
                     } else {
                         // Else, the user hasn't logged in yet, write the fb_login_url session key
-                        Session::write('fb_login_url', FacebookProxy::getLoginUrl());
+                        Session::write('fb_login_url', FacebookProxy::getLoginUrl($minerva_config['facebook']['login_url']));
                         Auth::clear('minerva_user');
                         //Auth::clear('minerva_user'); // shouldn't need this, right/
                     }
