@@ -140,6 +140,14 @@ class Block extends \lithium\template\Helper {
 			$view = $this->_context->view();
 			$paths = $view->_config['paths'];
 			
+			// convert the $paths['template'] and $paths['layout'] if they are strings, so we can add a few different paths
+			if(is_string($paths['template'])) {
+				$paths['template'] = array($paths['template']);
+			}
+			if(is_string($paths['layout'])) {
+				$paths['layout'] = array($paths['layout']);
+			}
+			
 			// add to the template path
 			array_unshift($paths['template'], '{:library}/views/{:controller}/static/{:template}.{:type}.php');
 			
