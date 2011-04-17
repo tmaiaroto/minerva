@@ -39,7 +39,8 @@ class MinervaSocial extends MinervaHtml {
 			'div' => 'fb_login',
 			'button_image' => '/minerva/img/fb-login-button.png',
 			'button_alt' => 'Login with Facebook',
-			'additional_copy' => null
+			'additional_copy' => null,
+			'link_options' => array('escape' => false)
 		);
 		$options += $defaults;
 		$output = '';
@@ -50,7 +51,8 @@ class MinervaSocial extends MinervaHtml {
 				$output .= '<div id="' . $options['div'] . '">' . $options['additional_copy'];
 			}
 			
-			$output .= '<a href="' . $fb_login_url . '"><img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] .'" /></a>';
+			$output .= $this->_context->html->link('<img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] .'" />', $fb_login_url, $options['link_options']);
+			//$output .= '<a href="' . $fb_login_url . '"><img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] .'" /></a>';
 			
 			if($options['div'] !== false) {
 				$output .= '</div>';
