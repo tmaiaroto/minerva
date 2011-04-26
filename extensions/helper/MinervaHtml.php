@@ -230,7 +230,7 @@ class MinervaHtml extends \lithium\template\helper\Html {
 					$display_name = $model::display_name();
 					// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
 					$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type . ' ' . $model_name):$display_name;
-					$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+					$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'args' => $type), $options['link_options']) . '</li>';
 				}
 			}
 		} else {
@@ -240,7 +240,7 @@ class MinervaHtml extends \lithium\template\helper\Html {
 				$display_name = $models::display_name();
 				// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
 				$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type . ' ' . $model_name):$display_name;
-				$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'document_type' => $type), $options['link_options']) . '</li>';
+				$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'args' => $type), $options['link_options']) . '</li>';
 			}
 		}
 		

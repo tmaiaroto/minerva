@@ -17,7 +17,7 @@
 			} 
 	    }
 		?>
-	    <?=$this->form->submit('Edit ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index', 'document_type' => $document->document_type)); ?>
+	    <?=$this->form->submit('Edit ' . $display_name); ?> <?=$this->html->link('Cancel', array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index', 'args' => array($document->document_type))); ?>
 	</fieldset>
 	
 </div>

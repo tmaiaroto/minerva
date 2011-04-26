@@ -73,17 +73,17 @@ class BlocksController extends \minerva\controllers\MinervaController {
     }
 	
     // TODO: add caching
-    public function read($url) {
+    public function read($url=null) {
 		// get the page record (also within this record contains the library used, which is important)
 		// TODO: make read conditions??
 		return Block::find('first', array('conditions' => array('url' => $url, 'published' => true)));
     }
     
-    public function index() {
+    public function index($document_type=null) {
 		// all index() methods are the same so they are done in MinervaController, but we do need a little context as to where it's called from
         $this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::index();
+        parent::index($document_type);
     }
 	
     /** 
@@ -112,30 +112,30 @@ class BlocksController extends \minerva\controllers\MinervaController {
      * they all have to work together to pull off this flexibility.
      * 
     */
-    public function create() {
+    public function create($document_type=null) {
 		$this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::create();
+        parent::create($document_type);
     }
     
     /**
      * Update a block record.
      * 
     */
-    public function update() {	
+    public function update($url=null) {	
 		$this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::update();
+        parent::update($url);
     }
 	
     /** 
      *  Delete a block record.
      *  Plugins can apply filters within their Block model class in order to run filters for the delete.  
     */
-    public function delete() {
+    public function delete($url=null) {
 		$this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::delete();
+        parent::delete($url);
     }
     
 }

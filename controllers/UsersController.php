@@ -76,23 +76,23 @@ class UsersController extends \minerva\controllers\MinervaController {
         )
     );
     
-    public function index() {
+    public function index($document_type=null) {
         // all index() methods are the same so they are done in MinervaController, but we do need a little context as to where it's called from
         $this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::index();
+        parent::index($document_type);
     }
 	
-    public function read($id=null) {
-		if((isset($this->request->params['id'])) && (empty($id))) {
-			$id = $this->request->params['id'];
+    public function read($url=null) {
+		if((isset($this->request->params['url'])) && (empty($url))) {
+			$url = $this->request->params['url'];
 		}
 		
 		$document = $this->getDocument(array(
             'action' => __METHOD__,
             'request' => $this->request,
             'find_type' => 'first',
-            'conditions' => array('_id' => $id)
+            'conditions' => array('url' => $url)
         ));
 		 
 		if(!$document) {
@@ -108,20 +108,20 @@ class UsersController extends \minerva\controllers\MinervaController {
      * Should never be hit from the front-end.
      * 
     */
-    public function create() {
+    public function create($document_type=null) {
 		$this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::create();
+        parent::create($document_type);
     }
 	
     /**
      * Update a user.
      *
     */
-    public function update() {
+    public function update($url=null) {
 		$this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::update();
+        parent::update($url);
 	}
 	
     /** 
@@ -129,10 +129,10 @@ class UsersController extends \minerva\controllers\MinervaController {
      *  Plugins can apply filters within their User model class in order to run filters for the delete.
      *  Useful for "clean up" tasks.
     */
-    public function delete() {
+    public function delete($url=null) {
 		$this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::delete();
+        parent::delete($url);
     }
 	
 	/**

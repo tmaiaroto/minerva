@@ -53,6 +53,14 @@ class MinervaController extends \lithium\action\Controller {
             $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
             $document_type = $ModelClass::document_type();
             // the document type can be grabbed from the model class, but if specifically set in the routing params, use that
+            
+            // using args instead of keyed "document_type" ... so for "index" and "create" the first arg is going to be the document_type...
+            // no other action passes the document_type
+            if(isset($this->request->params['action']) && ($this->request->params['action'] == 'create') || ($this->request->params['action'] == 'index')) {
+                $document_type = $this->request->params['args'][0];
+            }
+            
+            // this will no longer be used...
             if(isset($this->request->params['document_type']) && !empty($this->request->params['document_type'])) {
                 $document_type = $this->request->params['document_type'];
             }
@@ -198,13 +206,17 @@ class MinervaController extends \lithium\action\Controller {
         // if the action is read, update, or delete then the document will be able to tell us the library name - otherwise it's going to be "minerva"
         if(($request->params['action'] == 'read') || ($request->params['action'] == 'update') || ($request->params['action'] == 'delete')) {
             // could be using the MongoId or the pretty URL in the route. Both work, but prefer the URL if set and there's no need to use both.
-            $conditions = array();
+            
+            // removing the following because we are using passed args...
+            //$conditions = array();
             // ALL models will use a 'url' field, even if it's just the _id that gets put there.
-            if(isset($request->params['url'])) {
+            /*if(isset($request->params['url'])) {
                $conditions = array(
                     'url' => $request->params['url']
                 ); 
-            } 
+            } */
+            
+            // this would still work but its redundant. $conditions will be passed in now from the other actions which take args and do all this.
             /* // If using {:args} route...
             if(isset($request->params['args'][0])) {
                 $conditions = array(
@@ -363,17 +375,40 @@ class MinervaController extends \lithium\action\Controller {
      * reference for which extended class called this index() method. We need that in order to
      * get the proper records and access.
     */
-    public function index() {
+    public function index($document_type=null) {
         // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
         extract($this->minerva_config);
+        
         
         // Default options for pagination, merge with URL parameters
         $defaults = array('page' => 1, 'limit' => 10, 'order' => 'created.desc');
         $params = Set::merge($defaults, $this->request->params);
+        
         if((isset($params['page'])) && ($params['page'] == 0)) {
             $params['page'] = 1;
         }
         list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
+        
+        /*
+        if(isset($params['args'])) {
+            foreach($params['args'] as $arg) {
+                $arg_pieces = explode(':', $arg);
+                if(count($arg_pieces) > 1) {
+                    switch(strtolower($arg_pieces[0])) {
+                        case 'page':
+                            $page = $arg_pieces[1];
+                            break;
+                        case 'limit':
+                            $limit = $arg_pieces[1];
+                            break;
+                        case 'order':
+                            $order = $arg_pieces[1];
+                            break;
+                    }
+                }
+            }
+        }
+        */
         
         // never allow a limit of 0
         $limit = ($limit < 0) ? 1:$limit;
@@ -472,11 +507,11 @@ class MinervaController extends \lithium\action\Controller {
      * reference for which extended class called this create() method. We need that in order to
      * get the proper records and access.
     */
-    public function create() {
+    public function create($document_type=null) {
         // first, get all the data we need. this will set $document_type, $type, $modelClass, and $display_name
         extract($this->minerva_config);
         
-        $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => false));
+        $this->getDocument(array('action' => $this->calling_method, 'conditions' => array('document_type' => $document_type), 'request' => $this->request, 'find_type' => false));
         // get the redirects; important to call this AFTER $this->getDocument() because the proper $ModelClass will be set (it will have changed based on the document from the database)
         $action_redirects = $this->getRedirects();
         
@@ -568,9 +603,10 @@ class MinervaController extends \lithium\action\Controller {
      * reference for which extended class called this update() method. We need that in order to
      * get the proper records and access.
     */
-    public function update() {
+    public function update($url=null) {
         
-        $conditions = array();
+        $conditions = array('url' => $url);
+        
         // Use the pretty URL if provided
 		if(isset($this->request->params['url'])) {
 			$conditions = array('url' => $this->request->params['url']);

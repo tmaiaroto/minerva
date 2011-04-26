@@ -29,9 +29,20 @@ use lithium\template\View;
 use \Exception;
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
-    
-	// Only apply the following when using the minerva library OR if the "minerva" parameter has been set (so libraries can use Minerva's templates)
-	if((isset($params['request']->params['library']) && $params['request']->params['library'] == 'minerva') || (isset($params['request']->params['minerva']))) {
+    $use_minerva_templates = false;
+	
+	// Only apply the following when using the minerva library OR if the "use_minerva_templates" option has been set true in Libraries::add('xxx', array(...))
+	if(isset($params['request']->params['library'])) {
+		$lib_config = Libraries::get($params['request']->params['library']);
+		if(($params['request']->params['library'] == 'minerva') || (isset($lib_config['use_minerva_templates']) && $lib_config['use_minerva_templates'] == true)) {
+			$use_minerva_templates = true;
+		}
+		if(isset($lib_config['minerva_theme'])) {
+			// TODO: ... Themes. This will add to the layout and template paths... But I'm thinking a "theme" will just be a folder under "views" under a "minerva_themes" library.
+		}
+	}
+	
+	if($use_minerva_templates) {
 		// Pass through a few Minerva configuration variables
 		$config = Libraries::get('minerva');
 		$params['minerva_base'] = isset($config['base_url']) ? $config['base_url'] : '/minerva';
@@ -45,6 +56,9 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 			'minerva.blocks',
 			'minerva.menus'
 		);
+		if(isset($lib_config['static_actions'])) {
+			// TODO: allow other libraries to use static templates? (which just changes the path to look for templates to include a "static" folder)
+		}
 		$params['minerva_controllers_using_static'] = isset($config['controllers_using_static']) ? $config['controllers_using_static'] += $default_static : $default_static;
 		
 		/**
@@ -63,7 +77,8 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		
 		// DEFAULT LAYOUT & TEMPLATE PATHS
 		$params['options']['render']['paths']['layout'] = array(
-			'{:library}/views/layouts/{:layout}.{:type}.php'
+			'{:library}/views/layouts/{:layout}.{:type}.php',
+			LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/{:layout}.{:type}.php'
 		);
 		$params['options']['render']['paths']['template'] = array(
 			'{:library}/views/{:controller}/{:template}.{:type}.php'
@@ -72,7 +87,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		// if admin is true, then look for admin templates first
 		if($admin === true) {
 			// if another library is using Minerva's templates for the admin interface, {:library} won't be "minerva" so hard code the path...but also allow that {:library} to provide its own template which would be looked for first
-			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'minerva' . '/views/_admin/layouts/{:layout}.{:type}.php');
+			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/{:layout}.{:type}.php');
 			array_unshift($params['options']['render']['paths']['layout'], '{:library}/views/_admin/layouts/{:layout}.{:type}.php');
 			
 			// note: we don't have to do the same thing for the view template because the {:controller} isn't going to be within the minerva library
@@ -135,7 +150,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 			if($layout_library == 'app' || $layout_library === false) {
 				array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/views/layouts/' . $layout . '.{:type}.php');
 			} else {
-				array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $layout_library . '/views/layouts/' . $layout . '.{:type}.php');
+				array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/' . $layout_library . '/views/layouts/' . $layout . '.{:type}.php');
 			}
 			
 			// custom layout and template paths can also take advantage of the admin flag
@@ -143,7 +158,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 				if($layout_library == 'app' || $layout_library === false) {
 					array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/views/_admin/layouts/' . $layout . '.{:type}.php');
 				} else {
-					array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $layout_library . '/views/_admin/layouts/' . $layout . '.{:type}.php');
+					array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/' . $layout_library . '/views/_admin/layouts/' . $layout . '.{:type}.php');
 				}
 			}
 			
@@ -163,7 +178,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 			if($template_library == 'app' || $template_library === false) {
 				array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/views/{:controller}/' . $template . '.{:type}.php');
 			} else {
-				array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $template_library . DIRECTORY_SEPARATOR . 'views/{:controller}/' . $template . '.{:type}.php');
+				array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/' . $template_library . '/views/{:controller}/' . $template . '.{:type}.php');
 			}
 			
 			// custom layout and template paths can also take advantage of the admin flag
@@ -171,7 +186,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 				if($template_library == 'app' || $template_library === false) {
 					array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/views/_admin/{:controller}/' . $template . '.{:type}.php');
 				} else {
-					array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $template_library . DIRECTORY_SEPARATOR . 'views/_admin/{:controller}/' . $template . '.{:type}.php');
+					array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/' . $template_library . '/views/_admin/{:controller}/' . $template . '.{:type}.php');
 				}
 			}
 		}
@@ -180,6 +195,9 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		// MISSING TEMPLATES
 		$params['options']['render']['paths']['template'][] = '{:library}/views/_missing/missing_template.html.php';
 		$params['options']['render']['paths']['layout'][] = '{:library}/views/_missing/missing_layout.html.php';
+		// ...and missing templates within the Minerva library folder 
+		$params['options']['render']['paths']['template'][] = LITHIUM_APP_PATH . '/libraries/minerva/views/_missing/missing_template.html.php';
+		$params['options']['render']['paths']['layout'][] = LITHIUM_APP_PATH. '/libraries/minerva/views/_missing/missing_layout.html.php';
 		
 		// var_dump($params['options']['render']['paths']); // <--- this is a great thing to uncomment and browse the site for reference
 		

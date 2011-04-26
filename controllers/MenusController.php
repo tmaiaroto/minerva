@@ -50,7 +50,7 @@ class MenusController extends BlocksController {
     static $document_access = array();
     
     // TODO: add caching
-    public function read($url) {
+    public function read($url=null) {
         $record = Block::find('first', array('conditions' => array('url' => $url, 'options.is_menu' => true)));	  	
         // Return an array. No rendering.
         return array('record' => $record);

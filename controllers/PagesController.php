@@ -127,11 +127,11 @@ class PagesController extends \minerva\controllers\MinervaController {
      * If a "page_type" param (a library) is passed from the routing and the library has a Page model, it will be instantiated.
      * Additional filters can be applied there that further control things.
     */
-    public function index() {
+    public function index($document_type=null) {
         // all index() methods are the same so they are done in MinervaController, but we do need a little context as to where it's called from
         $this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::index();
+        parent::index($document_type);
     }
 
     /**
@@ -142,19 +142,19 @@ class PagesController extends \minerva\controllers\MinervaController {
      * A library can change the fields displayed in the form so that different data can be saved to the page among other things.
      * The page type library doesn't touch this controller, but can alter a few things within it by having a Page model.
     */
-    public function create() {
+    public function create($document_type=null) {
         $this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::create();
+        parent::create($document_type);
     }
     
     /**
      * Update a page.
     */
-    public function update() {
+    public function update($url=null) {
         $this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::update();
+        parent::update($url);
     }
 
     /**
@@ -192,10 +192,10 @@ class PagesController extends \minerva\controllers\MinervaController {
      *  Plugins can apply filters within their Page model class in order to run filters for the delete.
      *  Useful for "clean up" tasks such as removing image files from the server if the plugin was a gallery for example.
     */
-    public function delete() {
+    public function delete($url=null) {
         $this->calling_class = __CLASS__;
         $this->calling_method = __METHOD__;
-        parent::delete();
+        parent::delete($url);
     }
     
 }
