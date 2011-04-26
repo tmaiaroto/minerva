@@ -1,3 +1,37 @@
+<?php
+/**
+ * The main admin menu is a special menu.
+ * It's static in that it does not come from the database, but what's special
+ * is that it allows libraires to add themselves to it.
+ *
+ * When adding libraries, define an 'minerva_admin_menu' key for the options.
+ * For example:
+ * Libraries::add('name', array('minerva_admin_menu' => array(
+ *  'controller_name' => array(
+ *      array(
+ *          'url' => 'url or array',
+ *          'title' => 'Menu Link Name'
+ *      )
+ *  )
+ * )))
+ *
+*/
+
+use \minerva\extensions\util\Util;
+$libraries = Util::library_config(array('config_keys' => array('minerva_admin_menu')));
+$menus = array();
+foreach($libraries as $k => $v) {
+    if(!empty($v['minerva_admin_menu'])) {
+        $menus[$k] = $v['minerva_admin_menu'];
+    }
+}
+$default_minerva_menu = array(
+    array('url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index'), 'title' => 'Pages')
+    
+);
+//var_dump($menus);
+?>
+
 <ul id="main_administration_menu" class="nav main">
     <li class="menu_first"><a href="/minerva/admin">Dashboard</a></li>
     <li>
