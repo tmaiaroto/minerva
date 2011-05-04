@@ -21,7 +21,7 @@
     <div id="right_column">
         <div class="box">
             <p>If you don't have an account yet, you can register for free by <?=$this->html->link('clicking here.', array('library' => 'minerva', 'controller' => 'users', 'action' => 'register')); ?></p>
-            <?= $this->minervaSocial->facebook_login(); ?>
+            <?=$this->minervaSocial->facebook_login(); ?>
         </div>
     </div>
 </div>

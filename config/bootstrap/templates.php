@@ -69,6 +69,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		*/
 		
 		// The admin flag from routes helps give control over the templates to use
+		if(empty($params['request']->params['admin'])) { unset($params['request']->params['admin']); } // admin can not be empty. if its empty just remove it. this unset really shouldn't be required...some places seem to be setting admin as an empty string... TODO: find those areas
 		$admin = ((isset($params['request']->params['admin'])) && ($params['request']->params['admin'] == 1 || $params['request']->params['admin'] === true || $params['request']->params['admin'] == 'true' || $params['request']->params['admin'] == 'admin')) ? true:false;
 		
 		// The layout and template keys from the routes give us even more control, it's the final authority on where to check, but things do cascade down

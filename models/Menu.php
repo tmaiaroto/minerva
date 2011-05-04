@@ -35,7 +35,35 @@ class Menu extends \lithium\data\Model {
             ),
             array(
                 'title' => 'Blocks',
-                'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')
+                'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index'),
+                'sub_items' => array(
+                    array(
+                        'title' => 'List All',
+                        'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')
+                    ),
+                    array(
+                        'title' => 'Create New',
+                        'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'create')
+                    )
+                )
+            ),
+            array(
+                'title' => 'Users',
+                'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'index'),
+                'sub_items' => array(
+                    array(
+                        'title' => 'List All',
+                        'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'index')
+                    ),
+                    array(
+                        'title' => 'Create New',
+                        'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'create')
+                    )
+                )
+            ),
+            array(
+                'title' => 'Logout',
+                'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'logout')
             )
         )
     );
