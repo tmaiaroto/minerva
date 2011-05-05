@@ -135,6 +135,13 @@ foreach ($sanityChecks as $checkName => $check) {
 ?>
 <h3>Getting Started</h3>
 <p>
+	Likely, you're wanting to see how the CMS works. That's good because there really aren't any front-end templates right now (there are, but they are very basic). You first need to create an account and login. The very first account you create will have an administrator role. <a href="/minerva/users/register">Click here to register</a>.
+</p>
+<p>
+	After you've registered, you can then login. You probably want to login to see the admin area so <a href="/minerva/admin/pages">click here to go to the admin area</a>. You will be redirected to login first and, after you do, you will then be redirected to the URL you were trying to access (the page listing within the administrative back-end). Alternatively, you could just login and then manually go to "/minerva/admin" or some other admin URL.
+</p>
+<h4>About This Page</h4>
+<p>
 	This is Minerva's default home page. To change this template, edit the file
 	<code><?php echo realpath(LITHIUM_APP_PATH . '/libraries/minerva/views/pages/static/home.html.php'); ?></code>.
 </p>
