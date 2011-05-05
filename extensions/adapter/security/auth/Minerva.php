@@ -25,7 +25,6 @@ use \Exception;
 
 class Minerva extends \lithium\security\auth\adapter\Form {
 
-	
 	/**
 	 * Called by the `Auth` class to run an authentication check against a model class using the
 	 * credientials in a data container (a `Request` object), and returns an array of user
@@ -40,7 +39,7 @@ class Minerva extends \lithium\security\auth\adapter\Form {
 	 */
 	public function check($credentials, array $options = array()) {
 		$user = parent::check($credentials, $options);
-        
+		
         // If the user didn't sign in using normal form method, try checking for a Facebook session
         if(!$user) {
             $minerva_config = Libraries::get('minerva');
@@ -68,7 +67,7 @@ class Minerva extends \lithium\security\auth\adapter\Form {
                     
                     // If $uid is set, then write the fb_logout_url session key
                     if (!empty($uid)) {
-                        Session::write('fb_logout_url',FacebookProxy::getLogoutUrl($minerva_config['facebook']['logout_url']));
+                        Session::write('fb_logout_url', FacebookProxy::getLogoutUrl($minerva_config['facebook']['logout_url']));
                         
                         // Also, set Auth and return the user data
                         $user_data = User::handle_facebook_user($uid);

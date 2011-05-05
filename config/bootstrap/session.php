@@ -13,9 +13,9 @@
 use lithium\storage\Session;
 
 Session::config(array(
-	'minerva_cookie' => array('adapter' => 'Cookie'),
-	'default' => array('adapter' => 'Php'),
-    //'minerva_default' => array('adapter' => 'Model', 'model' => 'Session'),
+	'cookie' => array('adapter' => 'Cookie'),
+	//'default' => array('adapter' => 'Php'),
+    'default' => array('adapter' => 'Model', 'model' => 'minerva\models\Session'),
     'flash_message' => array('adapter' => 'Php')
 ));
 

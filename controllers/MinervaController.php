@@ -57,7 +57,9 @@ class MinervaController extends \lithium\action\Controller {
             // using args instead of keyed "document_type" ... so for "index" and "create" the first arg is going to be the document_type...
             // no other action passes the document_type
             if(isset($this->request->params['action']) && ($this->request->params['action'] == 'create') || ($this->request->params['action'] == 'index')) {
-                $document_type = $this->request->params['args'][0];
+                if(isset($this->request->params['args'][0])) {
+                    $document_type = $this->request->params['args'][0];
+                }
             }
             
             // this will no longer be used...
@@ -124,7 +126,7 @@ class MinervaController extends \lithium\action\Controller {
                 'users.register'
             );
             if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
-                Session::write('beforeAuthURL', '/' . $this->request->url);
+                Session::write('beforeAuthURL', '/' . $this->request->url, array('name' => 'cookie', 'expires' => '+1 hour'));
             }
             
         }

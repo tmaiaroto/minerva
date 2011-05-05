@@ -12,6 +12,7 @@ use lithium\data\Entity;
 use lithium\core\Libraries;
 use lithium\data\Connections;
 use lithium\core\ConfigException;
+use IDlib\util\Logger;
 
 /**
  * The `Model` adapter is a simple session adapter which allows session data to be written to a
@@ -70,6 +71,11 @@ class Model extends \lithium\core\Object {
 		parent::__construct($config + $defaults);
 	}
 
+	static public function log($message, $priority = \Zend_Log::INFO, $extras = null) {
+		$message = "[" . get_called_class() . "] $message";
+		return Logger::getLogger()->log($message, $priority, $extras);
+	}
+
 	/**
 	 * Initialization of the session.
 	 * Sets the session save handlers to this adapters' corresponding methods.
@@ -81,12 +87,14 @@ class Model extends \lithium\core\Object {
 
 		if (!$this->_config['model']) {
 			$message = "A valid model is required to use the Model session adapter.";
+			static::log($message, \Zend_Log::CRIT);
 			throw new ConfigException($message);
 		}
 
 		foreach ($this->_defaults as $key => $config) {
 			if (isset($this->_config[$key])) {
 				if (ini_set("session.{$key}", $this->_config[$key]) === false) {
+					static::log("Failed to initialize the session", \Zend_Log::CRIT);
 					throw new ConfigException("Could not initialize the session.");
 				}
 			}

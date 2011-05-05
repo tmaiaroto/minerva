@@ -297,24 +297,24 @@ class UsersController extends \minerva\controllers\MinervaController {
     public function login() {
         $user = Auth::check('minerva_user', $this->request);
 		// 'triedAuthRedirect' so we don't end up in a redirect loop
-		if (!Session::check('triedAuthRedirect')) {
-			Session::write('triedAuthRedirect', false);
+		if (!Session::check('triedAuthRedirect', array('name' => 'cookie'))) {
+			Session::write('triedAuthRedirect', 'false', array('name' => 'cookie', 'expires' => '+1 hour'));
 		}
         if ($user) {
 			$url = MINERVA_BASE_URL;
-            if (Session::check('beforeAuthURL')) {
-				$url = Session::read('beforeAuthURL');
+            if (Session::check('beforeAuthURL', array('name' => 'cookie'))) {
+				$url = Session::read('beforeAuthURL', array('name' => 'cookie'));
 				
 				// 'triedAuthRedirect' so we don't end up in a redirect loop
-				$triedAuthRedirect = Session::read('triedAuthRedirect');
-				if($triedAuthRedirect === true || $triedAuthRedirect == '1') {
+				$triedAuthRedirect = Session::read('triedAuthRedirect', array('name' => 'cookie'));
+				if($triedAuthRedirect == 'true') {
 					$url = MINERVA_BASE_URL;
-					Session::delete('triedAuthRedirect');
+					Session::delete('triedAuthRedirect', array('name' => 'cookie'));
 				} else {
-					Session::write('triedAuthRedirect', true);
+					Session::write('triedAuthRedirect', 'true', array('name' => 'cookie', 'expires' => '+1 hour'));
 				}
 				
-                Session::delete('beforeAuthURL');
+                Session::delete('beforeAuthURL', array('name' => 'cookie'));
             }
             // Save last login IP and time
             //$user_record = User::find('first', array('conditions' => array('_id' => new \MongoId($user['_id']))));
