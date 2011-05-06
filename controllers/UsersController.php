@@ -297,24 +297,24 @@ class UsersController extends \minerva\controllers\MinervaController {
     public function login() {
         $user = Auth::check('minerva_user', $this->request);
 		// 'triedAuthRedirect' so we don't end up in a redirect loop
-		if (!Session::check('triedAuthRedirect', array('name' => 'cookie'))) {
-			Session::write('triedAuthRedirect', 'false', array('name' => 'cookie', 'expires' => '+1 hour'));
+		if (!Session::check('triedAuthRedirect', array('name' => 'minerva_cookie'))) {
+			Session::write('triedAuthRedirect', 'false', array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
 		}
         if ($user) {
 			$url = MINERVA_BASE_URL;
-            if (Session::check('beforeAuthURL', array('name' => 'cookie'))) {
-				$url = Session::read('beforeAuthURL', array('name' => 'cookie'));
+            if (Session::check('beforeAuthURL', array('name' => 'minerva_cookie'))) {
+				$url = Session::read('beforeAuthURL', array('name' => 'minerva_cookie'));
 				
 				// 'triedAuthRedirect' so we don't end up in a redirect loop
-				$triedAuthRedirect = Session::read('triedAuthRedirect', array('name' => 'cookie'));
+				$triedAuthRedirect = Session::read('triedAuthRedirect', array('name' => 'minerva_cookie'));
 				if($triedAuthRedirect == 'true') {
 					$url = MINERVA_BASE_URL;
-					Session::delete('triedAuthRedirect', array('name' => 'cookie'));
+					Session::delete('triedAuthRedirect', array('name' => 'minerva_cookie'));
 				} else {
-					Session::write('triedAuthRedirect', 'true', array('name' => 'cookie', 'expires' => '+1 hour'));
+					Session::write('triedAuthRedirect', 'true', array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
 				}
 				
-                Session::delete('beforeAuthURL', array('name' => 'cookie'));
+                Session::delete('beforeAuthURL', array('name' => 'minerva_cookie'));
             }
             // Save last login IP and time
             //$user_record = User::find('first', array('conditions' => array('_id' => new \MongoId($user['_id']))));
@@ -344,8 +344,8 @@ class UsersController extends \minerva\controllers\MinervaController {
 		
 		// Also get the Facebook login URL if present
 		$fb_login_url = false;
-		if (Session::check('fb_login_url')) {
-            $fb_login_url = Session::read('fb_login_url');
+		if (Session::check('fb_login_url', array('name' => 'minerva_default'))) {
+            $fb_login_url = Session::read('fb_login_url', array('name' => 'minerva_default'));
 		}
 		
         return compact('data', 'fb_login_url');

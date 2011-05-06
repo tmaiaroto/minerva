@@ -126,7 +126,7 @@ class MinervaController extends \lithium\action\Controller {
                 'users.register'
             );
             if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
-                Session::write('beforeAuthURL', '/' . $this->request->url, array('name' => 'cookie', 'expires' => '+1 hour'));
+                Session::write('beforeAuthURL', '/' . $this->request->url, array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
             }
             
         }

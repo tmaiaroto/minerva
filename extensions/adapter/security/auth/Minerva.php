@@ -57,7 +57,7 @@ class Minerva extends \lithium\security\auth\adapter\Form {
                     // Session based API call.
                     if ($session) {
                             // Set the session
-                            Session::write('fb_session', $session);
+                            Session::write('fb_session', $session, array('name' => 'minerva_default'));
                             try {
                                 $uid = FacebookProxy::getUser();
                             } catch (Exception $e) {
@@ -67,20 +67,19 @@ class Minerva extends \lithium\security\auth\adapter\Form {
                     
                     // If $uid is set, then write the fb_logout_url session key
                     if (!empty($uid)) {
-                        Session::write('fb_logout_url', FacebookProxy::getLogoutUrl($minerva_config['facebook']['logout_url']));
+                        Session::write('fb_logout_url', FacebookProxy::getLogoutUrl($minerva_config['facebook']['logout_url']), array('name' => 'minerva_default'));
                         
                         // Also, set Auth and return the user data
                         $user_data = User::handle_facebook_user($uid);
                         if($user_data) {
                             Auth::set('minerva_user', $user_data);
                         } else {
-                            Auth::clear('minerva_user');
+                            //Auth::clear('minerva_user');
                         }
                         
                     } else {
                         // Else, the user hasn't logged in yet, write the fb_login_url session key
-                        Session::write('fb_login_url', FacebookProxy::getLoginUrl($minerva_config['facebook']['login_url']));
-                        Auth::clear('minerva_user');
+                        Session::write('fb_login_url', FacebookProxy::getLoginUrl($minerva_config['facebook']['login_url']), array('name' => 'minerva_default'));
                         //Auth::clear('minerva_user'); // shouldn't need this, right/
                     }
                     
