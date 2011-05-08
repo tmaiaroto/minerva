@@ -17,7 +17,7 @@ Menu::applyFilter('static_menu',  function($self, $params, $chain) {
 
 // a second filter... pretend its elsewhere...so long as its applied before the call to Menu::static_menu()
 Menu::applyFilter('static_menu',  function($self, $params, $chain) {
-    var_dump('filter ran');
+    //var_dump('filter ran');
     
     if($params['name'] == 'public') {
         $self::$static_menus['public'] += array('item' => 'url');
@@ -35,37 +35,4 @@ $admin_menu = Menu::static_menu('admin');
 // all menus
 //var_dump(Menu::static_menu());
 ?>
-<ul id="main_administration_menu" class="nav main">
-    <li class="menu_first"><a href="/minerva/admin">Dashboard</a></li>
-    <li>
-        <?=$this->html->link('Pages', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index')); ?>
-        <ul>
-            <li><?=$this->html->link('List All', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index')); ?></li>
-            <li><?=$this->html->link('Create New', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'create')); ?></li>
-        </ul>
-    </li>
-    <li>
-        <?=$this->html->link('Blocks', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')); ?>
-        <ul>
-            <li><?=$this->html->link('List All', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index')); ?></li>
-            <li><?=$this->html->link('Create New', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'create')); ?></li>
-        </ul>
-    </li>
-    <li>
-        <?=$this->html->link('Users', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'index')); ?>
-        <ul>
-            <li><?=$this->html->link('List All', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'index')); ?></li>
-            <li><?=$this->html->link('Create New', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'create')); ?></li>
-        </ul>
-    </li>
-    <li>
-        <a href="/admin/system_status">System</a>
-        <ul>
-            <li><a href="/admin/system_status">System Status</a></li>
-            <li><a href="/test" target="_blank">Unit Test Dashboard</a></li>
-        </ul>
-    </li>
-    <li class="menu_last">
-        <?=$this->html->link('Logout', array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'logout')); ?>
-    </li>
-</ul>
+<?=$this->minervaMenu->static_menu('admin', array('menu_class' => 'nav main')); ?>

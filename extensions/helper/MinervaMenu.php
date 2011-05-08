@@ -9,6 +9,7 @@
 namespace minerva\extensions\helper;
 use \lithium\template\View as View;
 use \lithium\util\Inflector as Inflector;
+use minerva\models\Menu;
 
 class MinervaMenu extends Block {
   
@@ -62,6 +63,76 @@ class MinervaMenu extends Block {
     public function requestAction($options=array()) {
         return false;
     }
+	
+	/**
+	 * Renders a static menu that gets built using Lithium's filter system.
+	 * For now, this only goes two deep. In the future it should allow for more levels...Though there should be a limit.
+	 *
+	 * @param string $name The menu name
+	 * @param array $options 
+	 * @return string HTML code for the menu
+	*/
+	public function static_menu($name=null, $options=array()) {
+		if(empty($name) || !is_string($name)) {
+			return '';
+		}
+		
+		$menu = Menu::static_menu($name);
+		
+		// option for additional custom menu class
+		$menu_class = '';
+		if(isset($options['menu_class']) && is_string($options['menu_class'])) {
+			$menu_class = ' ' . $options['menu_class'];
+		}
+		
+		$string = "\n";
+		$string .= '<ul class="minerva_menu ' . $name . '_menu' . $menu_class . '">';
+		$string .= "\n";
+		
+		if(is_array($menu)) {
+			$i = 1;
+			$total = count($menu);
+			foreach($menu as $parent) {
+				$title = (isset($parent['title']) && !empty($parent['title'])) ? $parent['title']:false;
+				$url = (isset($parent['url']) && !empty($parent['url'])) ? $parent['url']:false;
+				$options = (isset($parent['options']) && is_array($parent['options'])) ? $parent['options']:array();
+				$sub_items = (isset($parent['sub_items']) && is_array($parent['sub_items'])) ? $parent['sub_items']:array();
+				if($title && $url) {
+					$position_class = ($i == 1) ? ' menu_first':'';
+					$position_class = ($i == $total) ? ' menu_last':$position_class;
+					$string .= "\t";
+					$string .= '<li class="menu_item' . $position_class . '">' . $this->_context->html->link($title, $url, $options);
+					// sub menu items
+					if(count($sub_items) > 0) {
+						$string .= "\n\t";
+						$string .= '<ul class="sub_menu">';
+						$string .= "\n";
+						foreach($sub_items as $child) {
+							$title = (isset($child['title']) && !empty($child['title'])) ? $child['title']:false;
+							$url = (isset($child['url']) && !empty($child['url'])) ? $child['url']:false;
+							$options = (isset($child['options']) && is_array($child['options'])) ? $child['options']:array();
+							if($title && $url) {
+								$string .= "\t\t";
+								$string .= '<li class="sub_menu_item">' . $this->_context->html->link($title, $url, $options) . '</li>';
+								$string .= "\n";
+							}
+						}
+						$string .= "\t";
+						$string .= '</ul>';
+						$string .= "\n";
+					}
+					$string .= '</li>';
+					$string .= "\n";
+				}
+				$i++;
+			}
+		}
+		
+		$string .= '</ul>';
+		$string .= "\n";
+		
+		return $string;
+	}
     
 }
 ?>

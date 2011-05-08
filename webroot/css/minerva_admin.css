@@ -86,16 +86,19 @@ h1#branding a {
 #admin_header {
 	background: url('/minerva/img/admin-header-bg-red.png') #6c120a repeat-x;
 }
-ul#main_administration_menu {
+ul#main_administration_menu, ul.admin_menu {
 	/*border-top: 1px solid #2c2c2c;*/
 	border-top: 1px solid #111;
 }
-ul#main_administration_menu li a, ul#main_administration_menu {
-	background: #222;
+ul#main_administration_menu li a, ul#main_administration_menu, ul.admin_menu li a, ul.admin_menu {
+	background: #222 !important;
 }
-ul#main_administration_menu li a:hover {
-	color: #d71d04;
-	background: #111;
+ul#main_administration_menu li a:hover, ul.admin_menu li a:hover {
+	color: #d71d04 !important;
+	background: #111 !important;
+}
+ul.admin_menu li a.current {
+	background: #888;
 }
 
 .pagination .prev, .pagination .next, .pagination .numbers {
