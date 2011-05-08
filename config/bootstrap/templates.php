@@ -200,7 +200,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		$params['options']['render']['paths']['template'][] = LITHIUM_APP_PATH . '/libraries/minerva/views/_missing/missing_template.html.php';
 		$params['options']['render']['paths']['layout'][] = LITHIUM_APP_PATH. '/libraries/minerva/views/_missing/missing_layout.html.php';
 		
-		// var_dump($params['options']['render']['paths']); // <--- this is a great thing to uncomment and browse the site for reference
+		 var_dump($params['options']['render']['paths']); // <--- this is a great thing to uncomment and browse the site for reference
 		
 	}
 	
