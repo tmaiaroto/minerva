@@ -10,12 +10,12 @@ class Menu extends \lithium\core\StaticObject {
     */
     static $static_menus = array(
         'admin' => array(
-            array(
+            'm1_dashboard' => array(
                 'title' => 'Dashboard',
                 'url' => '/minerva/admin',
                 'options' => array()
             ),
-            array(
+            'm1_pages' => array(
                 'title' => 'Pages',
                 'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'pages', 'action' => 'index'),
                 'options' => array(),
@@ -31,7 +31,7 @@ class Menu extends \lithium\core\StaticObject {
                     )
                 )
             ),
-            array(
+            'm2_blocks' => array(
                 'title' => 'Blocks',
                 'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'index'),
                 'sub_items' => array(
@@ -45,7 +45,7 @@ class Menu extends \lithium\core\StaticObject {
                     )
                 )
             ),
-            array(
+            'm3_users' => array(
                 'title' => 'Users',
                 'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'index'),
                 'sub_items' => array(
@@ -59,7 +59,7 @@ class Menu extends \lithium\core\StaticObject {
                     )
                 )
             ),
-            array(
+            'm99_logout' => array(
                 'title' => 'Logout',
                 'url' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'logout')
             )
@@ -94,6 +94,9 @@ class Menu extends \lithium\core\StaticObject {
                 $static_menus = isset($self::$static_menus[$params['name']]) ? $self::$static_menus[$params['name']]:array();
             }
             
+			// sort parent menu items by key name
+			ksort($static_menus);
+			
             // return the static menus
             return $static_menus;
 		};
