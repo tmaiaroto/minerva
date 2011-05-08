@@ -75,7 +75,8 @@ class MinervaMenu extends Block {
 	*/
 	public function static_menu($name=null, $options=array()) {
 		$defaults = array(
-            'cache' => '+1 day'
+            //'cache' => '+1 day'
+			'cache' => false
         );
 		if(empty($name) || !is_string($name)) {
 			return '';
