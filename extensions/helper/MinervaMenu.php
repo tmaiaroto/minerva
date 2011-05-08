@@ -10,6 +10,7 @@ namespace minerva\extensions\helper;
 use \lithium\template\View as View;
 use \lithium\util\Inflector as Inflector;
 use minerva\models\Menu;
+use \lithium\storage\Cache;
 
 class MinervaMenu extends Block {
   
@@ -73,12 +74,33 @@ class MinervaMenu extends Block {
 	 * @return string HTML code for the menu
 	*/
 	public function static_menu($name=null, $options=array()) {
+		$defaults = array(
+            'cache' => '+1 day'
+        );
 		if(empty($name) || !is_string($name)) {
 			return '';
 		}
 		
-		$menu = Menu::static_menu($name);
+		// set the cache key for the menu
+		$cache_key = (empty($name)) ? 'minerva_static_menus.all':'minerva_static_menus.' . $name;
+		$menu = false;
 		
+		// if told to use the menu from cache (note: filters will not be applied for this call because Menu::static_menu() should not be called provided there's a copy in cache)
+        if(!empty($options['cache'])) {
+            $menu = Cache::read('default', $cache_key);
+        }
+		
+		// if the menu hasn't been set in cache or it was empty for some reason, get a fresh copy of its data
+		if(empty($menu)) {
+			$menu = Menu::static_menu($name);	
+		}
+		
+		// if using cache, write the menu data to the cache key
+		if(!empty($options['cache'])) {
+			Cache::write('default', $cache_key, $menu, $options['cache']);
+		}
+		
+		// Format the HTML for the menu
 		// option for additional custom menu class
 		$menu_class = '';
 		if(isset($options['menu_class']) && is_string($options['menu_class'])) {

@@ -1,9 +1,7 @@
 <?php
 namespace minerva\models;
 
-use \lithium\storage\Cache;
-
-class Menu extends \lithium\data\Model {
+class Menu extends \lithium\core\StaticObject {
     
     /**
      * Default static menus.
@@ -80,37 +78,20 @@ class Menu extends \lithium\data\Model {
      * @return array The static menu(s)
     */
     public static function static_menu($name=null, $options=array()) {
-        $defaults = array(
-            'cache' => '+1 day'
-        );
+        $defaults = array();
         $options += $defaults;
         $params = compact('name', 'options');
 		
-        // if told to use the menu from cache (note: filters will not be applied for this call)
-        if(!empty($options['cache'])) {
-            $cache_key = (empty($name)) ? 'minerva_static_menus.all':'minerva_static_menus.' . $name;
-            $cached_static_menus = Cache::read('default', $cache_key);
-            if(!empty($cached_static_menus)) {
-                return $cached_static_menus;
-            }
-        }
-        
         $filter = function($self, $params) {
 			$options = $params['options'];
             $name = $params['name'];
             $static_menus = array();
-            $cache_key = (empty($name)) ? 'minerva_static_menus.all':'minerva_static_menus.' . $name;
             
             // get a specific menu or all menus to return
             if(empty($name)) {
                 $static_menus = $self::$static_menus;
             } else {
                 $static_menus = isset($self::$static_menus[$params['name']]) ? $self::$static_menus[$params['name']]:array();
-            }
-            
-            // if using cache, write the key
-            if(!empty($options['cache'])) {
-                Cache::write('default', $cache_key, $static_menus, $options['cache']);
             }
             
             // return the static menus
