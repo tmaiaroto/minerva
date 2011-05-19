@@ -35,7 +35,11 @@ class MinervaModel extends \lithium\data\Model {
 		$class =  __CLASS__;
 		
 		// Use the library Page model's validation rules combined with the default (but the library gets priority) this way the default rules can be changed, but if left out will still be used (to help make things nicer)
-		$class::_object()->validates = static::_object()->validates += $class::_object()->validates;
+		// $class::_object()->validates = static::_object()->validates += $class::_object()->validates;
+		// Now going to just override... The way things were extended, it somehow picked up validates property from other models...weird.
+		// All this means is care needs to be taken, there's not many validation rules by default anyway...
+		// TODO: Think about this, because it may not be a bad thing it gives more control to a developer but it 
+		$class::_object()->validates = static::_object()->validates;
 		
 		// Same for the search schema, the library gets priority, but combine them.
 		$class::_object()->search_schema = static::_object()->search_schema += $class::_object()->search_schema;
