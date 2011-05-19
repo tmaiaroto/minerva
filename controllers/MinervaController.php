@@ -264,6 +264,17 @@ class MinervaController extends \lithium\action\Controller {
         // (properties set in model for core controllers) ... transfer those settings to the controller
         $ControllerClass = '\minerva\controllers\\'.$relative_controller.'Controller';
         
+        // If the class doesn't exist, this was a library that decided to make it's own controller extend this controller
+        // So locate it. It will hold our access rules and such.
+        if(!class_exists($ControllerClass)) {
+            $ControllerClass = \lithium\core\Libraries::locate('controllers', $this->request->params['library'] . '.' . $relative_controller);
+        }
+        
+        // OK. If still not found, there's probably something wrong, but we don't want the system to fail so use this class.
+        if(!class_exists($ControllerClass)) {
+            $ControllerClass = __CLASS__;
+        }
+        
         // If the $controllerClass doesn't exist, it means it's a controller that Minerva doesn't have. That means it's not core and the access can be set there on that controller.
         if((isset($ModelClass::$access)) && (class_exists($ControllerClass))) {
             // Don't completely replace core Minerva controller with new access rules, but append all the rules (giving the library model's access property priority)
