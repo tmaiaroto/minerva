@@ -70,6 +70,7 @@ class MinervaForm extends \lithium\template\helper\Form {
 								$output .= $this->_context->form->label($k, $v['form']['label']);
 							}
 							$output .= $this->_context->form->select($k, $v['form']['list'], $v['form']['options']);
+							$output .= $this->_context->form->error($k);
 							$output .= '</div>';
 							break;
 					}
