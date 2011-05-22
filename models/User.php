@@ -89,8 +89,8 @@ class User extends \minerva\models\MinervaModel {
 		*/
 		// Replace user roles
 		$class::_object()->_user_roles = static::_object()->_user_roles;
-		// Fill form with role options
-		$class::_object()->_schema['role']['form']['options'] = User::user_roles();
+		// Fill form with role options ($list arg)
+		$class::_object()->_schema['role']['form']['list'] = User::user_roles();
 		
 		/*
 		 * Some special validation rules

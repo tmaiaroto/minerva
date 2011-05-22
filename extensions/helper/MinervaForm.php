@@ -56,6 +56,8 @@ class MinervaForm extends \lithium\template\helper\Form {
 				if(($v['form']['position'] == $position) && ($v['form']['position'] != false)) {
 					// ensure there's some sort of type set (empty string will be regular text input)
                     $v['form']['type'] = (isset($v['form']['type'])) ? $v['form']['type']:'';
+					$v['form']['options'] = (isset($v['form']['options'])) ? $v['form']['options']:array();
+					$v['form']['list'] = (isset($v['form']['list'])) ? $v['form']['list']:array();
 					switch($v['form']['type']) {
 						case 'text':
 						case 'input':
@@ -67,7 +69,7 @@ class MinervaForm extends \lithium\template\helper\Form {
 							if(isset($v['form']['label'])) {
 								$output .= $this->_context->form->label($k, $v['form']['label']);
 							}
-							$output .= $this->_context->form->select($k, $v['form']['options']);
+							$output .= $this->_context->form->select($k, $v['form']['list'], $v['form']['options']);
 							$output .= '</div>';
 							break;
 					}
