@@ -17,7 +17,7 @@
 		echo $this->html->style(array('/minerva/css/reset', '/minerva/css/text', '/minerva/css/960', '/minerva/css/layout', '/minerva/css/nav', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/smoothness/jquery-ui.css', '/minerva/css/minerva_admin'), array('inline' => false));	
 		echo '<!--[if IE 6]>'.$this->html->style('/minerva/css/ie6').'<![endif]-->';
 		echo '<!--[if IE 7]>'.$this->html->style('/minerva/css/ie').'<![endif]-->';
-		echo $this->html->script(array('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js'), array('inline' => false));
+		echo $this->html->script(array('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js', '/minerva/js/jquery/jquery.tipsy.js'), array('inline' => false));
 	?>
 		
 	<?php
