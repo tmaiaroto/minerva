@@ -87,7 +87,7 @@ class MinervaForm extends \lithium\template\helper\Form {
 							// but we'll do it here just in case so we don't have to remember to do so in controller
 							// TODO: patch the lithium form helper method
 							$field = $this->_context->form->binding()->data($k);
-							$v['form']['options']['value'] = (!is_null($field)) ? $field->data():$field;
+							$v['form']['options']['value'] = (is_object($field)) ? $field->data():$field;
 							$output .= $this->_context->form->select($k, $v['form']['list'], $v['form']['options']);
 							
 							// this shouldn't be necessary...
