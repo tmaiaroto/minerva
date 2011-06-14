@@ -9,6 +9,8 @@
 */
 namespace minerva\extensions\helper;
 
+use lithium\util\Inflector;
+
 class MinervaForm extends \lithium\template\helper\Form {
     
     /**
@@ -66,11 +68,40 @@ class MinervaForm extends \lithium\template\helper\Form {
 							break;
 						case 'select':
 							$output .= '<div>';
+							// for some reason this doesn't work
+							/*
 							if(isset($v['form']['label'])) {
 								$output .= $this->_context->form->label($k, $v['form']['label']);
 							}
+							*/
+							
+							// so set the label like this (for now)
+							$model = $this->_context->form->binding()->model();
+							$meta = $model::meta();
+							if(isset($v['form']['label'])) {
+								$output .= '<label for="' . $meta['name'] . Inflector::camelize($k) . '">' . $v['form']['label'] . '</label>';
+							}
+							
+							// this seems to be ok, but it doesn't keep options selected...
+							// the "value" key in the "options" array has to be set, which we could do from the controller
+							// but we'll do it here just in case so we don't have to remember to do so in controller
+							// TODO: patch the lithium form helper method
+							$field = $this->_context->form->binding()->data($k);
+							$v['form']['options']['value'] = (!is_null($field)) ? $field->data():$field;
 							$output .= $this->_context->form->select($k, $v['form']['list'], $v['form']['options']);
+							
+							// this shouldn't be necessary...
+							/*
+							$output .= '<select>';
+							foreach($v['form']['list'] as $value => $name) {
+								$output .= '<option value="' . $value . '">' . $name . '</option>';
+							}
+							$output .= '</select>';
+							*/
+							
+							// this seems absolutely fine
 							$output .= $this->_context->form->error($k);
+							
 							$output .= '</div>';
 							break;
 					}
