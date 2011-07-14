@@ -48,7 +48,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 			// TODO: ... Themes. This will add to the layout and template paths... But I'm thinking a "theme" will just be a folder under "views" under a "minerva_themes" library.
 		}
 	}
-	
+    
 	if($use_minerva_templates) {
         
 		// Pass through a few Minerva configuration variables
@@ -96,6 +96,19 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
                 '{:library}/views/{:controller}/{:template}.{:type}.php'
             );
         }
+        
+        
+        // Also check these paths, they are direct minerva paths, IF $use_minerva_templates is true
+        // It can act as a convenience. A plugin that doesn't use a Minerva model then doesn't need 
+        // to copy over template files.
+        if($admin === true) {
+            $params['options']['render']['paths']['layout'][] = LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/{:layout}.{:type}.php';
+            $params['options']['render']['paths']['template'][] = LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/{:layout}.{:type}.php';
+        } else {
+            $params['options']['render']['paths']['layout'][] = LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/{:layout}.{:type}.php';
+            $params['options']['render']['paths']['template'][] = LITHIUM_APP_PATH . '/libraries/minerva/views/{:controller}/{:layout}.{:type}.php';
+        }
+        
         
         // if a plugin is being used, look for templates there too and they have priority
         if($plugin) {
