@@ -48,6 +48,6 @@
 	</div>
 	<?=$this->minervaHtml->flash(); ?>
 	<?=$this->minervaSocial->facebook_init(); ?>
-	<!-- layout template: /minerva/views/layouts/default.html.php -->
+	<!-- layout template: /minerva/views/_admin/layouts/default.html.php -->
 </body>
 </html>
