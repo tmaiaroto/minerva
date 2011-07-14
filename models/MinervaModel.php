@@ -16,7 +16,7 @@ class MinervaModel extends \lithium\data\Model {
     public $search_schema = array();
     public $display_name = 'Model';
     static $document_access = array();
-    static $access = array();
+    public $access = array();
     public $document_type = '';
 	public $action_redirects = array();
 	public $url_field = null;
@@ -46,6 +46,15 @@ class MinervaModel extends \lithium\data\Model {
 		
 		// Replace any set display name for context
 		$class::_object()->display_name = static::_object()->display_name;
+        
+        // Append access rules as models get extended giving the last model priority
+        // ie. Main model has a rule for index to restrict all. Extended model says to allow all. Everyone is allowed.
+        // ie. Main model has no index rule. Extended model says to allow all. Everyone is allowed.
+        // ie. Main model has an index rule to restrict all. Extended model has no index rule. Everyone is restricted.
+        // ie. This model has an index rule to restirct all. Main model has a rule to allow all. Extended model has an index rule to restrict all. Everyone is restricted.
+        // ie. I think you get it
+        // TODO: look into doing this for other properties...
+		$class::_object()->access = static::_object()->access += $class::_object()->access;
 		
 		// Replace any action_redirect properties (holds redirects for each core Minerva controller method, ie. create, update, and delete)
 		$class::_object()->action_redirects = static::_object()->action_redirects;
@@ -103,6 +112,11 @@ class MinervaModel extends \lithium\data\Model {
 	public function validation_rules() {
 		$class =  __CLASS__;
 		return $class::_object()->validates;
+    }
+    
+    public function access_rules() {
+		$class =  __CLASS__;
+		return $class::_object()->access;
     }
 	
 	/**

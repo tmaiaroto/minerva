@@ -72,6 +72,79 @@ class User extends \minerva\models\MinervaModel {
 		'register' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login')
 	);
 	
+    // Access rules
+    public $access = array(
+		'login' => array(
+			'action' => array(array('rule' => 'allowAll'))
+		),
+		'confirm' => array(
+			'action' => array(array('rule' => 'allowAll'))
+		),
+		'register' => array(
+			'action' => array(array('rule' => 'allowAll'))
+		),
+		'is_email_in_use' => array(
+			'action' => array(array('rule' => 'allowAll'))
+		),
+		
+        'index' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array() // not used
+        ),
+        'create' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array() // not used
+        ),
+        'update' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array()
+        ),
+        'delete' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array()
+        ),
+        'read' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array(
+               // array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+            )
+        ),
+        'preview' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array()
+        )
+    );
+    
 	public static function __init() {
 		$class =  __CLASS__;
 		/**
@@ -96,7 +169,12 @@ class User extends \minerva\models\MinervaModel {
 		 * Some special validation rules
 		*/
 		Validator::add('uniqueEmail', function($value) {
-			$user = User::find('first', array('fields' => array('_id'), 'conditions' => array('email' => $value)));
+            $current_user = Auth::check('minerva_user');
+            if(!empty($current_user)) {
+                $user = User::find('first', array('fields' => array('_id'), 'conditions' => array('email' => $value, '_id' => array('$ne' => $current_user['_id']))));
+            } else {
+                $user = User::find('first', array('fields' => array('_id'), 'conditions' => array('email' => $value)));
+            }
 			if(!empty($user)) {
 			    return false;
 			}

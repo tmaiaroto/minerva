@@ -19,36 +19,6 @@ use \lithium\util\Set;
 
 class MenusController extends BlocksController {
     
-    /*
-     * Rules used by Access::check() at the Dispatcher level.
-     * The rules set here will be passed the Request object, but since
-     * called at the Dispatcher level, document level access control isn't possible.
-     * See the $document_access property below... All rules requiring document data
-     * should be defined there.
-     *
-     * By default we're restricting everything to managers except reading menus.
-     * TODO: make this a library that hooks into blocks maybe?
-    */
-    static $access = array(
-	'index' => array(
-	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
-	),
-	'create' => array(
-	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
-	),
-	'update' => array(
-	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
-	),
-	'delete' => array(
-	    array('rule' => 'allowManagers', 'redirect' => '/users/login')
-	),
-	'read' => array(
-	    array('rule' => 'allowAll')
-	)
-    );
-    
-    static $document_access = array();
-    
     // TODO: add caching
     public function read($url=null) {
         $record = Block::find('first', array('conditions' => array('url' => $url, 'options.is_menu' => true)));	  	

@@ -54,32 +54,13 @@ class MinervaController extends \lithium\action\Controller {
             $document_type = $ModelClass::document_type();
             // the document type can be grabbed from the model class, but if specifically set in the routing params, use that
             
-            // using args instead of keyed "document_type" ... so for "index" and "create" the first arg is going to be the document_type...
-            // no other action passes the document_type
-            if(isset($this->request->params['action']) && ($this->request->params['action'] == 'create') || ($this->request->params['action'] == 'index')) {
-                if(isset($this->request->params['args'][0])) {
-                    $document_type = $this->request->params['args'][0];
-                }
-            }
             
-            // this will no longer be used...
-            if(isset($this->request->params['document_type']) && !empty($this->request->params['document_type'])) {
-                $document_type = $this->request->params['document_type'];
-            }
-            // there are two specific "create" routes to handle a conflict in the routing
-            // alternatively, we could use the "{:args}" route... but "create" action is the only case this is a problem (for now)
-            /*
-            if($this->request->params['action'] == 'create') {
-                if(isset($this->request->params['args'][0])) {
-                    $document_type = $this->request->params['args'][0];
-                }
-            }
-            */
-            
-            // set the ModelClass again now based on the $document_type, which in most cases, matches the library name
+            $plugin = (isset($this->request->params['plugin'])) ? $this->request->params['plugin']:false;
+                        
+            // set the ModelClass again now based on the $document_type, which in most cases, matches the library (minerva plugin) name
             // ignore and empty $document_type, that just means the base model class anyway
-            if(!empty($document_type)) {
-                $ModelClass = $ModelClass::getMinervaModel($model, $document_type);
+            if($plugin) {
+                $ModelClass = $ModelClass::getMinervaModel($model, $plugin);
                 
                 /**
                  * If getMinveraModel() couldn't find one... meaning the $document_type did NOT match the library name, 
@@ -105,6 +86,8 @@ class MinervaController extends \lithium\action\Controller {
                     
                     // and of course no matter what we set, make sure it exists, otherwise default.
                     $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
+                } else {
+                    $document_type = $plugin;
                 }
                 
             }
@@ -130,6 +113,9 @@ class MinervaController extends \lithium\action\Controller {
             }
             
         }
+        
+        // Get the access rules all out of the way
+        $this->minerva_config['access'] = $ModelClass::access_rules();
         
         parent::_init();
     }
@@ -207,29 +193,9 @@ class MinervaController extends \lithium\action\Controller {
         
         // if the action is read, update, or delete then the document will be able to tell us the library name - otherwise it's going to be "minerva"
         if(($request->params['action'] == 'read') || ($request->params['action'] == 'update') || ($request->params['action'] == 'delete')) {
-            // could be using the MongoId or the pretty URL in the route. Both work, but prefer the URL if set and there's no need to use both.
-            
-            // removing the following because we are using passed args...
-            //$conditions = array();
-            // ALL models will use a 'url' field, even if it's just the _id that gets put there.
-            /*if(isset($request->params['url'])) {
-               $conditions = array(
-                    'url' => $request->params['url']
-                ); 
-            } */
-            
-            // this would still work but its redundant. $conditions will be passed in now from the other actions which take args and do all this.
-            /* // If using {:args} route...
-            if(isset($request->params['args'][0])) {
-                $conditions = array(
-                    'url' => $request->params['args'][0]
-                );
-            } else {
-                // TODO: redirect. document not found.
-            }
-            */
             
             $record = $ModelClass::first(array('request_params' => $request->params, 'conditions' => $conditions, 'fields' => array('document_type')));
+            
             // it should be an object...if it wasn't found that's a problem
             if(is_object($record)) {
                 if($record->document_type) {
@@ -259,56 +225,26 @@ class MinervaController extends \lithium\action\Controller {
                 }
             }
         }
-      
-        // 2. Authentication & Access Check for Core Minerva Controllers
-        // (properties set in model for core controllers) ... transfer those settings to the controller
-        $ControllerClass = '\minerva\controllers\\'.$relative_controller.'Controller';
         
-        // If the class doesn't exist, this was a library that decided to make it's own controller extend this controller
-        // So locate it. It will hold our access rules and such.
-        if(!class_exists($ControllerClass)) {
-            $ControllerClass = \lithium\core\Libraries::locate('controllers', $this->request->params['library'] . '.' . $relative_controller);
-        }
-        
-        // OK. If still not found, there's probably something wrong, but we don't want the system to fail so use this class.
-        if(!class_exists($ControllerClass)) {
-            $ControllerClass = __CLASS__;
-        }
-        
-        // If the $controllerClass doesn't exist, it means it's a controller that Minerva doesn't have. That means it's not core and the access can be set there on that controller.
-        if((isset($ModelClass::$access)) && (class_exists($ControllerClass))) {
-            // Don't completely replace core Minerva controller with new access rules, but append all the rules (giving the library model's access property priority)
-            $ControllerClass::$access = $ModelClass::$access += $ControllerClass::$access;
-        }
-        
-        // Get the rules for this action
-        $rules = (isset($ControllerClass::$access[$request->params['action']])) ? $ControllerClass::$access[$request->params['action']]:array();
+        // 2. Authentication & Access Check 
+        $rules =  $this->minerva_config['access'];
         
         // There's going to be two sets of action access rules. One for non-admin actions and one for admin actions.
-        // If there's no 'action' or 'admin_action' keys for access on the controller's properties then allow access.
-        if(isset($this->minerva_config['admin']) && $this->minerva_config['admin'] === false) {
-            // Check access for the action in general
-            // default is empty, so we're going to allow access by default on non-admin actions.
-            $action_access = array();
-            if(isset($rules['action']) && !empty($rules['action'])) {
-                $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['action']));
+        // If there's no 'action' or 'admin_action' keys for access, then allow access.
+        // We are being loose by default. This allows other access systems to be put into place to override this.
+        $action_access = array();
+        
+        // Check for non admin actions (admin flagged false or not set)
+        if((isset($this->minerva_config['admin']) && $this->minerva_config['admin'] === false) || (!isset($this->minerva_config['admin']))) {
+            if(isset($rules[$request->params['action']]['action']) && !empty($rules[$request->params['action']]['action'])) {
+                $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['action']));
             }
-        } else {
-            // Else, it has to be an action accessed with the admin flag, right? ($this->minerva_config['admin'] won't be true, it will contain a string with the admin prefix)
-            // by default, don't allow access to any admin action
-            if(!isset($rules['admin_action']) || empty($rules['admin_action'])) {
-                $rules['admin_action'] = array(
-                    'rule' => 'allowManagers',
-                    'message' => 'Sorry, you must be an administrator to access that section.',
-                    'redirect' => array(
-                        'admin' => 'admin',
-                        'library' => 'minerva',
-                        'controller' => 'users',
-                        'action' => 'login'
-                        )
-                    );
+        }
+        // Check for admin actions (note: admin is not true or false, it's string or false. the string being the chosen admin prefix, by default: "admin")
+        if(isset($this->minerva_config['admin']) && $this->minerva_config['admin'] !== false) {
+            if(isset($rules[$request->params['action']]['admin_action']) && !empty($rules[$request->params['action']]['admin_action'])) {
+                $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['admin_action']));
             }
-            $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['admin_action']));
         }
         
         if(!empty($action_access)) {
@@ -349,24 +285,16 @@ class MinervaController extends \lithium\action\Controller {
         }
         $document = $ModelClass::find($find_type, $options, array('request_params' => $request->params));
         
-        // 4. Document Access Control
-        
-        // Get the rules for this action
-        $rules = (isset($ControllerClass::$access[$request->params['action']])) ? $ControllerClass::$access[$request->params['action']]:array();
-        
+        // 4. Document Access Control 
         if($document && is_object($document)) {
-            // add the document to the document access rules so it can be checked against
-            $i=0;
-            foreach($rules as $rule) {
-                $rules['document'][$i]['document'] = $document->data();
-                $i++;
+            $document_access = array();
+            if(isset($rules[$request->params['action']]['document']) && !empty($rules[$request->params['action']]['document'])) {
+                // add the document to the document access rules so it can be checked against
+                $rules[$request->params['action']]['document']['document'] = $document->data();
+            
+                $document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['document']));
             }
             
-            $document_access = false;
-            if(isset($rules['document'])) {
-                //$document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules['document']));
-                $document_access=array(); // TODO: PUT BACK ACCESS CHECK
-            }
             if(!empty($document_access)) {
                 FlashMessage::set($document_access['message'], array('options' => array('type' => 'growl', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
                 return $this->redirect($document_access['redirect']);
@@ -374,9 +302,6 @@ class MinervaController extends \lithium\action\Controller {
                 $document = false;
             }
         }
-        
-        //read()
-        // $document = $modelClass::find('first', array('conditions' => array('url' => $url), 'request_params' => $this->request->params));
         
         // modelClass will either be a core Minerva model class or the extended matching library model class
         return $document;
@@ -489,7 +414,9 @@ class MinervaController extends \lithium\action\Controller {
             
             // Set the owners
             foreach($documents as $document) {
-                $document->_owner = $owners[(string)$document->owner_id];
+                // TODO: check this. i don't think its possible to not have an owner....but...
+                $owner_id = (string)$document->owner_id;
+                $document->_owner = (isset($owners[$owner_id])) ? $owners[$owner_id]:'';
             }
         }
         ////////// END "JOIN" process for owners (user model)
@@ -666,6 +593,12 @@ class MinervaController extends \lithium\action\Controller {
                 if((isset($this->request->data['new_password'])) && (!empty($this->request->data['new_password']))) {
                     $this->request->data['password'] = String::hash($this->request->data['new_password']);
                     unset($this->request->data['new_password']);
+                }
+                
+                // unset the e-mail if unchanged, it will trip validation otherwise
+                if(isset($this->request->data['email']) && $this->request->data['email'] == $document->email) {
+                    unset($this->request->data['email']);
+                    unset($validation_rules['email']);
                 }
                 
                 // We need to remove some validation rules if this user is a Facebook user

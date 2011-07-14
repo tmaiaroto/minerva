@@ -26,35 +26,6 @@ use minerva\libraries\util\Util;
 use lithium\util\Inflector;
 
 class BlocksController extends \minerva\controllers\MinervaController {
-
-    /*
-     * Rules used by Access::check() for access and document access per action.
-     * 
-     * By default we're restricting everything to managers.
-     * This leaves the core PagesController to administrative purposes.
-     * The "public" library will hold basic pages for anonymous visitors.
-     * 
-    */
-    static $access = array(
-		'index' => array(
-			'action' => array(array('rule' => 'allowManagers', 'redirect' => '/users/login'))
-		),
-		'create' => array(
-			'action' => array(array('rule' => 'allowManagers', 'redirect' => '/users/login'))
-		),
-		'update' => array(
-			'action' => array(array('rule' => 'allowManagers', 'redirect' => '/users/login'))
-		),
-		'delete' => array(
-			'action' => array(array('rule' => 'allowManagers', 'redirect' => '/users/login'))
-		),
-		'read' => array(
-			'action' => array(array('rule' => 'allowAll'))
-		),
-		'view' => array(
-			'action' => array(array('rule' => 'allowAll'))
-		)
-    );
     
     public function view() {
 		$path = func_get_args();

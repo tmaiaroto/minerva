@@ -13,69 +13,6 @@ use li3_access\security\Access;
 
 class UsersController extends \minerva\controllers\MinervaController {
 	
-	/*
-     * Rules used by Access::check() for access and document access per action.
-     * 
-     * By default we're restricting everything to managers.
-     * This leaves the core PagesController to administrative purposes.
-     * The "public" library will hold basic pages for anonymous visitors.
-     * 
-    */
-    static $access = array(
-		'login' => array(
-			'action' => array(array('rule' => 'allowAll'))
-		),
-		'confirm' => array(
-			'action' => array(array('rule' => 'allowAll'))
-		),
-		'register' => array(
-			'action' => array(array('rule' => 'allowAll'))
-		),
-		'is_email_in_use' => array(
-			'action' => array(array('rule' => 'allowAll'))
-		),
-		
-        'index' => array(
-            'action' => array(
-                array('rule' => 'allowManagers', 'redirect' => '/users/login')
-            ),
-            'admin' => array(), // maybe??
-            'document' => array() // not used
-        ),
-        'create' => array(
-            'action' => array(
-                array('rule' => 'allowManagers', 'redirect' => '/users/login')
-            ),
-            'document' => array() // not used
-        ),
-        'update' => array(
-            'action' => array(
-                array('rule' => 'allowManagers', 'redirect' => '/users/login')
-            ),
-            'document' => array()
-        ),
-        'delete' => array(
-            'action' => array(
-                array('rule' => 'allowManagers', 'redirect' => '/users/login')
-            ),
-            'document' => array()
-        ),
-        'read' => array(
-            'action' => array(
-                array('rule' => 'allowManagers', 'redirect' => '/users/login')
-            ),
-            'document' => array(
-               // array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
-            )
-        ),
-        'preview' => array(
-            'action' => array(
-                array('rule' => 'allowManagers', 'redirect' => '/users/login')
-            ),
-            'document' => array()
-        )
-    );
-    
     public function index($document_type=null) {
         // all index() methods are the same so they are done in MinervaController, but we do need a little context as to where it's called from
         $this->calling_class = __CLASS__;

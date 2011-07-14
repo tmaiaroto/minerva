@@ -37,6 +37,53 @@ class Block extends \minerva\models\MinervaModel {
     
 	public $url_field = 'title';
 	
+    public $access = array(
+		'index' => array(
+			'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+		),
+		'create' => array(
+			'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+		),
+		'update' => array(
+			'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+		),
+		'delete' => array(
+			'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+		),
+		'read' => array(
+			'action' => array(array('rule' => 'allowAll')),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+		),
+		'view' => array(
+			'action' => array(array('rule' => 'allowAll')),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+		)
+    );
+    
 }
 
 /* FILTERS

@@ -3,6 +3,26 @@ namespace minerva\models;
 
 class Menu extends \lithium\core\StaticObject {
     
+    public $access = array(
+        'index' => array(
+            'admin_action' => array('rule' => 'allowManagers', 'redirect' => '/users/login')
+        ),
+        'create' => array(
+            'admin_action' => array('rule' => 'allowManagers', 'redirect' => '/users/login')
+        ),
+        'update' => array(
+            'admin_action' => array('rule' => 'allowManagers', 'redirect' => '/users/login')
+        ),
+        'delete' => array(
+            'action' => array('rule' => 'allowManagers', 'redirect' => '/users/login'),
+            'admin_action' => array('rule' => 'allowManagers', 'redirect' => '/users/login')
+        ),
+        'read' => array(
+            'action' => array('rule' => 'allowAll'),
+            'admin_action' => array('rule' => 'allowManagers', 'redirect' => '/users/login')
+        )
+    );
+    
     /**
      * Default static menus.
      *

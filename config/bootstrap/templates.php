@@ -42,7 +42,9 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		}
 	}
 	
+    $plugin = (isset($params['request']->params['plugin'])) ? $params['request']->params['plugin']:false;
 	if($use_minerva_templates) {
+        
 		// Pass through a few Minerva configuration variables
 		$config = Libraries::get('minerva');
 		$params['minerva_base'] = isset($config['base_url']) ? $config['base_url'] : '/minerva';
@@ -84,7 +86,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		$params['options']['render']['paths']['template'] = array(
 			'{:library}/views/{:controller}/{:template}.{:type}.php'
 		);
-		
+        
 		// if admin is true, then look for admin templates first
 		if($admin === true) {
 			// if another library is using Minerva's templates for the admin interface, {:library} won't be "minerva" so hard code the path...but also allow that {:library} to provide its own template which would be looked for first
@@ -94,6 +96,17 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 			// note: we don't have to do the same thing for the view template because the {:controller} isn't going to be within the minerva library
 			array_unshift($params['options']['render']['paths']['template'], '{:library}/views/_admin/{:controller}/{:template}.{:type}.php');
 		}
+        
+        // if a plugin is being used, look for templates there too and they have priority
+        if($plugin) {
+            array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/layouts/{:layout}.{:type}.php');
+            array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/{:controller}/{:template}.{:type}.php');
+            // don't forget, plugins can have admin templates too
+            if($admin === true) {
+                array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/{:layout}.{:type}.php');
+                array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/{:template}.{:type}.php');
+            }
+        }
 		
 		/**
 		 * STATIC VIEWS
@@ -201,7 +214,6 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		$params['options']['render']['paths']['layout'][] = LITHIUM_APP_PATH. '/libraries/minerva/views/_missing/missing_layout.html.php';
 		
 		// var_dump($params['options']['render']['paths']); // <--- this is a great thing to uncomment and browse the site for reference
-		
 	}
 	
     return $chain->next($self, $params, $chain);

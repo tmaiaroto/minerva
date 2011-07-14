@@ -91,6 +91,77 @@ class Page extends \minerva\models\MinervaModel {
     // So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
     public $display_name = 'Page';
     
+    // Access rules (can be overwritten and not used)
+    public $access = array(
+        'index' => array(
+            'action' => array(
+                array('rule' => 'allowAll')
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array() // not used
+        ),
+        'create' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array() // not used
+        ),
+        'update' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array()
+        ),
+        'delete' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array()
+        ),
+        'read' => array(
+            'action' => array(
+                array('rule' => 'allowAll', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array(
+                array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+            )
+        ),
+        'preview' => array(
+            'action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array(
+                // array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+            )
+        ),
+        'view' => array(
+            'action' => array(
+                array('rule' => 'allowAll', 'redirect' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'admin_action' => array(
+                array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
+            ),
+            'document' => array()
+        )
+    );
+    
     
     // TODO: ditch this method
     public function getLatestPages($options=array()) {
