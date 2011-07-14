@@ -136,9 +136,21 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 				//array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/views/_admin/layouts/{:layout}.{:type}.php');
 				//array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/views/_admin/{:controller}/static/{:template}.{:type}.php');
 				// The minerva library still gets the preference though
-				array_unshift($params['options']['render']['paths']['layout'], '{:library}/views/_admin/layouts/{:layout}.{:type}.php');
+				array_unshift($params['options']['render']['paths']['layout'], '{:library}/views/_admin/layouts/static/{:layout}.{:type}.php');
 				array_unshift($params['options']['render']['paths']['template'], '{:library}/views/_admin/{:controller}/static/{:template}.{:type}.php');
 			}
+            
+            // PLUGIN STATIC VIEWS
+            // Plugins can have static pages too. If a plugin is being used, look for templates there too and they have priority.
+            if($plugin) {
+                array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/layouts/static/{:layout}.{:type}.php');
+                array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/{:controller}/static/{:template}.{:type}.php');
+                // don't forget, plugins can have admin templates too
+                if($admin === true) {
+                    array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/static/{:layout}.{:type}.php');
+                    array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/static/{:template}.{:type}.php');
+                }
+            }
 		}
 		
 		/**

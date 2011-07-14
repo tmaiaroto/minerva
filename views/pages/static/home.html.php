@@ -224,5 +224,5 @@ foreach ($sanityChecks as $checkName => $check) {
 	Minerva also believes in a community effort. Minerva is open source and will remain open source; it is free to use personally or commercially. There are several open source libraries that Minerva uses that are built by the Lithium community instead of reinventing the wheel. If you would like to contribute, please fork <a href="https://github.com/tmaiaroto/minerva" target="_blank">Minerva on Github</a>! Comments and suggestions are always welcome as are any <a href="https://github.com/tmaiaroto/minerva/issues" target="_blank">issues</a> that you can bring up and note on Github. Thanks!
 </p>
 <p>
-	Finally, at this time, Minerva is not reccommended for production use unless you are very daring.
+	Finally, at this time, Minerva is not recommended for production use unless you are very daring.
 </p>
