@@ -54,7 +54,6 @@ class MinervaController extends \lithium\action\Controller {
             $document_type = $ModelClass::document_type();
             // the document type can be grabbed from the model class, but if specifically set in the routing params, use that
             
-            
             $plugin = (isset($this->request->params['plugin'])) ? $this->request->params['plugin']:false;
                         
             // set the ModelClass again now based on the $document_type, which in most cases, matches the library (minerva plugin) name
@@ -652,12 +651,14 @@ class MinervaController extends \lithium\action\Controller {
         // called after $this->getDocument() so the proper $ModelClass is used
         $action_redirects = $this->getRedirects();
         
-        if($document->delete()) {
-            FlashMessage::write('The content has been deleted.', array(), 'minerva_admin');
-        } else {
-            FlashMessage::write('The content could not be deleted, please try again.', array(), 'minerva_admin');
+        if(!empty($document)) {
+            if($document->delete()) {
+                FlashMessage::write('The content has been deleted.', array(), 'minerva_admin');
+            } else {
+                FlashMessage::write('The content could not be deleted, please try again.', array(), 'minerva_admin');
+            }
+            $this->redirect($action_redirects['delete']);
         }
-        $this->redirect($action_redirects['delete']);
     }
     
 }

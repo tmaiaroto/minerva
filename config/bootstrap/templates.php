@@ -30,10 +30,17 @@ use \Exception;
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
     $use_minerva_templates = false;
-	
+	$plugin = (isset($params['request']->params['plugin'])) ? $params['request']->params['plugin']:false;
+    
 	// Only apply the following when using the minerva library OR if the "use_minerva_templates" option has been set true in Libraries::add('xxx', array(...))
-	if(isset($params['request']->params['library'])) {
-		$lib_config = Libraries::get($params['request']->params['library']);
+	// NOTE: now, the library is always minerva when using minerva. kinda makes the library setting pointless, since it's set in the routes. right?
+    // anyway, for now just check for a "plugin" value from the router and use that to grab the library settings.
+    if(isset($params['request']->params['library'])) {
+        if($plugin) {
+            $lib_config = Libraries::get($plugin);
+        } else {
+            $lib_config = Libraries::get($params['request']->params['library']);
+        }
 		if(($params['request']->params['library'] == 'minerva') || (isset($lib_config['use_minerva_templates']) && $lib_config['use_minerva_templates'] == true)) {
 			$use_minerva_templates = true;
 		}
@@ -42,7 +49,6 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		}
 	}
 	
-    $plugin = (isset($params['request']->params['plugin'])) ? $params['request']->params['plugin']:false;
 	if($use_minerva_templates) {
         
 		// Pass through a few Minerva configuration variables
@@ -79,35 +85,32 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		$template = (isset($params['request']->params['template'])) ? $params['request']->params['template']:false;
 		
 		// DEFAULT LAYOUT & TEMPLATE PATHS
-		$params['options']['render']['paths']['layout'] = array(
-			'{:library}/views/layouts/{:layout}.{:type}.php',
-			LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/{:layout}.{:type}.php'
-		);
-		$params['options']['render']['paths']['template'] = array(
-			'{:library}/views/{:controller}/{:template}.{:type}.php'
-		);
-        
-		// if admin is true, then look for admin templates first
 		if($admin === true) {
-			// if another library is using Minerva's templates for the admin interface, {:library} won't be "minerva" so hard code the path...but also allow that {:library} to provide its own template which would be looked for first
-			array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/{:layout}.{:type}.php');
-			array_unshift($params['options']['render']['paths']['layout'], '{:library}/views/_admin/layouts/{:layout}.{:type}.php');
-			
-			// note: we don't have to do the same thing for the view template because the {:controller} isn't going to be within the minerva library
-			array_unshift($params['options']['render']['paths']['template'], '{:library}/views/_admin/{:controller}/{:template}.{:type}.php');
-		}
+			$params['options']['render']['paths']['layout'] = array('{:library}/views/_admin/layouts/{:layout}.{:type}.php');
+			$params['options']['render']['paths']['template'] = array('{:library}/views/_admin/{:controller}/{:template}.{:type}.php');
+		} else {
+            $params['options']['render']['paths']['layout'] = array(
+                '{:library}/views/layouts/{:layout}.{:type}.php'
+            );
+            $params['options']['render']['paths']['template'] = array(
+                '{:library}/views/{:controller}/{:template}.{:type}.php'
+            );
+        }
         
         // if a plugin is being used, look for templates there too and they have priority
         if($plugin) {
-            array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/layouts/{:layout}.{:type}.php');
-            array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/{:controller}/{:template}.{:type}.php');
-            // don't forget, plugins can have admin templates too
             if($admin === true) {
-                array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/{:layout}.{:type}.php');
-                array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/{:template}.{:type}.php');
+                // don't forget, plugins can have admin templates too
+                array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/_admin/layouts/{:layout}.{:type}.php');
+                array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/_admin/{:controller}/{:template}.{:type}.php');
+            } else {
+                array_unshift($params['options']['render']['paths']['layout'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/layouts/{:layout}.{:type}.php');
+                array_unshift($params['options']['render']['paths']['template'], LITHIUM_APP_PATH . '/libraries/' . $plugin . '/views/{:controller}/{:template}.{:type}.php');
             }
         }
 		
+        // TODO: the above render paths have been cleaned up and shortened. See if there's a way to shorten the static paths as well.
+        
 		/**
 		 * STATIC VIEWS
 		 * Special situation; "blocks" and "pages" and "menus" have "static" templates that don't require a datasource.
@@ -153,6 +156,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
             }
 		}
 		
+        
 		/**
 		 * MANUAL OVERRIDES FROM ROUTES
 		 * Was the "layout" or "template" key set in the route? Then we're saying to change up the layout path.
@@ -225,6 +229,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		$params['options']['render']['paths']['template'][] = LITHIUM_APP_PATH . '/libraries/minerva/views/_missing/missing_template.html.php';
 		$params['options']['render']['paths']['layout'][] = LITHIUM_APP_PATH. '/libraries/minerva/views/_missing/missing_layout.html.php';
 		
+        
 		// var_dump($params['options']['render']['paths']); // <--- this is a great thing to uncomment and browse the site for reference
 	}
 	

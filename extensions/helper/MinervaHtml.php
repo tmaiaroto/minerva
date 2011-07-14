@@ -235,12 +235,15 @@ class MinervaHtml extends \lithium\template\helper\Html {
 			}
 		} else {
 			$class_pieces = explode('\\', $models);
-			$type = $class_pieces[0]; // the library name serves as the document_type
+            // no more type. type is assumed based on plugin name
+            // so instead of passing $class_pieces[0] as $type to args in a link, we're matching a route
+            // that's going to look like: /minerva/plugin/plugin_name/admin/controller/action
+			$plugin = $class_pieces[0];
 			if(class_exists($models)) {
 				$display_name = $models::display_name();
 				// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
 				$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type . ' ' . $model_name):$display_name;
-				$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'args' => $type), $options['link_options']) . '</li>';
+				$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'plugin' => $plugin, 'library' => $options['library'], 'controller' => $controller, 'action' => $action), $options['link_options']) . '</li>';
 			}
 		}
 		
