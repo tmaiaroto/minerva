@@ -91,6 +91,9 @@ class Page extends \minerva\models\MinervaModel {
     // So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
     public $display_name = 'Page';
     
+    // Pages use the title field by default to build their pretty url
+    public $url_field = 'title';
+    
     // Access rules (can be overwritten and not used)
     public $access = array(
         'index' => array(
@@ -161,7 +164,6 @@ class Page extends \minerva\models\MinervaModel {
             'document' => array()
         )
     );
-    
     
     // TODO: ditch this method
     public function getLatestPages($options=array()) {
