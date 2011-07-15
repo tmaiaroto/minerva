@@ -26,8 +26,8 @@
 				<?php } ?>
             </td>
             <td>
-                <?php if(!empty($user->user_type)) {
-                    echo '<em>' . $user->user_type . '</em>';
+                <?php if(!empty($user->document_type)) {
+                    echo '<em>' . $user->document_type . '</em>';
                 } else {
                     echo '<em>user</em>';
                 } ?>

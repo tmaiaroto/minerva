@@ -23,8 +23,8 @@
                 <?=$block->title; ?>
             </td>
             <td>
-                <?php if(!empty($block->page_type)) {
-                    echo '<em>' . $block->page_type . '</em>';
+                <?php if(!empty($block->document_type)) {
+                    echo '<em>' . $block->document_type . '</em>';
                 } else {
                     echo '<em>block</em>';
                 } ?>
