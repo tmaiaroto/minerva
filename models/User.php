@@ -67,6 +67,10 @@ class User extends \minerva\models\MinervaModel {
 	// So admin templates can have a little context...for example: "Create Page" ... "Create Blog Post" etc.
 	public $display_name = 'User';
 	
+    // We do not redirect with this model, the controller will a cookie if possible
+    // But, plugins can set this property so that users will always be redirected to a speicfic URL
+    public $login_redirect = false;
+    
 	public $action_redirects = array(
 		'logout' => '/',
 		'register' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login')
@@ -165,6 +169,10 @@ class User extends \minerva\models\MinervaModel {
 		// Fill form with role options ($list arg)
 		$class::_object()->_schema['role']['form']['list'] = User::user_roles();
 		
+        // Replace user login redirect property (not set on this model)
+        // @see UsersController::login()
+        $class::_object()->login_redirect = static::_object()->login_redirect;
+        
 		/*
 		 * Some special validation rules
 		*/
@@ -208,6 +216,21 @@ class User extends \minerva\models\MinervaModel {
 		return $class::_object()->_user_roles;
 	}
 	
+    /**
+     * Returns the $login_redirect property.
+     * 
+     * Not only does this return a property, but this entire method
+     * could easily be overwritten in the extended model class.
+     * From there, all sorts of stuff could happen in order to return
+     * a string or array at the end for a redirect.
+     * 
+     * @return mixed A string or an valid URL array
+    */
+    public function get_login_redirect() {
+        $class =  __CLASS__;
+		return $class::_object()->login_redirect;
+    }
+    
 	/** 
 	 * Gets the name for a user given their id.
 	 * This id can be either a MongoId for getting a user's name from the local database

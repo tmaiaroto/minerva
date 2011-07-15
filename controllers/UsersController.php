@@ -238,7 +238,12 @@ class UsersController extends \minerva\controllers\MinervaController {
 			Session::write('triedAuthRedirect', 'false', array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
 		}
         if ($user) {
+            // Users will be redirected after logging in, but where to?
+            // First, set the base Minerva URL (typically /minerva)
 			$url = MINERVA_BASE_URL;
+            
+            // Second, look to see if a cookie was set. The could have ended up at the login page
+            // because he/she tried to go to a restricted area. That URL was noted in a cookie.
             if (Session::check('beforeAuthURL', array('name' => 'minerva_cookie'))) {
 				$url = Session::read('beforeAuthURL', array('name' => 'minerva_cookie'));
 				
@@ -253,6 +258,49 @@ class UsersController extends \minerva\controllers\MinervaController {
 				
                 Session::delete('beforeAuthURL', array('name' => 'minerva_cookie'));
             }
+            
+            // Last, we can actually have our User model dictate where users ALWAYS get directed
+            // upon logging in. Minerva's core User model will not have this set, but extended 
+            // models (plugins) can set it.
+            // ONLY IF the user has a document_type set though. Otherwise, it's a core user
+            // and there's no need to check.
+            if(isset($user['document_type']) && !empty($user['document_type'])) {
+                // This handy method finds the extended model class
+                $UserModel = User::getMinervaModel('User', $user['document_type']);
+                
+                // If it wasn't found...
+                // It's because the $document_type property did NOT match the model name.
+                // getMinervaModel() will have returned minerva\models\MinervaModel or minerva\models\User. 
+                // So we have to search for this model, it's a little more taxing because we have to loop
+                // through each extended User model in the system and check their properties, but hey...
+                // It's flexible this way. 
+                // TODO: Change this. I think REQUIRE all document_types to be the library (plugin) name.
+                // Because we know the library directories can't be named the same! We can avoid conflicts.
+                if($UserModel == 'minerva\models\MinervaModel' || $UserModel == 'minerva\models\User') {
+                    $all_minerva_models = $ModelClass::getAllMinervaModels($model);
+                    if(!empty($all_minerva_models)) {
+                        foreach($all_minerva_models as $Model) {
+                            if(class_exists($Model)) {
+                                if($Model::document_type() == $document_type) {
+                                    $ModelClass = $Model;
+                                }
+                            }
+                        }
+                    }
+
+                    // and of course no matter what we set, make sure it exists, otherwise default.
+                    $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
+                } 
+
+                if(class_exists($UserModel)) {
+                    $login_redirect = $UserModel::get_login_redirect();
+                    if(is_string($login_redirect) || is_array($login_redirect)) {
+                        $url = $login_redirect;
+                    }
+                }
+            
+            }
+            
             // Save last login IP and time
             //$user_record = User::find('first', array('conditions' => array('_id' => new \MongoId($user['_id']))));
 			$user_record = $this->getDocument(array(

@@ -51,8 +51,7 @@ class MinervaController extends \lithium\action\Controller {
             $ModelClass = $DefaultModelClass = 'minerva\models\\'.$model;
             // in case it doesn't exist, use the base MinervaModel which we know does exist
             $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
-            $document_type = $ModelClass::document_type();
-            // the document type can be grabbed from the model class, but if specifically set in the routing params, use that
+            $document_type = '';
             
             $plugin = (isset($this->request->params['plugin'])) ? $this->request->params['plugin']:false;
                         
@@ -60,35 +59,10 @@ class MinervaController extends \lithium\action\Controller {
             // ignore and empty $document_type, that just means the base model class anyway
             if($plugin) {
                 $ModelClass = $ModelClass::getMinervaModel($model, $plugin);
-                
-                /**
-                 * If getMinveraModel() couldn't find one... meaning the $document_type did NOT match the library name, 
-                 * we need to search ALL minerva models to find the proper model. This is where a slight performance penalty
-                 * comes in to play, so try to match library names to document_type values.
-                 *
-                 * If unavoidable, because there were two libraries of the same name that want to use Minerva, just know
-                 * that all we're doing is looping through each model that's using Minerva ("minerva_models") and looking
-                 * to match the document_type property. Once matched, we found the proper model class. So not too bad.
-                 * 
-                */
-                if($ModelClass == 'minerva\models\MinervaModel' || $ModelClass == $DefaultModelClass) {
-                    $all_minerva_models = $ModelClass::getAllMinervaModels($model);
-                    if(!empty($all_minerva_models)) {
-                        foreach($all_minerva_models as $Model) {
-                            if(class_exists($Model)) {
-                                if($Model::document_type() == $document_type) {
-                                    $ModelClass = $Model;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // and of course no matter what we set, make sure it exists, otherwise default.
-                    $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
-                } else {
-                    $document_type = $plugin;
-                }
-                
+                // $document_type is ALWAYS the name of the plugin (library folder) because it's always unique.
+                // Can't have multiple plugins...This means library directory names for plugins likely should
+                // not be something generic, like "blog" ... "minerva_blog" is better. Or "shift8creative_com_blog"
+                $document_type = $plugin;
             }
             
             // Now the following will use the proper ModelClass to get the properties that we need in the controller.

@@ -17,7 +17,6 @@ class MinervaModel extends \lithium\data\Model {
     public $display_name = 'Model';
     static $document_access = array();
     public $access = array();
-    public $document_type = '';
 	public $action_redirects = array();
 	public $url_field = null;
 	public $url_separator = '-';
@@ -70,9 +69,6 @@ class MinervaModel extends \lithium\data\Model {
 		$library_pieces = explode('/', $library_string);
 		$class::_object()->library_name = $library_pieces[0];
 		
-		// Set the document type (for manualy set document_type values)
-		$class::_object()->document_type = static::_object()->document_type;
-		
         parent::__init();
     }
     
@@ -114,8 +110,17 @@ class MinervaModel extends \lithium\data\Model {
 		return $class::_object()->validates;
     }
     
-    public function access_rules() {
+    /**
+     * Returns access rules for the model.
+     * 
+     * @param string $action Optional action name
+     * @return array The access rules for the specified action or all actions
+     */
+    public function access_rules($action=null) {
 		$class =  __CLASS__;
+        if(is_string($action) && isset($class::_object()->access[$action])) {
+            return $class::_object()->access[$action];
+        }
 		return $class::_object()->access;
     }
 	
