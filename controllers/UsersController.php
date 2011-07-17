@@ -234,8 +234,6 @@ class UsersController extends \minerva\controllers\MinervaController {
 
     
     public function login() {
-        var_dump(Password::hash('password'));
-        
         $user = Auth::check('minerva_user', $this->request);
 		// 'triedAuthRedirect' so we don't end up in a redirect loop
 		if (!Session::check('triedAuthRedirect', array('name' => 'minerva_cookie'))) {
