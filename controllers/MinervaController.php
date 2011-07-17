@@ -4,6 +4,7 @@ namespace minerva\controllers;
 use \lithium\storage\Session;
 use li3_access\security\Access;
 use \lithium\security\Auth;
+use \lithium\security\Password;
 use minerva\extensions\util\Util;
 use \lithium\util\Set;
 use \lithium\util\String;
@@ -485,7 +486,7 @@ class MinervaController extends \lithium\action\Controller {
             
             // (note: this will only be useful for UsersController)
             if(($this->request->params['controller'] == 'users') && (isset($this->request->data['password']))) {
-                $this->request->data['password'] = String::hash($this->request->data['password']);
+                $this->request->data['password'] = Password::hash($this->request->data['password']);
                 
                 // We need to remove some validation rules if this user is a Facebook user
                 if(isset($this->request->data['facebook_uid']) && !empty($this->request->data['facebook_uid']) && is_numeric($this->request->data['facebook_uid'])) {
@@ -564,7 +565,7 @@ class MinervaController extends \lithium\action\Controller {
                     unset($this->request->data['password']);
                 }
                 if((isset($this->request->data['new_password'])) && (!empty($this->request->data['new_password']))) {
-                    $this->request->data['password'] = String::hash($this->request->data['new_password']);
+                    $this->request->data['password'] = Password::hash($this->request->data['new_password']);
                     unset($this->request->data['new_password']);
                 }
                 

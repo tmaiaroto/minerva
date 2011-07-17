@@ -10,7 +10,6 @@ use minerva\models\User;
 use minerva\extensions\util\Util;
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_access\security\Access;
-
 use \lithium\security\Password;
 
 class UsersController extends \minerva\controllers\MinervaController {
