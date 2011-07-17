@@ -11,6 +11,8 @@ use minerva\extensions\util\Util;
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_access\security\Access;
 
+use \lithium\security\Password;
+
 class UsersController extends \minerva\controllers\MinervaController {
 	
     public function index($document_type=null) {
@@ -173,7 +175,7 @@ class UsersController extends \minerva\controllers\MinervaController {
 			
 			// Set the password, it has to be hashed
 			if((isset($this->request->data['password'])) && (!empty($this->request->data['password']))) {
-				$this->request->data['password'] = String::hash($this->request->data['password']);
+                $this->request->data['password'] = Password::hash($this->request->data['password']);
 			}
 		
             if($user->save($this->request->data, array('validate' => $rules))) {
@@ -232,6 +234,8 @@ class UsersController extends \minerva\controllers\MinervaController {
 
     
     public function login() {
+        var_dump(Password::hash('password'));
+        
         $user = Auth::check('minerva_user', $this->request);
 		// 'triedAuthRedirect' so we don't end up in a redirect loop
 		if (!Session::check('triedAuthRedirect', array('name' => 'minerva_cookie'))) {
@@ -268,30 +272,6 @@ class UsersController extends \minerva\controllers\MinervaController {
                 // This handy method finds the extended model class
                 $UserModel = User::getMinervaModel('User', $user['document_type']);
                 
-                // If it wasn't found...
-                // It's because the $document_type property did NOT match the model name.
-                // getMinervaModel() will have returned minerva\models\MinervaModel or minerva\models\User. 
-                // So we have to search for this model, it's a little more taxing because we have to loop
-                // through each extended User model in the system and check their properties, but hey...
-                // It's flexible this way. 
-                // TODO: Change this. I think REQUIRE all document_types to be the library (plugin) name.
-                // Because we know the library directories can't be named the same! We can avoid conflicts.
-                if($UserModel == 'minerva\models\MinervaModel' || $UserModel == 'minerva\models\User') {
-                    $all_minerva_models = $ModelClass::getAllMinervaModels($model);
-                    if(!empty($all_minerva_models)) {
-                        foreach($all_minerva_models as $Model) {
-                            if(class_exists($Model)) {
-                                if($Model::document_type() == $document_type) {
-                                    $ModelClass = $Model;
-                                }
-                            }
-                        }
-                    }
-
-                    // and of course no matter what we set, make sure it exists, otherwise default.
-                    $ModelClass = (class_exists($ModelClass)) ? $ModelClass:$DefaultModelClass;
-                } 
-
                 if(class_exists($UserModel)) {
                     $login_redirect = $UserModel::get_login_redirect();
                     if(is_string($login_redirect) || is_array($login_redirect)) {
