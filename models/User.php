@@ -5,6 +5,7 @@ use lithium\util\Validator;
 use lithium\util\Inflector;
 use lithium\util\String;
 use lithium\security\Auth;
+use lithium\security\Password;
 
 use minerva\util\Email;
 use minerva\extensions\util\Util;
@@ -190,7 +191,7 @@ class User extends \minerva\models\MinervaModel {
 		});
 		
 		Validator::add('notEmptyHash', function($value) {    
-			if($value == 'da39a3ee5e6b4b0d3255bfef95601890afd80709') {	
+			if($value == Password::hash('')) {	
 			    return false;
 			}
 			return true;
@@ -388,7 +389,7 @@ User::applyFilter('save', function($self, $params, $chain) {
 		// Set created, modified, and pretty url (slug)
 		if (!$params['entity']->exists()) {
 			if(Validator::rule('moreThanFive', $params['data']['password']) === true) {
-				$params['data']['password'] = String::hash($params['data']['password']); // will be sha512
+				$params['data']['password'] = Password::hash($params['data']['password']); // will be sha512
 			}
 			// Unique E-mail validation ONLY upon new record creation
 			if(Validator::rule('uniqueEmail', $params['data']['email']) === false) {
@@ -399,7 +400,7 @@ User::applyFilter('save', function($self, $params, $chain) {
 			// If the fields password and password_confirm both exist, then validate the password field too
 			if((isset($params['data']['password'])) && (isset($params['data']['password_confirm']))) {
 				if(Validator::rule('moreThanFive', $params['data']['password']) === true) {
-					$params['data']['password'] = String::hash($params['data']['password']); // will be sha512
+					$params['data']['password'] = Password::hash($params['data']['password']); // will be sha512
 				}
 			}
 			
