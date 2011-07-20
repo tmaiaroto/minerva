@@ -1,5 +1,10 @@
 <?php
 /**
+ * Minerva: a CMS based on the Lithium PHP framework
+ *
+ * @copyright Copyright 2010-2011, Shift8Creative (http://www.shift8creative.com)
+ * @license http://opensource.org/licenses/bsd-license.php The BSD License
+ * 
  * Minerva's Social Media Helper
  * Adds social sharing features and some shortcuts for Facebook that relate to Minerva.
  *
@@ -11,19 +16,24 @@ namespace minerva\extensions\helper;
 
 use lithium\storage\Session;
 use lithium\core\Libraries;
+use li3_facebook\extensions\FacebookProxy;
 
 class MinervaSocial extends MinervaHtml {
     
     public function _init() {
         parent::_init();
         
+        // Default
+		$this->facebook->app_id = false;
+		$this->facebook->locale = 'en_US';
+        
         // If using Facebook
-        $minerva_config = Libraries::get('minerva');
-		$this->facebook_app_id = false;
-		$this->facebook_locale = 'en_US';
-		if(isset($minerva_config['facebook'])) {
-			$this->facebook_app_id = $minerva_config['facebook']['appId'];
-			$this->facebook_locale = (isset($minerva_config['facebook']['locale'])) ? $minerva_config['facebook']['locale']:$this->facebook_locale;
+        $facebook_config = Libraries::get('li3_facebook');
+        if(isset($facebook_config)) {
+            $this->facebook->login_url = FacebookProxy::getLoginUrl(array('next' => $facebook_config['login_url']));
+			$this->facebook->logout_url = FacebookProxy::getLogoutUrl(array('next' => $facebook_config['logout_url']));
+            $this->facebook->app_id = $facebook_config['appId'];
+			$this->facebook->locale = (isset($facebook_config['locale'])) ? $minerva_config['facebook']['locale']:$this->facebook->locale;
 		}
     }
     
@@ -45,14 +55,12 @@ class MinervaSocial extends MinervaHtml {
 		$options += $defaults;
 		$output = '';
 		
-		$fb_login_url = Session::read('fb_login_url');
-		if(!empty($fb_login_url)) {
+		if(!empty($this->facebook->login_url)) {
 			if($options['div'] !== false) {
 				$output .= '<div id="' . $options['div'] . '">' . $options['additional_copy'];
 			}
 			
-			$output .= $this->_context->html->link('<img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] .'" />', $fb_login_url, $options['link_options']);
-			//$output .= '<a href="' . $fb_login_url . '"><img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] .'" /></a>';
+			$output .= $this->_context->html->link('<img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] .'" />', $this->facebook->login_url, $options['link_options']);
 			
 			if($options['div'] !== false) {
 				$output .= '</div>';

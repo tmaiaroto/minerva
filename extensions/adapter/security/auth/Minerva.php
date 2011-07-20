@@ -44,52 +44,44 @@ class Minerva extends \lithium\security\auth\adapter\Form {
         if(!$user) {
             $minerva_config = Libraries::get('minerva');
             
-            // IF we even are using Facebook
+            // IF we are using Facebook, then let's try to get the Facebook session information and save it to our Minerva session.
+            // Also, if this is the Facebook user's first time to the site, let's put them into Minerva's system as a user.
             if(isset($minerva_config['facebook'])) {
-				$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://';
-				$minerva_config['facebook']['login_url'] = (isset($minerva_config['facebook']['login_url'])) ? $minerva_config['facebook']['login_url']:array();
-				$minerva_config['facebook']['logout_url'] = (isset($minerva_config['facebook']['logout_url'])) ? $minerva_config['facebook']['logout_url']:array('next' => $protocol . $_SERVER['HTTP_HOST'] . MINERVA_BASE_URL . '/users/logout');
-				
-                $facebook_config = Libraries::get('li3_facebook');
+				$facebook_config = Libraries::get('li3_facebook');
                 if($facebook_config) {
                     $session = FacebookProxy::getSession();
                     $uid = null;
-                    // Session based API call.
+                    // Session based API call. Get the Facebook user id.
                     if ($session) {
-                            // Set the session
-                            Session::write('fb_session', $session, array('name' => 'minerva_default'));
-                            try {
-                                $uid = FacebookProxy::getUser();
-                            } catch (Exception $e) {
-                                error_log($e);
-                            }
+                        try {
+                            $uid = FacebookProxy::getUser();
+                        } catch (Exception $e) {
+                            error_log($e);
+                        }
                     }
                     
-                    // If $uid is set, then write the fb_logout_url session key
+                    // If $uid is set, then write the Facebook session to the Minerva user's session.
+                    // NOTE: If there is no $uid, then the Facebook login failed! But not to worry,
+                    // the user won't get a session here in Minerva either if that's the case.
                     if (!empty($uid)) {
-                        Session::write('fb_logout_url', FacebookProxy::getLogoutUrl($minerva_config['facebook']['logout_url']), array('name' => 'minerva_default'));
-                        
-                        // Also, set Auth and return the user data
+                        // handle_facebook_user() is going to save any new user to Minerva's database.
+                        // However, it will only save what can legally be saved in accordance with Facebook's terms.
+                        // That's basically a user id, but we can store our own information like created, last login, etc.
                         $user_data = User::handle_facebook_user($uid);
                         if($user_data) {
+                            $user_data['facebook_session'] = $session;
                             Auth::set('minerva_user', $user_data);
-                        } else {
-                            //Auth::clear('minerva_user');
                         }
-                        
-                    } else {
-                        // Else, the user hasn't logged in yet, write the fb_login_url session key
-                        Session::write('fb_login_url', FacebookProxy::getLoginUrl($minerva_config['facebook']['login_url']), array('name' => 'minerva_default'));
-                        //Auth::clear('minerva_user'); // shouldn't need this, right/
                     }
-                    
                 }
             }
         }
         
+        // TODO:
+        // We could go on to check other authentication services here...Like maybe allow Twitter logins? 
+        
         return $user;
-	}
-
+	}    
+    
 }
-
 ?>

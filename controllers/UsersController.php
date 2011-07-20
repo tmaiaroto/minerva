@@ -1,4 +1,10 @@
 <?php
+/**
+ * Minerva: a CMS based on the Lithium PHP framework
+ *
+ * @copyright Copyright 2010-2011, Shift8Creative (http://www.shift8creative.com)
+ * @license http://opensource.org/licenses/bsd-license.php The BSD License
+*/
 namespace minerva\controllers;
 
 use \lithium\security\Auth;
@@ -238,6 +244,17 @@ class UsersController extends \minerva\controllers\MinervaController {
 		if (!Session::check('triedAuthRedirect', array('name' => 'minerva_cookie'))) {
 			Session::write('triedAuthRedirect', 'false', array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
 		}
+        
+        // Facebook returns a session querystring... We don't want to show this to the user.
+        // Just redirect back so it ditches the querystring. If the user is logged in, then
+        // it will redirect like expected using the $url variable that has been set below.
+        // Not sure why we need to do this, I'd figured $user would be set...And I think there's
+        // a session just fine if there was no redirect and the user navigated away...
+        // But for some reason it doesn't see $user and get to the redirect() part...
+        if(isset($_GET['session'])) {
+            $this->redirect(array('library' => 'minerva', 'controller' => 'users', 'action' => 'login'));
+        }
+        
         if ($user) {
             // Users will be redirected after logging in, but where to?
             // First, set the base Minerva URL (typically /minerva)
@@ -304,13 +321,7 @@ class UsersController extends \minerva\controllers\MinervaController {
         }
         $data = $this->request->data;
 		
-		// Also get the Facebook login URL if present
-		$fb_login_url = false;
-		if (Session::check('fb_login_url', array('name' => 'minerva_default'))) {
-            $fb_login_url = Session::read('fb_login_url', array('name' => 'minerva_default'));
-		}
-		
-        return compact('data', 'fb_login_url');
+        return compact('data');
     }
 
     public function logout() {
@@ -318,6 +329,7 @@ class UsersController extends \minerva\controllers\MinervaController {
         $action_redirects = $this->getRedirects();
 		
         Auth::clear('minerva_user');
+        
 		FlashMessage::write('You\'ve successfully logged out.', array(), 'minerva_admin');
         $this->redirect($action_redirects['logout']);
     }
