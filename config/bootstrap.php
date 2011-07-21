@@ -37,9 +37,20 @@ require __DIR__ . '/bootstrap/session.php';
 require __DIR__ . '/bootstrap/auth.php';
 
 /**
- * This sets up minerva's access system. Don't use it if you don't want.
+ * This sets up minerva's access system. 
+ * It is optional, if 'minerva_access' is set to false in the minerva library configuration
+ * then the default access system will not be used. The system will then rely completely 
+ * upon 3rd party access control. At that point, in order to protect core actions, filters
+ * would be the logical step to take.
+ * 
+ * NOTE: Minerva's core access system is basic, but can be extended by additional access rules.
+ * In the very least, it could be used for a "super administrator" role only and an additional
+ * access system for every other type of user and need could be put into place.
+ * Please take care when disabling even the most basic of security measures.
 */
-require __DIR__ . '/bootstrap/access.php';
+if(!isset($minerva_config['use_minerva_access']) || $minerva_config['use_minerva_access'] === true) {
+    require __DIR__ . '/bootstrap/access.php';
+}
 
 /**
  * The templates.php file applies a filter on the dispatcher so that a more robust

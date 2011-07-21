@@ -162,7 +162,7 @@ class User extends \minerva\models\MinervaModel {
                 array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
             ),
             'document' => array(
-               // array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+                array('rule' => 'allowIfPublished', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
             )
         ),
         'preview' => array(

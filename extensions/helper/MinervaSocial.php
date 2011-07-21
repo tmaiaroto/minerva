@@ -33,7 +33,7 @@ class MinervaSocial extends MinervaHtml {
             $this->facebook->login_url = FacebookProxy::getLoginUrl(array('next' => $facebook_config['login_url']));
 			$this->facebook->logout_url = FacebookProxy::getLogoutUrl(array('next' => $facebook_config['logout_url']));
             $this->facebook->app_id = $facebook_config['appId'];
-			$this->facebook->locale = (isset($facebook_config['locale'])) ? $minerva_config['facebook']['locale']:$this->facebook->locale;
+			$this->facebook->locale = (isset($facebook_config['locale'])) ? $facebook_config['locale']:$this->facebook->locale;
 		}
     }
     
@@ -95,11 +95,11 @@ class MinervaSocial extends MinervaHtml {
 			$script = 'core.debug.js';
 		}
 		$output = '';
-		if($this->facebook_app_id) {
+		if($this->facebook->app_id) {
 			if($async) {
-				$output = "<div id=\"fb-root\"></div><script>window.fbAsyncInit = function() { FB.init({appId: '".$this->facebook_app_id."', status: true, cookie: true, xfbml: true}); }; (function() { var e = document.createElement('script'); e.async = true; e.src = document.location.protocol + '//connect.facebook.net/".$this->facebook_locale."/".$script."'; document.getElementById('fb-root').appendChild(e); }());</script>";
+				$output = "<div id=\"fb-root\"></div><script>window.fbAsyncInit = function() { FB.init({appId: '".$this->facebook->app_id."', status: true, cookie: true, xfbml: true}); }; (function() { var e = document.createElement('script'); e.async = true; e.src = document.location.protocol + '//connect.facebook.net/".$this->facebook->locale."/".$script."'; document.getElementById('fb-root').appendChild(e); }());</script>";
 			} else {
-				$output = "<div id=\"fb-root\"></div><script src=\"http://connect.facebook.net/".$this->facebook_locale."/".$fb_script."\"></script><script>FB.init({ appId  : '".$this->facebook_app_id."', status : true, cookie : true, xfbml : true });</script>";
+				$output = "<div id=\"fb-root\"></div><script src=\"http://connect.facebook.net/".$this->facebook->locale."/".$fb_script."\"></script><script>FB.init({ appId  : '".$this->facebook->app_id."', status : true, cookie : true, xfbml : true });</script>";
 			}
 		}
 		return $output;

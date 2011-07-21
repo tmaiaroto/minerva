@@ -75,6 +75,9 @@ class Block extends \minerva\models\MinervaModel {
             'admin_action' => array(
                 array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
             ),
+            'document' => array(
+                array('rule' => 'allowIfPublished', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+            )
 		),
 		'view' => array(
 			'action' => array(array('rule' => 'allowAll')),

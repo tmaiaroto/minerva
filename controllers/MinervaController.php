@@ -1,6 +1,7 @@
 <?php
 namespace minerva\controllers;
 
+use \lithium\core\Libraries;
 use \lithium\storage\Session;
 use li3_access\security\Access;
 use \lithium\security\Auth;
@@ -91,6 +92,10 @@ class MinervaController extends \lithium\action\Controller {
         // Get the access rules all out of the way
         $this->minerva_config['access'] = $ModelClass::access_rules();
         
+        // Get some data from Minerva's library configuration, such as if core minerva_access has been disabled
+        $library_config = Libraries::get('minerva');
+        $this->minerva_config['use_minerva_access'] = (isset($library_cofing['use_minerva_access']) && is_boolean($library_config['use_minerva_access'])) ? $library_config['use_minerva_access']:true;
+        
         parent::_init();
     }
     
@@ -134,17 +139,18 @@ class MinervaController extends \lithium\action\Controller {
     }
     
     /**
-     * Gets document(s) for the action and checks access.
+     * Gets document(s) for the action and checks access at the same time.
      * 1. The proper model is determined so it can be used for the find() and also to pick up any access rules,
      *    apply filters, etc.
-     * 2. The action access is checked
+     * 2. The action access is checked (if the method was called merely to check access, it could return true at this point)
      * 3. The find() is made from the proper model (filterable on that model)
      * 4. The document access is checked
      * 5. The document(s) is returned
      *
      * This would be typically called from the core Minerva controllers (Pages, Users, and Blocks for example).
      * The purpose of this method is to reduce duplicate code and any unnecessary database queries.
-     *
+     * Secondarily, it's a convenient method to bundle all of these processes into one method.
+     * 
      * @param $action string The calling controller action (should be passed as __METHOD__ so the controller is also passed, ex. minerva\controllers\PagesController::read)
      * @param $request object The request object
      * @param $find_type string The find type (all, first, etc. if false then no find will be performed)
@@ -152,95 +158,75 @@ class MinervaController extends \lithium\action\Controller {
      * @param $limit int The limit (for pagination)
      * @param $offset int The offset (for pagination)
      * @param $order array The order
-     * @return mixed The find() results, true, or a redirect if access check fails
+     * @return mixed The find() results, true, or false (also redirects on access restrictions)
     */
-    // $documents = $this->getDocument(__METHOD__, $this->request, 'all', $conditions, $limit, $offset, $order);
     public function getDocument($options=array()) {
         $defaults = array('action' => null, 'request' => null, 'find_type' => 'first', 'conditions' => array(), 'limit' => null, 'offset' => 0, 'order' => 'created.desc');
         $options += $defaults;
         extract($options);
         
-        // $action=null, $request=null, $find_type='first', $conditions=array(), $limit=null, $offset=0, $order=null
-        // 1. Determine the proper model to be using
+        // Defaults: $action=null, $request=null, $find_type='first', $conditions=array(), $limit=null, $offset=0, $order=null
+        // NOTE: minerva_config holds a lot of important information that helps us figure out from where a method was called, which is important with all the class extensions
+        // 1. Determine the proper model to be using by looking at $this->minerva_config set by init()
         extract($this->minerva_config);
-        // done! came from _init() ... cleaned that shit right up
         
         // if the action is read, update, or delete then the document will be able to tell us the library name - otherwise it's going to be "minerva"
+        // all core Minerva model documents stored in the database have a field "document_type" which references the 3rd party library name when the 3rd party extends the core model
         if(($request->params['action'] == 'read') || ($request->params['action'] == 'update') || ($request->params['action'] == 'delete')) {
             
             $record = $ModelClass::first(array('request_params' => $request->params, 'conditions' => $conditions, 'fields' => array('document_type')));
             
-            // it should be an object...if it wasn't found that's a problem
+            // it should be an object...if it wasn't found that's a problem 
             if(is_object($record)) {
                 if($record->document_type) {
                     // set the document_type to that of the document's from the database (still technically could be empty, that's ok)
                     $this->minerva_config['document_type'] = $record->document_type;
                     
-                    // ideally, the document_type should be the name of the library
+                    // the document_type is always the name of the library (known as a "Minerva plugin")
+                    // and this library's model is the class we will use because is has adjusted schema, 
+                    // validation, and other properties (and possibly filters)
                     $MinervaModelClass = $ModelClass::getMinervaModel($model, $record->document_type);
                     if(is_string($MinervaModelClass) && class_exists($MinervaModelClass)) {
                         $this->minerva_config['ModelClass'] = $ModelClass = $MinervaModelClass;
-                        // but if not...we have to search for it
-                        // (minor performance penalty for the looping, but may be unavoidable)
-                    } else {
-                        // similar to the code in _init(), we're searching through all minerva models
-                        $all_minerva_models = $ModelClass::getAllMinervaModels($model);
-                        foreach($all_minerva_models as $MinervaModelClass) {
-                            if($MinervaModelClass::document_type() == $record->document_type) {
-                                $this->minerva_config['ModelClass'] = $ModelClass = $MinervaModelClass;
-                            }
-                        }
                     }
                     
-                    // finaly, we can set the proper $library_name (and the proper $ModelClass will be set now too)
+                    // finaly, we can set the proper library_name (and the proper $ModelClass will be set now too)
                     $this->minerva_config['library_name'] = $ModelClass::library_name();
-                    // also, we will need to set the display name
+                    // also, set the display name in case the plugin wants to show users a different name 
                     $this->minerva_config['display_name'] = $ModelClass::display_name();
                 }
             }
         }
         
-        // 2. Authentication & Access Check 
-        $rules =  $this->minerva_config['access'];
-        
-        // There's going to be two sets of action access rules. One for non-admin actions and one for admin actions.
-        // If there's no 'action' or 'admin_action' keys for access, then allow access.
-        // We are being loose by default. This allows other access systems to be put into place to override this.
-        $action_access = array();
-        
-        // Check for non admin actions (admin flagged false or not set)
-        if((isset($this->minerva_config['admin']) && $this->minerva_config['admin'] === false) || (!isset($this->minerva_config['admin']))) {
-            if(isset($rules[$request->params['action']]['action']) && !empty($rules[$request->params['action']]['action'])) {
-                $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['action']));
+        // 2. Authentication & Access Check
+        // It could be disabled completely by Minerva's library configuration, so first let's check.
+        if($this->minerva_config['use_minerva_access']) {
+            $rules =  $this->minerva_config['access'];
+
+            // There's going to be two sets of action access rules. One for non-admin actions and one for admin actions.
+            // If there's no 'action' or 'admin_action' keys for access, then allow access.
+            // We are being loose by default. This allows other access systems to be put into place to override this.
+            $action_access = array();
+
+            // Check for non admin actions (admin flagged false or not set)
+            if((isset($this->minerva_config['admin']) && $this->minerva_config['admin'] === false) || (!isset($this->minerva_config['admin']))) {
+                if(isset($rules[$request->params['action']]['action']) && !empty($rules[$request->params['action']]['action'])) {
+                    $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['action']));
+                }
             }
-        }
-        // Check for admin actions (note: admin is not true or false, it's string or false. the string being the chosen admin prefix, by default: "admin")
-        if(isset($this->minerva_config['admin']) && $this->minerva_config['admin'] !== false) {
-            if(isset($rules[$request->params['action']]['admin_action']) && !empty($rules[$request->params['action']]['admin_action'])) {
-                $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['admin_action']));
+            // Check for admin actions (note: admin is not true or false, it's string or false. the string being the chosen admin prefix, by default: "admin")
+            if(isset($this->minerva_config['admin']) && $this->minerva_config['admin'] !== false) {
+                if(isset($rules[$request->params['action']]['admin_action']) && !empty($rules[$request->params['action']]['admin_action'])) {
+                    $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['admin_action']));
+                }
             }
-        }
-        
-        if(!empty($action_access)) {
-            FlashMessage::write($action_access['message'], array(), 'minerva_admin');
-            $this->redirect($action_access['redirect']);
-            /**
-             * We need to return false at this point because we've already set a redirect,
-             * but the rest of the code could still execute. This is mostly unnoticed, but is very
-             * noticable for the view() actions for static pages/menus/blocks/etc.
-             * Those view() actions call $this->render() if this getDocument() method doesn't return false.
-             * So those pages would still be accessible.
-             * IF access is allowed and the action wasn't requesting a document from the database, then
-             * the $find_type will be true and as you can see below, this method will return true.
-             * Again, if returning true, those static view() methods will render a static template.
-            */
-            return false;
-        }
-        
-        
-        // Before getting documents, make sure the calling method actually wanted to get documents.
-        if($find_type === false) {
-            return true;
+
+            // This method only redirects when access is restricted, but still returns false to prevent any further code execution.
+            if(!empty($action_access)) {
+                FlashMessage::write($action_access['message'], array(), 'minerva_admin');
+                $this->redirect($action_access['redirect']);
+                return false;
+            }
         }
         
         /**
@@ -248,36 +234,57 @@ class MinervaController extends \lithium\action\Controller {
          * If we're here, we now need to get the document(s) to determine any document based access
          * and we'll return the document(s) back to the controller too.
         */
+        
+        // Before getting documents, make sure the calling method actually wanted to get documents.
+        // If not, we return true. Basically what this method was used for at this point is an access 
+        // check since no document is being returned.
+        if($find_type === false) {
+            return true;
+        }
+        
+        // NOTE: the request_params are not used for Lithium's find() method,
+        // but provides some useful contextual information if find() is filtered.
         $options = array(
             'conditions' => $conditions,
             'limit' => $limit,
             'order' => Util::format_dot_order($order),
-            'request_params' => $request->params // this is not used for Lithium's find() but gives some useful data if find() is filtered
+            'request_params' => $request->params 
         );
         if($offset > 0) {
             $options += array('offset' => $offset);
         }
-        $document = $ModelClass::find($find_type, $options, array('request_params' => $request->params));
+        $document = $ModelClass::find($find_type, $options);
         
         // 4. Document Access Control 
         if($document && is_object($document)) {
-            $document_access = array();
-            if(isset($rules[$request->params['action']]['document']) && !empty($rules[$request->params['action']]['document'])) {
-                // add the document to the document access rules so it can be checked against
-                $rules[$request->params['action']]['document']['document'] = $document->data();
-            
-                $document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['document']));
+            // Again, core Minerva access control can be completely disabled by configuration.
+            if($this->minerva_config['use_minerva_access']) {
+                $document_access = array();
+                if(isset($rules[$request->params['action']]['document']) && !empty($rules[$request->params['action']]['document'])) {
+                    // Add the document to the document access rules so it can be passed to be checked against
+                    // Document access rules can be one or many. So look how the array of rules is formatted, it may need to be looped over.
+                    if(isset($rules[$request->params['action']]['document'][0])) {
+                        foreach($rules[$request->params['action']]['document'] as $k => $v) {
+                            $rules[$request->params['action']]['document'][$k]['document'] = $document->data();
+                        }
+                    } else {
+                        $rules[$request->params['action']]['document']['document'] = $document->data();
+                    }
+                    $document_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['document']));
+                }
+
+                // Again, redirect and return false if access is denied.
+                if(!empty($document_access)) {
+                    FlashMessage::write($document_access['message'], array(), 'minerva_admin');
+                    $this->redirect($document_access['redirect']);
+                    return false;
+                }
             }
-            
-            if(!empty($document_access)) {
-                FlashMessage::set($document_access['message'], array('options' => array('type' => 'growl', 'pnotify_title' => 'Error', 'pnotify_opacity' => '.8')));
-                return $this->redirect($document_access['redirect']);
-                // set the document to false if there's no access to it. the method may be accessible, but the document may not be. so setting it false essentially unsets it, but in a nicer way.
-                $document = false;
-            }
+        } else {
+            $document = false;
         }
         
-        // modelClass will either be a core Minerva model class or the extended matching library model class
+        // 5. Return the document or false (false if the document was not found or something went wrong)
         return $document;
     }
     
@@ -288,7 +295,7 @@ class MinervaController extends \lithium\action\Controller {
      * get the proper records and access.
     */
     public function index($document_type=null) {
-        // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
+        // first, get all the data we need. this will set $document_type, $type, $modelClass, and $display_name
         extract($this->minerva_config);
         
         
@@ -301,31 +308,10 @@ class MinervaController extends \lithium\action\Controller {
         }
         list($limit, $page, $order) = array($params['limit'], $params['page'], $params['order']);
         
-        /*
-        if(isset($params['args'])) {
-            foreach($params['args'] as $arg) {
-                $arg_pieces = explode(':', $arg);
-                if(count($arg_pieces) > 1) {
-                    switch(strtolower($arg_pieces[0])) {
-                        case 'page':
-                            $page = $arg_pieces[1];
-                            break;
-                        case 'limit':
-                            $limit = $arg_pieces[1];
-                            break;
-                        case 'order':
-                            $order = $arg_pieces[1];
-                            break;
-                    }
-                }
-            }
-        }
-        */
-        
         // never allow a limit of 0
         $limit = ($limit < 0) ? 1:$limit;
         
-        // If there's a page/user/block_type passed, add it to the conditions, 'index' will show all pages and comes from routing. we allow /minerva/pages/index for example. though /minerva/pages works as does /minerva/pages/page:1/limit:1
+        // If there's a document_type passed, add it to the conditions, 'index' will show all pages and comes from routing. we allow /minerva/pages/index for example. though /minerva/pages works as does /minerva/pages/page:1/limit:1
         if(!empty($document_type) && $document_type != 'index') {
             $conditions = array('document_type' => $document_type);
         } else {
