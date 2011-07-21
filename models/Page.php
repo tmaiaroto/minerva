@@ -1,5 +1,10 @@
 <?php
-/*
+/**
+ * Minerva: a CMS based on the Lithium PHP framework
+ *
+ * @copyright Copyright 2010-2011, Shift8Creative (http://www.shift8creative.com)
+ * @license http://opensource.org/licenses/bsd-license.php The BSD License
+ * 
  * Minerva Pages & How They Work
  *
  * Pages are the main content items within the CMS. They get stored in a Pages
@@ -8,48 +13,42 @@
  * be data loaded from external sites or services as well as "block" content.
  *
  * Each Page must have a title, url, created date, modified date, and then a special
- * "page_type" field that tells the system which library created the page. This is how
- * 3rd party add-ons will hook into the CMS without altering Minerva's core code
- * in order to extend functionality. For example, a "blog" library.
+ * "document_type" field that tells the system which library created the page. 
+ * This is how 3rd party add-ons will hook into the CMS without altering Minerva's 
+ * core code in order to extend functionality. For example, a "blog" library.
  * 
  * What happens is any library with a Page model that extends this base Page model
- * will have its own $_schema and $validate properties appended to the same properties
+ * will have its own $_schema, $validate, and other properties appended to the properties
  * in this base model class. This always guarantees that the base fields and validation
  * will exist so that there will be less issues with consistency and integration.
  * We have to be able to rely upon the fact that each "Page" has a title, url, etc.
+ * However, some properties are completely overwritten if defined in the extended model.
  *
- * The Pages controller will be instantiating the library's Page model based on the
- * record pulled (the library field contains the library name). If creating
- * a new page, or calling the index action, the URL would contain the library name.
+ * The Pages controller will be using the appropriate library's Page model which is based 
+ * on the document pulled (the document_type field contains the library name).
  *
  * Within each library's extended Page model, not only is its schema and validation
  * rules applied, but any filters within that model will also be applied. It is 
- * through Lithium's filter system that we gain even further control over the
- * CRUD process for pages. You would equate this technique with a "hook" system
- * found in other CMS' such as Drupal, etc.
+ * through Lithium's filter system that the add-on gains even further control.
  *
- * Minerva's core PagesController is used and no additional controller need be setup;
- * however, the library's page view templates will also be used.
- *
- * Don't want to use Lithium's filter system?
- * Want to add new methods to the PagesController?
- * Alternatively, a library could write new routing rules to call it's own PagesController
- * which can extend Minerva's PagesController or just extend Lithium's controller class
- * as normal and not inherit anything from Minerva...Then from there you could skip the
- * entire process of instantiating a Page model from a library and simply put "use" up
- * top to use the library's Page model instead of Minerva's base Page model to pick up
- * schema, validation, and other properties and methods.
+ * Minerva's core PagesController is used and no additional controller need be setup.
+ * However, the add-on could contain its own PagesController if additional actions 
+ * were desired or if core actions were desired to be overwritten. Just note that the
+ * routes defined within the add-on must point to the proper controller.
  *
  * It's completely possible to use the pages collection and not use any of Minerva's
  * classes to save and read data from it. However, you should use some caution because
  * you could end up with inconsistencies that could create errors.
  * Please understand what Minerva is trying to do if you decide to create your own
- * PagesController. You may even use it as a starting point for your own controller.
+ * PagesController. You may even use Minerva's as a starting point for your own controller.
  * If you are making a radical change...Then perhaps consider using a completely new model,
  * controller, and database collection to store the data (if there's data to be stored).
  * Remember, Minerva uses MongoDB, but your libraries can use other types of datasources.
  *
- *
+ * When it comes to rendering templates.
+ * There is a process within Minerva's bootstrap that adds an array of template and layout
+ * paths to check when rendering the page. There is a hierarchy to this and it gives priority
+ * to templates within the add-on first.
 */
 namespace minerva\models;
 
@@ -94,7 +93,7 @@ class Page extends \minerva\models\MinervaModel {
     // Pages use the title field by default to build their pretty url
     public $url_field = 'title';
     
-    // Access rules (can be overwritten and not used)
+    // Access rules (can be overwritten in an add-on's extended model and this will not be used)
     public $access = array(
         'index' => array(
             'action' => array(
@@ -140,7 +139,7 @@ class Page extends \minerva\models\MinervaModel {
                 array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
             ),
             'document' => array(
-                array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+                array('rule' => 'allowIfPublished', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => array('library' => 'minerva', 'controller' => 'pages', 'action' => 'index'))
             )
         ),
         'preview' => array(
@@ -151,7 +150,7 @@ class Page extends \minerva\models\MinervaModel {
                 array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
             ),
             'document' => array(
-                // array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+                // array('rule' => 'allowIfPublished', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => array('library' => 'minerva', 'controller' => 'pages', 'action' => 'index'))
             )
         ),
         'view' => array(

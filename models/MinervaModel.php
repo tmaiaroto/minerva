@@ -1,4 +1,10 @@
 <?php
+/**
+ * Minerva: a CMS based on the Lithium PHP framework
+ *
+ * @copyright Copyright 2010-2011, Shift8Creative (http://www.shift8creative.com)
+ * @license http://opensource.org/licenses/bsd-license.php The BSD License
+*/
 namespace minerva\models;
 
 use lithium\util\Inflector;
@@ -46,12 +52,11 @@ class MinervaModel extends \lithium\data\Model {
 		// Replace any set display name for context
 		$class::_object()->display_name = static::_object()->display_name;
         
-        // Append access rules as models get extended giving the last model priority
+        // Append access rules as models get extended, giving the last model priority
         // ie. Main model has a rule for index to restrict all. Extended model says to allow all. Everyone is allowed.
         // ie. Main model has no index rule. Extended model says to allow all. Everyone is allowed.
         // ie. Main model has an index rule to restrict all. Extended model has no index rule. Everyone is restricted.
         // ie. This model has an index rule to restirct all. Main model has a rule to allow all. Extended model has an index rule to restrict all. Everyone is restricted.
-        // ie. I think you get it
         // TODO: look into doing this for other properties...
 		$class::_object()->access = static::_object()->access += $class::_object()->access;
 		
@@ -221,7 +226,7 @@ class MinervaModel extends \lithium\data\Model {
     }
 	
 	/**
-	 * Returns all minerva models
+	 * Returns all registered minerva models
 	 *
 	 * @param $model_name The model name (should be page, user, or block)
 	 * @return Array of classes

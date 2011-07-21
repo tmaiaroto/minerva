@@ -1,12 +1,17 @@
 <?php
+/**
+ * Minerva: a CMS based on the Lithium PHP framework
+ *
+ * @copyright Copyright 2010-2011, Shift8Creative (http://www.shift8creative.com)
+ * @license http://opensource.org/licenses/bsd-license.php The BSD License
+*/
 namespace minerva\models;
 
+use lithium\storage\Cache;
 use lithium\util\Validator;
 use lithium\util\Inflector;
-use lithium\util\String;
 use lithium\security\Auth;
 use lithium\security\Password;
-
 use minerva\util\Email;
 use minerva\extensions\util\Util;
 use li3_facebook\extensions\FacebookProxy;
@@ -44,11 +49,32 @@ class User extends \minerva\models\MinervaModel {
 		)
 	);
 	
+    /**
+     * There are only a few basic types of users in Minerva.
+     * Additional permissions can be added in the form of a 3rd party plugin.
+     * Each plugin can also handle permissions in its own way of course too.
+     * 
+     * The basic types of roles are administrators, content editors, and normal
+     * registered users. 
+     * 
+     * Administrators are essentially "super admins" and have the ability 
+     * to add and edit everything in the system including other users.
+     * 
+     * Content editors do not have the ability to manage users, they merely have the
+     * ability to create pages, menus, and blocks. Or in other words, "content."
+     * 
+     * Registered users are a little more elevated in status than anonymous visitors,
+     * but they don't have the abilty to see any of the administrative backend.
+     * The only data these users write to the database is for their own session.
+     * This could change based on the plugin of course.
+     * For example, a blog plugin may allow these users to make comments.
+     * 
+     * @var array $user_roles
+    */
 	protected $_user_roles = array(
 		'administrator' => 'Administrator',
 		'content_editor' => 'Content Editor',
-		'registered_user' => 'Registered User',
-		'registered_facebook_user' => 'Facebook User'
+		'registered_user' => 'Registered User'
 	);
 	
 	public $validates = array(
@@ -136,7 +162,7 @@ class User extends \minerva\models\MinervaModel {
                 array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
             ),
             'document' => array(
-               // array('rule' => 'publishStatus', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
+                array('rule' => 'allowIfPublished', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
             )
         ),
         'preview' => array(
@@ -212,7 +238,7 @@ class User extends \minerva\models\MinervaModel {
 	 * 
 	 * @return Array
 	*/
-	public function user_roles() {
+	public static function user_roles() {
 		$class =  __CLASS__;
 		return $class::_object()->_user_roles;
 	}
@@ -227,7 +253,7 @@ class User extends \minerva\models\MinervaModel {
      * 
      * @return mixed A string or an valid URL array
     */
-    public function get_login_redirect() {
+    public static function get_login_redirect() {
         $class =  __CLASS__;
 		return $class::_object()->login_redirect;
     }
@@ -243,13 +269,13 @@ class User extends \minerva\models\MinervaModel {
 	 * @param $service Mixed The service to use, either false/'local' for Minerva's MongoDB or 'facebook' for Facebook ... or ...
 	 * @return Mixed The user's name on success, false on failure
 	*/
-	public function get_name($id=false, $service=false) {
+	public static function get_name($id=false, $service=false) {
 		if(!$id) {
 			return false;
 		}
 		
 		$name = false;
-		$user_doc = User::find('first', array('conditions' => array('_id' => $id)));
+		$user_doc = static::find('first', array('conditions' => array('_id' => $id)));
 		if(isset($user_doc->first_name) && !empty($user_doc->first_name)) {
 			$name = $user_doc->first_name;
 		}
@@ -273,7 +299,7 @@ class User extends \minerva\models\MinervaModel {
 	 * @param $id String The user's Facebook id
 	 * @return Mixed The user's name on success, false on failure
 	*/
-	public function get_name_from_facebook($id=false) {
+	public static function get_name_from_facebook($id=false) {
 		if(!$id) {
 			return false;
 		}
@@ -282,23 +308,25 @@ class User extends \minerva\models\MinervaModel {
 		// However, it's just not feasible to hit FB's servers for every user name because we could have many requests per page and it just takes too long.
 		$name = Cache::read('default', $id);
 		if(empty($name)) {
+            $name = '';
 			$fb_user = false;
 			$fb_user_data = file_get_contents('https://graph.facebook.com/'.$id);
 			if(!empty($fb_user_data)) {
 				$fb_user = json_decode($fb_user_data);
 			}
-			if($fb_user) {
-				$name = $fb_user->first_name;
-				$name .= ' ' . $fb_user->last_name;
+			if(is_object($fb_user)) {
+				$name = (isset($fb_user->first_name)) ? $fb_user->first_name:'';
+				$name .= (!empty($name)) ? ' ':'';
+                $name .= (isset($fb_user->last_name)) ? $fb_user->last_name:'';
 				// if the name is STILL empty, try the name property. shouldn't be though.
 				if(empty($name)) {
-					$name = $fb_user->name;
+					$name = (isset($fb_user->name)) ? $fb_user->name:'';
 				}
 			}
 			Cache::write('default', $id, $name, '+1 day');
 		}
 		
-		return $name;
+		return (!empty($name)) ? $name:false;
 	}
 	
 	/**
@@ -346,14 +374,14 @@ class User extends \minerva\models\MinervaModel {
 				'last_login_ip' => $_SERVER['REMOTE_ADDR'],
 				'email' => null,
 				'password' => null,
-				'role' => 'registered_facebook_user',
+				'role' => 'registered_user',
 				'profile_pics' => array('primary' => true, 'url' => 'http://graph.facebook.com/'.$facebook_uid.'/picture?type=square')
 			);
 			$user_document->save($user_data, array('validate' => false));
 		} else {
 			$user_data = $user->data();
 		}
-		
+        
 		return $user_data;
 		
 	}
