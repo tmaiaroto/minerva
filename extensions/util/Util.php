@@ -15,7 +15,7 @@ class Util {
     /*
      * in_array recursive function using Spl libraries. Quite useful.
     */
-    public function in_array_recursive($needle=null, $haystack=null) {
+    public static function inArrayRecursive($needle=null, $haystack=null) {
         if((empty($needle)) || (empty($haystack))) {
             return false;
         }
@@ -38,7 +38,7 @@ class Util {
      *      - prefix: The prefix to use for uniqid() method
      *      - entropy: Boolean, whether or not to add additional entropy (more unique)
     */
-    public function unique_string($options=array()) {
+    public static function uniqueString($options=array()) {
         $options += array('hash' => 'md5', 'prefix' => '', 'entropy' => false);
         switch($options['hash']) {
             case 'md5':
@@ -56,6 +56,7 @@ class Util {
     
     /**
      * Generate a unique pretty url for the model's record.
+     * This should work if using MongoDB or MySQL ("documents" and "records").
      * 
      * @params $options Array
      *      - url: The requested url (typically the inflector::slug() for a title)
@@ -64,7 +65,7 @@ class Util {
      *      - separator: The optional separator symbol for spaces (default: -)
      * @return String The unique pretty url.
     */
-    public function unique_url($options=array()) {
+    public static function uniqueUrl($options=array()) {
         $options += array('url' => null, 'id' => null, 'model' => null, 'separator' => '-');
         if((!$options['url']) || (!$options['model'])) {
             return null;
@@ -77,14 +78,26 @@ class Util {
         $conflicts = array();
         
         foreach($records as $record) {
-            // If the record id is an object, it's probably a MongoId, so make it a string to compare IF the passed id was not an object too.
-            if((is_object($record->{$options['model']::key()})) && (!is_object($options['id']))) {
-                $record_id = (string)$record->{$options['model']::key()};
-            } else {
-                $record_id = $record->{$options['model']::key()};
+            if(is_object($record)) {
+                // If the record id is an object, it's probably a MongoId, so make it a string to compare IF the passed id was not an object too.
+                if((is_object($record->{$options['model']::key()})) && (!is_object($options['id']))) {
+                    $record_id = (string)$record->{$options['model']::key()};
+                } else {
+                    $record_id = $record->{$options['model']::key()};
+                }
+                if($record_id != $options['id']) {
+                    $conflicts[] = $record->url;
+                }
             }
-            if($record_id != $options['id']) {
-                $conflicts[] = $record->url;
+            if(is_array($record)) {
+                if((is_object($record[$options['model']::key()])) && (!is_object($options['id']))) {
+                    $record_id = (string)$record[$options['model']::key()];
+                } else {
+                    $record_id = $record[$options['model']::key()];
+                }
+                if($record_id != $options['id']) {
+                    $conflicts[] = $record['url'];
+                }
             }
         }
         
@@ -113,7 +126,7 @@ class Util {
      *      - exclude Array Other class paths to exclude
      * @return Array All of the class paths to the types for that model
     */
-    public function list_types($model='Page', $options=array()) {
+    public static function listTypes($model='Page', $options=array()) {
         $options += array('exclude_minerva' => false, 'exclude' => array(), 'library' => 'minerva');
         
         $types = array();
@@ -133,9 +146,13 @@ class Util {
             $types[] = $models;
         }
         
+        // Add the core minerva model which is not returned from locate()
+        $types[] = 'minerva\models\\' . $model_class_name;
+        
         if($options['exclude_minerva'] === true) {
             $options['exclude'][] = 'minerva\models\\' . $model_class_name;
         }
+        
         if(count($options['exclude']) > 0) {
             $i=0;
             foreach($types as $type) {
@@ -159,71 +176,23 @@ class Util {
      *
      * @param $order String The dot separated field.direction
     */
-    public function format_dot_order($order='id.desc') {
-	$order_pieces = explode('.', $order);
-	if(count($order_pieces) > 1) {
-            switch(strtolower($order_pieces[1])) {
-                case 'desc':
-                case 'descending':
-                default:
-                    $direction = 'desc';
-                    break;
-                case 'asc':
-                case 'ascending':
-                    $direction = 'asc';
-                    break;
-            }
-	    return array($order_pieces[0], $direction);
-	}
-        return array();
-    }
-    
-    /**
-     * Gets the library configuration for all libraries or a sepcific library.
-     * Uses Libraries::get() to do this, but you can specify some options to
-     * return specific configuration values in a clean format.
-     *
-     * For example, library_config(array('config_keys' => array('use_minerva_templates')));
-     * would return all libraries that use the Minerva template system.
-     *
-     * Options
-     *  - library : can be a library name string or array of names to get config for specific libraries
-     *  - config_keys : an array of configuration keys to return values for
-     *  
-     * @param array $options
-    */
-    public function library_config($options=array()) {
-        $defaults = array(
-            'library' => null,
-            'config_keys' => array()
-        );
-        $options += $defaults;
-        $library_configs = array();
-        
-        $all_libraries = scandir(LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'libraries');
-        foreach($all_libraries as $k => $v) {
-            if($v == '.' || $v == '..' || $v == '_source') {
-                unset($all_libraries[$k]);
-            }
-        }
-        
-        if(!empty($options['library'])) {
-            $library_configs = Libraries::get($options['library']);
-        } else {
-            $library_configs = Libraries::get($all_libraries);
-        }
-        
-        // now loop through the configuration and sort things out
-        $all_configs = array();
-        foreach($library_configs as $k => $v) {
-            if(is_array($v)) {
-                foreach($options['config_keys'] as $config_key)  {
-                    $all_configs[$k][$config_key] = $v[$config_key];
+    public static function formatDotOrder($order='id.desc') {
+        $order_pieces = explode('.', $order);
+        if(count($order_pieces) > 1) {
+                switch(strtolower($order_pieces[1])) {
+                    case 'desc':
+                    case 'descending':
+                    default:
+                        $direction = 'desc';
+                        break;
+                    case 'asc':
+                    case 'ascending':
+                        $direction = 'asc';
+                        break;
                 }
-            }
+            return array($order_pieces[0], $direction);
         }
-        
-        return $all_configs;
+        return array();
     }
     
 }

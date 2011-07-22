@@ -40,22 +40,20 @@ class MinervaController extends \lithium\action\Controller {
     protected function _init() {
         $this->request = $this->request ?: $this->_config['request'];
         
-        /**
-         * The only time I can think that there wouldn't be $this->request is from requestAction() on the Block helper.
-         * TODO: Ensure that all this is not required by that helper's method.
-         * For now this if() will prevent some errors.
-        */
+        // The only time I can think that there wouldn't be $this->request is from requestAction() on the Block helper.
+        // TODO: Ensure that all this is not required by that helper's method.
+        // For now this if() will prevent some errors.
         if(!empty($this->request)) {
             $controller_pieces = explode('.', $this->request->params['controller']);
             $this->minerva_config['relative_controller'] = $relative_controller = (count($controller_pieces) > 1) ? $controller_pieces[1]:$controller_pieces[0];
             $this->minerva_config['model'] = $model = Inflector::classify(Inflector::singularize($relative_controller));
             // set the model class, should be minerva\models\Page or minerva\models\Block etc.
-            $ModelClass = $DefaultModelClass = 'minerva\models\\'.$model;
+            $ModelClass = 'minerva\models\\'.$model;
             // in case it doesn't exist, use the base MinervaModel which we know does exist
             $ModelClass = (class_exists($ModelClass)) ? $ModelClass:'minerva\models\MinervaModel';
             $document_type = '';
             
-            $plugin = (isset($this->request->params['plugin'])) ? $this->request->params['plugin']:false;
+            $plugin = (isset($this->request->params['plugin']) && !empty($this->request->params['plugin'])) ? $this->request->params['plugin']:false;
                         
             // set the ModelClass again now based on the $document_type, which in most cases, matches the library (minerva plugin) name
             // ignore and empty $document_type, that just means the base model class anyway
@@ -69,34 +67,47 @@ class MinervaController extends \lithium\action\Controller {
             
             // Now the following will use the proper ModelClass to get the properties that we need in the controller.
             $this->minerva_config['ModelClass'] = $ModelClass;
-            $this->minerva_config['display_name'] = $ModelClass::display_name();
-            $this->minerva_config['library_name'] = $ModelClass::library_name();
+            $this->minerva_config['display_name'] = $ModelClass::displayName();
+            $this->minerva_config['library_name'] = $ModelClass::libraryName();
             $this->minerva_config['document_type'] = $document_type;
             $this->minerva_config['admin'] = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
             
             // Also good to set the redirect url here for after logging in (last requested URL)
             // ...but we don't want to set it to any of the following
-            $controller_action_whitelist = array(
-                'users.login',
-                'users.logout',
-                'users.register',
-                'users.is_email_in_use',
-                'users.register'
-            );
-            if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
-                Session::write('beforeAuthURL', '/' . $this->request->url, array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
+            // TODO: should this be removed?
+            if(isset($this->request->params['action'])) {
+                $controller_action_whitelist = array(
+                    'users.login',
+                    'users.logout',
+                    'users.register',
+                    'users.is_email_in_use',
+                    'users.register',
+                );
+                if(!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
+                    Session::write('beforeAuthURL', '/' . $this->request->url, array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
+                }
             }
             
         }
         
         // Get the access rules all out of the way
-        $this->minerva_config['access'] = $ModelClass::access_rules();
+        $this->minerva_config['access'] = $ModelClass::accessRules();
         
         // Get some data from Minerva's library configuration, such as if core minerva_access has been disabled
         $library_config = Libraries::get('minerva');
         $this->minerva_config['use_minerva_access'] = (isset($library_cofing['use_minerva_access']) && is_boolean($library_config['use_minerva_access'])) ? $library_config['use_minerva_access']:true;
         
         parent::_init();
+    }
+    
+    /**
+     * Returns the configuration for Minerva based on the current request.
+     * This holds valuable information for a controller to use.
+     * 
+     * @retun array The current configuration
+     */
+    public function getMinervaConfig() {
+        return $this->minerva_config;
     }
     
     /**
@@ -108,7 +119,6 @@ class MinervaController extends \lithium\action\Controller {
      * @return Array
     */
     public function getRedirects() {
-        $redirects = array();
         $admin = (isset($this->request->params['admin'])) ? $this->request->params['admin']:false;
         $default_redirects = array(
             'create' => array('admin' => $admin, 'library' => 'minerva', 'controller' => $this->request->params['controller'], 'action' => 'index'),
@@ -118,19 +128,21 @@ class MinervaController extends \lithium\action\Controller {
             'register' => array('library' => 'minerva', 'controller' => 'users', 'action' => 'login')
         );
         $ModelClass = $this->minerva_config['ModelClass'];
-        $redirects = $ModelClass::action_redirects();
+        $redirects = $ModelClass::actionRedirects();
         $redirects += $default_redirects;
         
         // loop through, look for special redirect values
-        foreach($redirects as $k => $v) {
-            if($v == 'self') {
-                $redirects[$k] = '/' . $this->request->url;
-            }
-            if($v == 'referer') {
-                if(isset($_SERVER['HTTP_REFERER'])) {
-                    $redirects[$k] = $_SERVER['HTTP_REFERER'];
-                } else {
+        if(count($redirects) > 0) {
+            foreach($redirects as $k => $v) {
+                if($v == 'self') {
                     $redirects[$k] = '/' . $this->request->url;
+                }
+                if($v == 'referer') {
+                    if(isset($_SERVER['HTTP_REFERER'])) {
+                        $redirects[$k] = $_SERVER['HTTP_REFERER'];
+                    } else {
+                        $redirects[$k] = '/' . $this->request->url;
+                    }
                 }
             }
         }
@@ -153,7 +165,7 @@ class MinervaController extends \lithium\action\Controller {
      * 
      * @param $action string The calling controller action (should be passed as __METHOD__ so the controller is also passed, ex. minerva\controllers\PagesController::read)
      * @param $request object The request object
-     * @param $find_type string The find type (all, first, etc. if false then no find will be performed)
+     * @param $find_type string The find type (all, first, etc. if false then no find will be performed) default: false
      * @param $conditions array The find conditions
      * @param $limit int The limit (for pagination)
      * @param $offset int The offset (for pagination)
@@ -161,7 +173,7 @@ class MinervaController extends \lithium\action\Controller {
      * @return mixed The find() results, true, or false (also redirects on access restrictions)
     */
     public function getDocument($options=array()) {
-        $defaults = array('action' => null, 'request' => null, 'find_type' => 'first', 'conditions' => array(), 'limit' => null, 'offset' => 0, 'order' => 'created.desc');
+        $defaults = array('action' => null, 'request' => null, 'find_type' => false, 'conditions' => array(), 'limit' => null, 'offset' => 0, 'order' => 'created.desc');
         $options += $defaults;
         extract($options);
         
@@ -169,6 +181,11 @@ class MinervaController extends \lithium\action\Controller {
         // NOTE: minerva_config holds a lot of important information that helps us figure out from where a method was called, which is important with all the class extensions
         // 1. Determine the proper model to be using by looking at $this->minerva_config set by init()
         extract($this->minerva_config);
+        
+        // if $request was not passed from the calling controller, use $this->request
+        $request = (isset($request)) ? $request:$this->request;
+        // an admin flag could be passed in the actual request (from a route) or the controller could have passed a different request with the admin flag in it
+        $admin = (isset($request->params['admin'])) ? true:false;
         
         // if the action is read, update, or delete then the document will be able to tell us the library name - otherwise it's going to be "minerva"
         // all core Minerva model documents stored in the database have a field "document_type" which references the 3rd party library name when the 3rd party extends the core model
@@ -191,9 +208,9 @@ class MinervaController extends \lithium\action\Controller {
                     }
                     
                     // finaly, we can set the proper library_name (and the proper $ModelClass will be set now too)
-                    $this->minerva_config['library_name'] = $ModelClass::library_name();
+                    $this->minerva_config['library_name'] = $ModelClass::libraryName();
                     // also, set the display name in case the plugin wants to show users a different name 
-                    $this->minerva_config['display_name'] = $ModelClass::display_name();
+                    $this->minerva_config['display_name'] = $ModelClass::displayName();
                 }
             }
         }
@@ -209,18 +226,18 @@ class MinervaController extends \lithium\action\Controller {
             $action_access = array();
 
             // Check for non admin actions (admin flagged false or not set)
-            if((isset($this->minerva_config['admin']) && $this->minerva_config['admin'] === false) || (!isset($this->minerva_config['admin']))) {
+            if($admin === false) {
                 if(isset($rules[$request->params['action']]['action']) && !empty($rules[$request->params['action']]['action'])) {
                     $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['action']));
                 }
             }
-            // Check for admin actions (note: admin is not true or false, it's string or false. the string being the chosen admin prefix, by default: "admin")
-            if(isset($this->minerva_config['admin']) && $this->minerva_config['admin'] !== false) {
+            // Check for admin actions
+            if($admin === true) {
                 if(isset($rules[$request->params['action']]['admin_action']) && !empty($rules[$request->params['action']]['admin_action'])) {
                     $action_access = Access::check('minerva_access', Auth::check('minerva_user'), $request, array('rules' => $rules[$request->params['action']]['admin_action']));
                 }
             }
-
+            
             // This method only redirects when access is restricted, but still returns false to prevent any further code execution.
             if(!empty($action_access)) {
                 FlashMessage::write($action_access['message'], array(), 'minerva_admin');
@@ -229,11 +246,9 @@ class MinervaController extends \lithium\action\Controller {
             }
         }
         
-        /**
-         * 3. Get Document(s)
-         * If we're here, we now need to get the document(s) to determine any document based access
-         * and we'll return the document(s) back to the controller too.
-        */
+        // 3. Get Document(s)
+        // If we're here, we now need to get the document(s) to determine any document based access
+        // and we'll return the document(s) back to the controller too.
         
         // Before getting documents, make sure the calling method actually wanted to get documents.
         // If not, we return true. Basically what this method was used for at this point is an access 
@@ -247,13 +262,14 @@ class MinervaController extends \lithium\action\Controller {
         $options = array(
             'conditions' => $conditions,
             'limit' => $limit,
-            'order' => Util::format_dot_order($order),
-            'request_params' => $request->params 
+            'order' => Util::formatDotOrder($order),
+            'request_params' => $request->params
         );
         if($offset > 0) {
             $options += array('offset' => $offset);
         }
         $document = $ModelClass::find($find_type, $options);
+        //var_dump($document);
         
         // 4. Document Access Control 
         if($document && is_object($document)) {
@@ -298,7 +314,6 @@ class MinervaController extends \lithium\action\Controller {
         // first, get all the data we need. this will set $document_type, $type, $modelClass, and $display_name
         extract($this->minerva_config);
         
-        
         // Default options for pagination, merge with URL parameters
         $defaults = array('page' => 1, 'limit' => 10, 'order' => 'created.desc');
         $params = Set::merge($defaults, $this->request->params);
@@ -322,12 +337,12 @@ class MinervaController extends \lithium\action\Controller {
         // NOTE: the values within this array for "search" include things like "weight" etc. and are not yet fully implemented...But will become more robust and useful.
         // Possible integration with Solr/Lucene, etc.
         if((isset($this->request->query['q'])) && (!empty($this->request->query['q']))) {
-            $search_schema = $ModelClass::search_schema();
+            $search_schema = $ModelClass::searchSchema();
             // If the "document_type" is set to "*" then we want to get all the model content_type's schemas, merge them into $schema
             if($document_type == '*') {
-                foreach(Util::list_types($model, array('exclude_minerva' => true)) as $library) {
+                foreach(Util::listTypes($model, array('exclude_minerva' => true)) as $library) {
                     $extendedModelClass = 'minerva\libraries\\' . $library;
-                    $search_schema += $extendedModelClass::search_schema();
+                    $search_schema += $extendedModelClass::searchSchema();
                 }
             }
             
@@ -424,7 +439,7 @@ class MinervaController extends \lithium\action\Controller {
         // If data was passed, set some more data and save
         if ($this->request->data) {
             // We need to get the validation rules unfortunately because they may need to change based on what's going on
-            $validation_rules = $ModelClass::validation_rules();
+            $validation_rules = $ModelClass::validationRules();
             
             $document = $ModelClass::create();
             $now = date('Y-m-d h:i:s');
@@ -435,8 +450,8 @@ class MinervaController extends \lithium\action\Controller {
             
             // Generate the URL
             $url = '';
-            $url_field = $ModelClass::url_field();
-            $url_separator = $ModelClass::url_separator();
+            $url_field = $ModelClass::urlField();
+            $url_separator = $ModelClass::urlSeparator();
             if($url_field != '_id' && !empty($url_field)) {
                 if(is_array($url_field)) {
                     foreach($url_field as $field) {
@@ -456,7 +471,7 @@ class MinervaController extends \lithium\action\Controller {
             }
             
             // Then get a unique URL from the desired URL (numbers will be appended if URL is duplicate) this also ensures the URLs are lowercase
-            $this->request->data['url'] = Util::unique_url(array(
+            $this->request->data['url'] = Util::uniqueUrl(array(
                 'url' => $url,
                 'model' => $ModelClass
             ));
@@ -540,7 +555,7 @@ class MinervaController extends \lithium\action\Controller {
         // Update the record
 		if ($this->request->data) {
 			// We need to get the validation rules unfortunately because they may need to change based on what's going on
-            $validation_rules = $ModelClass::validation_rules();
+            $validation_rules = $ModelClass::validationRules();
             
             // Set some data
             $this->request->data['modified'] = date('Y-m-d h:i:s');

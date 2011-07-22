@@ -4,6 +4,17 @@
  *
  * @copyright Copyright 2010-2011, Shift8Creative (http://www.shift8creative.com)
  * @license http://opensource.org/licenses/bsd-license.php The BSD License
+ * 
+ * Base model class MinervaModel
+ * All Minerva model classes ultimately extend from this class.
+ * This class provides various getter and setter methods that will help 3rd party
+ * add-ons utilize the core system more easily. Many of these methods also provide
+ * helpful insight as to what is going on.
+ * 
+ * A lot of properties are set in this model to be changed based on the extended
+ * model in order to control schema, validation, access rules, URL redirect settings
+ * for controller actions, and more.
+ * 
 */
 namespace minerva\models;
 
@@ -31,12 +42,10 @@ class MinervaModel extends \lithium\data\Model {
 	);
 	
     public static function __init() {
-		/**
-		 * The following code will append a library Page model's $_schema and
-		 * $validates properites to this Page model. $_schema can never be changed,
-		 * only extended. $validates can be changed and extended, but if default
-		 * field rules are left out, they will be used from this parent model.
-		*/
+		// The following code will append a library Page model's $_schema and
+		// $validates properites to this Page model. $_schema can never be changed,
+		// only extended. $validates can be changed and extended, but if default
+		// field rules are left out, they will be used from this parent model.
 		$class =  __CLASS__;
 		
 		// Use the library Page model's validation rules combined with the default (but the library gets priority) this way the default rules can be changed, but if left out will still be used (to help make things nicer)
@@ -85,46 +94,62 @@ class MinervaModel extends \lithium\data\Model {
      * to be changed to something like "Create Blog Entry" for example.
      * The "display_name" property of each Page model changes that and
      * this method gets the value. Same goes for Users and other models.
+     * 
+     * The display name is changed through class extension, but this method
+     * can also be used to set the display name as well.
      *
+     * @param string $name Optional display name to set for the model
      * @return String
     */
-    public function display_name() {
+    public static function displayName($name=null) {
 		$class =  __CLASS__;
+        if(!empty($name) && is_string($name)) {
+            $class::_object()->display_name = $name;
+        }
 		return $class::_object()->display_name;
     }
     
 	/**
-	 * Similiar to the display_name() method, this returns the library name
+	 * Similiar to the displayName() method, this returns the library name
 	 * for the current model.
+     * 
+     * This is always automatically set by the __init() method.
+     * There is no point to allowing this method to double as a setter as well,
+     * it could create a mess since directory names are almost as good as constants.
 	 *
 	 * @return String
 	*/
-	public function library_name() {
+	public static function libraryName() {
 		$class =  __CLASS__;
 		return $class::_object()->library_name;
     }
 	
 	/**
-	 * Similiar to the display_name() method, this returns the validation
-	 * rules for the model. 
+	 * Similiar to the displayName() method, this returns the validation
+	 * rules for the model. This method can also set the validation rules
+     * for the model.
 	 *
+     * @param array $rules Optionally set the validation rules
 	 * @return Array
 	*/
-	public function validation_rules() {
+	public static function validationRules($rules=array()) {
 		$class =  __CLASS__;
+        if(!empty($rules)) {
+            $class::_object()->validates = $rules;
+        }
 		return $class::_object()->validates;
     }
     
     /**
-     * Returns access rules for the model.
+     * Gets or sets the access rules for the model.
      * 
-     * @param string $action Optional action name
+     * @param string $rules Optionally set the access rules
      * @return array The access rules for the specified action or all actions
-     */
-    public function access_rules($action=null) {
+    */
+    public static function accessRules($rules=array()) {
 		$class =  __CLASS__;
-        if(is_string($action) && isset($class::_object()->access[$action])) {
-            return $class::_object()->access[$action];
+        if(!empty($rules)) {
+            $class::_object()->access = $rules;
         }
 		return $class::_object()->access;
     }
@@ -133,55 +158,50 @@ class MinervaModel extends \lithium\data\Model {
 	 * Returns the action_redirect property for the model.
 	 * This property is used to control where certain actions redirect to.
 	 * For example, after updating a record.
+     * 
+     * This method can also set the redirects, though extended models
+     * will be able to set redirects with their own $action_redirects property.
 	 *
+     * @param array $redirects Optional array of action redirects to set
 	 * @return Array
 	*/
-	public function action_redirects() {
+	public static function actionRedirects($redirects=array()) {
 		$class =  __CLASS__;
+        if(!empty($redirects)) {
+            $class::_object()->action_redirects = $redirects;
+        }
 		return $class::_object()->action_redirects;
     }
 	
 	/**
-	 * Get the document type for the model.
-	 * Typically, the document type is the name of the library,
-	 * but the model (that extends the corresponding minerva model)
-	 * can manually set the document type as a property.
-	 *
-	 * This is useful for avoiding conflicts with other plugins.
-	 * For example, there's two Page types in a system called "blog" ...
-	 * You'd have to rename the library folder name, change some routing,
-	 * but more importantly, you'd have different fields on the document, etc.
-	 * so you need to change the document_type field.
-	 *
-	 * Note, if a document type can be null. It will use the base Minerva 
-	 * models in that case meaning the schema will be limited.
-	 *
-	 * @return String
-	*/
-	public function document_type() {
-		$class =  __CLASS__;
-		return (isset($class::_object()->document_type)) ? $class::_object()->document_type:null;
-    }
-	
-	/**
 	 * Returns the URL field(s) for the current model.
-	 * If it's not set, it will return null. The controller will need to make a decision about the URL then.
+	 * If it's not set, it will return null. 
+     * The controller would need to make a decision about the URL at that point.
+     * This method can also be used to set the URL field(s).
 	 *
-	 * @return String
+     * @param mixed $field An array or string that chooses the field(s) from which to generate a friendly URL
+	 * @return mixed Either an array of multiple fields to use for a URL (presumably to be concatenated), a single field as a string, or null for no field
 	*/
-	public function url_field() {
+	public static function urlField($field=null) {
 		$class =  __CLASS__;
+        if(!empty($field)) {
+            $class::_object()->url_field = $field;
+        }
 		return (isset($class::_object()->url_field) && !empty($class::_object()->url_field)) ? $class::_object()->url_field:null;
 	}
 	
 	/**
-	 * Returns the URL separator.
-	 * Default is '-'
+	 * Gets or sets the URL separator, which replaces spaces.
+	 * Default is always a '-' symbol.
 	 *
+     * @param string $separator The separator character to use for spaces
 	 * @return String
 	*/
-	public function url_separator() {
+	public static function urlSeparator($separator=null) {
 		$class =  __CLASS__;
+        if(!empty($separator)) {
+            $class::_object()->url_separator = $separator;
+        }
 		return (isset($class::_object()->url_separator) && !empty($class::_object()->url_separator)) ? $class::_object()->url_separator:'-';
 	}
 	
@@ -190,17 +210,19 @@ class MinervaModel extends \lithium\data\Model {
      * Note: If this model has been extended by another model then
      * the combined schema will be returned if that other model was
      * instantiated. The __init() method handles that.
+     * 
+     * However, in addition to class extension, the search schema
+     * can also be set with this method.
      *
-     * @param $field String The field for which to return the search schema for,
-     * 			    if not provided, all fields will be returned
+     * @param array Optional new search schema values
      * @return array
     */
-    public function search_schema($field=null) {
+    public static function searchSchema($schema=array()) {
 		$class =  __CLASS__;
 		$self = $class::_object();
-		if (is_string($field) && $field) {
-			return isset($self->search_schema[$field]) ? $self->search_schema[$field] : array();
-		}
+		if(!empty($schema)) {
+            $class::_object()->search_schema = $schema;
+        }
 		return $self->search_schema;
     }
     
@@ -217,7 +239,7 @@ class MinervaModel extends \lithium\data\Model {
      * @param $library_name The name of the library to search
      * @return class
     */
-    public function getMinervaModel($model_name=null, $library_name=null) {
+    public static function getMinervaModel($model_name=null, $library_name=null) {
 		$default_class = 'minerva\models\\' . Inflector::classify($model_name);
 		// if $default_class doesn't exist, then we'll return MinervaModel which isn't great because it has no collection TODO: look into that. maybe give it one like a "lost and found" should really not happen if everything was routed properly and other things I would think would break first not even allowing a save
 		$class = (class_exists($default_class)) ? $default_class:__CLASS__;
@@ -228,13 +250,13 @@ class MinervaModel extends \lithium\data\Model {
 	/**
 	 * Returns all registered minerva models
 	 *
-	 * @param $model_name The model name (should be page, user, or block)
+	 * @param string $model_name The model name (should be page, user, or block)
 	 * @return Array of classes
 	*/
-	public function getAllMinervaModels($model_name=null) {
+	public static function getAllMinervaModels($model_name=null) {
 		$models = Libraries::locate('minerva_models', $model_name);
 		$models_array = $models;
-		if(is_string($models)) {
+		if(!empty($models)) {
 			$models_array = array($models);
 		}
 		return $models_array;
