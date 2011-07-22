@@ -192,9 +192,9 @@ class MinervaHtml extends \lithium\template\helper\Html {
      *
      * @param $model_name String The model name (can be lowercase, the Inflector corrects it)
      * @param $action String The controller action
-     * @param $options Array Various options that get passed to Util::list_types() and the key "link_options" can contain an array of options for the $this->html->link()
+     * @param $options Array Various options that get passed to Util::listTypes() and the key "link_options" can contain an array of options for the $this->html->link()
      * @return String HTML list of links
-     * @see minerva\libraries\util\Util::list_types()
+     * @see minerva\libraries\util\Util::listTypes()
     */
     public function link_types($model_name='Page', $action='create', $options=array()) {
         $options += array('include_minerva' => true, 'admin' => $this->admin_prefix, 'library' => 'minerva', 'link_options' => array());
@@ -227,7 +227,7 @@ class MinervaHtml extends \lithium\template\helper\Html {
 				$class_pieces = explode('\\', $model);
 				$type = $class_pieces[0];
 				if(class_exists($model)) {
-					$display_name = $model::display_name();
+					$display_name = $model::displayName();
 					// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
 					$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type . ' ' . $model_name):$display_name;
 					$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'args' => $type), $options['link_options']) . '</li>';
@@ -240,7 +240,7 @@ class MinervaHtml extends \lithium\template\helper\Html {
             // that's going to look like: /minerva/plugin/plugin_name/admin/controller/action
 			$plugin = $class_pieces[0];
 			if(class_exists($models)) {
-				$display_name = $models::display_name();
+				$display_name = $models::displayName();
 				// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
 				$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type . ' ' . $model_name):$display_name;
 				$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'plugin' => $plugin, 'library' => $options['library'], 'controller' => $controller, 'action' => $action), $options['link_options']) . '</li>';

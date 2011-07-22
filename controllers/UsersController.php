@@ -41,7 +41,8 @@ class UsersController extends \minerva\controllers\MinervaController {
 		 
 		if(!$document) {
 			FlashMessage::write('The user could not be found.', array(), 'minerva_admin');
-			$this->redirect('/users');
+			$this->redirect(array('library' => 'minerva', 'controller' => 'users', 'action' => 'index'));
+            return false;
 		}
 		
 		$this->set(compact('document'));
@@ -141,8 +142,8 @@ class UsersController extends \minerva\controllers\MinervaController {
 			
 			// Generate the URL
             $url = '';
-            $url_field = $ModelClass::url_field();
-            $url_separator = $ModelClass::url_separator();
+            $url_field = $ModelClass::urlField();
+            $url_separator = $ModelClass::urlSeparator();
             if($url_field != '_id' && !empty($url_field)) {
                 if(is_array($url_field)) {
                     foreach($url_field as $field) {
@@ -162,7 +163,7 @@ class UsersController extends \minerva\controllers\MinervaController {
             }
             
             // Then get a unique URL from the desired URL (numbers will be appended if URL is duplicate) this also ensures the URLs are lowercase
-            $this->request->data['url'] = Util::unique_url(array(
+            $this->request->data['url'] = Util::uniqueUrl(array(
                 'url' => $url,
                 'model' => $ModelClass
             ));

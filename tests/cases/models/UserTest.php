@@ -7,6 +7,7 @@
 */
 namespace minerva\tests\cases\models;
 
+use lithium\storage\Cache;
 use minerva\models\User;
 use minerva\tests\mocks\data\MockUser;
 use minerva\tests\mocks\data\MockFacebookUser;
@@ -15,7 +16,10 @@ class UserTest extends \lithium\test\Unit {
     
     public function setUp() {}
 
-    public function tearDown() {}
+    public function tearDown() {
+        Cache::delete('default', '100');
+        Cache::delete('default', 'xxxxx99999');
+    }
     
     public function testDefaultRoles() {
         $this->assertEqual(

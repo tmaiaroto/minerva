@@ -162,7 +162,6 @@ class User extends \minerva\models\MinervaModel {
                 array('rule' => 'allowManagers', 'redirect' => array('admin' => 'admin', 'library' => 'minerva', 'controller' => 'users', 'action' => 'login'))
             ),
             'document' => array(
-                array('rule' => 'allowIfPublished', 'message' => 'You are not allowed to see unpublished content.', 'redirect' => '/')
             )
         ),
         'preview' => array(
@@ -367,7 +366,7 @@ class User extends \minerva\models\MinervaModel {
 				'facebook_uid' => $me['id'],
 				'confirmed' => true,
 				'active' => true,
-				'url' => Util::unique_url(array('url' => 'fb-user', 'model' => 'minerva\models\User')),
+				'url' => Util::uniqueUrl(array('url' => 'fb-user', 'model' => 'minerva\models\User')),
 				'created' => $now,
 				'modified' => $now,
 				'last_login_time' => $now,
@@ -439,7 +438,7 @@ User::applyFilter('save', function($self, $params, $chain) {
 					// Invalidate
 					$params['data']['new_email'] = '';
 				} else {
-					$params['data']['approval_code'] = Util::unique_string(array('hash' => 'md5'));
+					$params['data']['approval_code'] = Util::uniqueString(array('hash' => 'md5'));
 					Email::changeUserEmail(array('first_name' => $params['data']['first_name'], 'last_name' => $params['data']['last_name'], 'to' => $params['data']['new_email'], 'approval_code' => $params['data']['approval_code']));
 				}
 			}

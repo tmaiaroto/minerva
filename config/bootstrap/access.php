@@ -52,7 +52,7 @@ Access::adapter('minerva_access')->add('allowManagers', function($user, $request
 // Restrict access to documents that have a published field marked as true 
 // (except for users with a role of "administrator" or "content_editor")
 Access::adapter('minerva_access')->add('allowIfPublished', function($user, $request, $options) {
-   if($options['document']['published'] === true) {
+   if(isset($options['document']['published']) && $options['document']['published'] === true) {
 	  return true;
    }
    if(($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor')) {

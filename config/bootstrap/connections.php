@@ -29,7 +29,7 @@ $development += $development_defaults;
 Connections::add('default', array(
     'production' => $production,
     'development' => $development,
-    'test' => array('type' => 'database', 'adapter' => 'MongoDb', 'database' => 'test', 'host' => 'localhost')
+    'test' => array('type' => 'database', 'adapter' => 'MongoDb', 'database' => 'minerva_test', 'host' => 'localhost')
 ));
 //Connections::add('test', array('type' => 'database', 'adapter' =>  'MongoDb', 'database' => 'test', 'host' => 'localhost'));
 ?>
