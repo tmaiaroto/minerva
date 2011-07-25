@@ -25,7 +25,7 @@
 
 use lithium\action\Dispatcher;
 use lithium\core\Libraries;
-use lithium\template\View;
+use minerva\extensions\util\Theme;
 use \Exception;
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
