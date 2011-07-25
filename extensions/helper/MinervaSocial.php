@@ -24,7 +24,7 @@ class MinervaSocial extends MinervaHtml {
         parent::_init();
         
         // Default
-        $this->facebook = new \Object();
+        $this->facebook;
 		$this->facebook->app_id = false;
 		$this->facebook->locale = 'en_US';
         
