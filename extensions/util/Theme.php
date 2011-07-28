@@ -122,44 +122,45 @@ class Theme extends \lithium\core\StaticObject {
                 // You can copy its templates and put them within your main app's views directory.
                 // This is very similar to scenario #1 only it works for plugin libraries.
                 // 
-                // #3 You have a plugin library that you created and want to use special templates with. 
-                // So you can have your own distinct admin interface for example. You can place these
-                // templates within the plugin library's views directory like normal and those will
-                // be used instead of core default Minerva templates. You may or may not share this 
-                // plugin with the world, so scenario #2 may not even be used for this plugin.
+                // #3 You have a library that you want to use the same template process with.
+                // It may or may not utilize core Minerva models, but you like the way the template
+                // paths work and want to use the same convention.
                 // 
-                // #4 You have a plugin library that you want to use Minerva's core templates with. 
+                // #4 You have a plugin library that you created and want to use special templates with. 
+                // So you can have your own distinct admin interface for example. You can place these
+                // templates within the plugin library's views directory and those will be used instead
+                // instead of core default Minerva templates. You may or may not share this plugin 
+                // with the world, so scenario #2 may not even be used for this plugin.
+                // 
+                // #5 You have a plugin library that you want to use Minerva's core templates with. 
                 // You like how Minerva's core templates look. So you don't want to re-invent the wheel.
                 // This is particuarly common for the admin templates. Rather than duplicating the
                 // template files into your plugin library's views folder (because you want to stay 
                 // up to date should Minerva's admin templates change in the future), you can simply
                 // use those templates. This is automatic and if you do not put templates in any of
                 // the first few locations, then these core templates will be used.
-                if($admin) {
-                    $paths['layout'] = array(
-                        LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/_admin/layouts/{:layout}.{:type}.php', // #2
-                        LITHIUM_APP_PATH . '/views/minerva/_admin/layouts/{:layout}.{:type}.php', // #1
-                        '{:library}/views/_admin/layouts/{:layout}.{:type}.php', // #3
-                        LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/{:layout}.{:type}.php' // #4
+                
+                $admin_dir = ($admin === true) ? '_admin/':'';
+                
+                $paths['layout'] = array(
+                    LITHIUM_APP_PATH . '/views/minerva/'.$admin_dir.'layouts/{:layout}.{:type}.php', // #1
+                    '{:library}/views/'.$admin_dir.'layouts/{:layout}.{:type}.php', // #3
+                    LITHIUM_APP_PATH . '/libraries/minerva/views/'.$admin_dir.'layouts/{:layout}.{:type}.php' // #5
+                );
+                $paths['template'] = array(
+                    LITHIUM_APP_PATH . '/views/minerva/'.$admin_dir.'{:controller}/{:template}.{:type}.php',
+                    '{:library}/views/'.$admin_dir.'{:controller}/{:template}.{:type}.php',
+                    LITHIUM_APP_PATH . '/libraries/minerva/views/'.$admin_dir.'{:controller}/{:template}.{:type}.php'
+                );
+                // If a plugin is being requested, then add paths for that too
+                if($plugin) {
+                    array_unshift($paths['layout'], 
+                        LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/'.$admin_dir.'layouts/{:layout}.{:type}.php', // #2
+                        LITHIUM_APP_PATH . '/libraries/'.$plugin.'/views/'.$admin_dir.'layouts/{:layout}.{:type}.php' // #4
                     );
-                    $paths['template'] = array(
-                        LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/_admin/{:controller}/{:template}.{:type}.php',
-                        LITHIUM_APP_PATH . '/views/minerva/_admin/{:controller}/{:template}.{:type}.php',
-                        '{:library}/views/_admin/{:controller}/{:template}.{:type}.php',
-                        LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/{:template}.{:type}.php'
-                    );
-                } else {
-                    $paths['layout'] = array(
-                        LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/layouts/{:layout}.{:type}.php',
-                        LITHIUM_APP_PATH . '/views/minerva/layouts/{:layout}.{:type}.php',
-                        '{:library}/views/layouts/{:layout}.{:type}.php',
-                        LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/{:layout}.{:type}.php'
-                    );
-                    $paths['template'] = array(
-                        LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/{:controller}/{:template}.{:type}.php',
-                        LITHIUM_APP_PATH . '/views/minerva/{:controller}/{:template}.{:type}.php',
-                        '{:library}/views/{:controller}/{:template}.{:type}.php',
-                        LITHIUM_APP_PATH . '/libraries/minerva/views/{:controller}/{:template}.{:type}.php'
+                    array_unshift($paths['template'], 
+                        LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/'.$admin_dir.'{:controller}/{:template}.{:type}.php', // #2
+                        LITHIUM_APP_PATH . '/libraries/'.$plugin.'/views/'.$admin_dir.'{:controller}/{:template}.{:type}.php' // #4
                     );
                 }
                 
@@ -176,33 +177,29 @@ class Theme extends \lithium\core\StaticObject {
                 // the render paths set above, so $paths is set over again. Again, there are 4 paths
                 // to check for both "admin" and normal public templates.
                 if(($request->params['action'] == 'view') && (in_array($request->params['controller'], $static_controllers))) {
-                    if($admin == true) {
-                        $paths['layout'] = array(
-                            LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/_admin/layouts/static/{:layout}.{:type}.php',
-                            LITHIUM_APP_PATH . '/views/minerva/_admin/layouts/static/{:layout}.{:type}.php',
-                            '{:library}/views/_admin/layouts/static/{:layout}.{:type}.php',
-                            LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/static/{:layout}.{:type}.php'
+                    
+                    $paths['layout'] = array(
+                        LITHIUM_APP_PATH . '/views/minerva/'.$admin_dir.'layouts/static/{:layout}.{:type}.php', // #1
+                        '{:library}/views/'.$admin_dir.'layouts/static/{:layout}.{:type}.php', // #3
+                        LITHIUM_APP_PATH . '/libraries/minerva/views/'.$admin_dir.'layouts/static/{:layout}.{:type}.php' // #5
+                    );
+                    $paths['template'] = array(
+                        LITHIUM_APP_PATH . '/views/minerva/'.$admin_dir.'{:controller}/static/{:template}.{:type}.php',
+                        '{:library}/views/'.$admin_dir.'{:controller}/static/{:template}.{:type}.php',
+                        LITHIUM_APP_PATH . '/libraries/minerva/views/'.$admin_dir.'{:controller}/static/{:template}.{:type}.php'
+                    );
+                    // If a plugin is being requested, then add paths for that too
+                    if($plugin) {
+                        array_unshift($paths['layout'], 
+                            LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/'.$admin_dir.'layouts/static/{:layout}.{:type}.php', // #2
+                            LITHIUM_APP_PATH . '/libraries/'.$plugin.'/views/'.$admin_dir.'layouts/static/{:layout}.{:type}.php' // #4
                         );
-                        $paths['template'] = array(
-                            LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/_admin/{:controller}/static/{:template}.{:type}.php',
-                            LITHIUM_APP_PATH . '/views/minerva/_admin/{:controller}/static/{:template}.{:type}.php',
-                            '{:library}/views/_admin/{:controller}/static/{:template}.{:type}.php',
-                            LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/static/{:template}.{:type}.php'
-                        );
-                    } else {
-                        $paths['layout'] = array(
-                            LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/layouts/static/{:layout}.{:type}.php',
-                            LITHIUM_APP_PATH . '/views/minerva/layouts/static/{:layout}.{:type}.php',
-                            '{:library}/views/layouts/static/{:layout}.{:type}.php',
-                            LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/static/{:layout}.{:type}.php'
-                        );
-                        $paths['template'] = array(
-                            LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/{:controller}/static/{:template}.{:type}.php',
-                            LITHIUM_APP_PATH . '/views/minerva/{:controller}/static/{:template}.{:type}.php',
-                            '{:library}/views/{:controller}/static/{:template}.{:type}.php',
-                            LITHIUM_APP_PATH . '/libraries/minerva/views/{:controller}/static/{:template}.{:type}.php'
+                        array_unshift($paths['template'], 
+                            LITHIUM_APP_PATH . '/views/minerva/_plugin/'.$plugin.'/'.$admin_dir.'{:controller}/static/{:template}.{:type}.php', // #2
+                            LITHIUM_APP_PATH . '/libraries/'.$plugin.'/views/'.$admin_dir.'{:controller}/static/{:template}.{:type}.php' // #4
                         );
                     }
+                    
                 }
                 
             }

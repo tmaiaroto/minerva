@@ -37,23 +37,7 @@ class ThemeTest extends \lithium\test\Unit {
         );
         
         $result = Theme::setRenderPaths($this->request);
-        
-        $paths_for_pages_index = array(
-            'layout' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//layouts/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/layouts/{:layout}.{:type}.php',
-                '{:library}/views/layouts/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/{:layout}.{:type}.php'
-            ),
-            'template' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//{:controller}/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/{:controller}/{:template}.{:type}.php',
-                '{:library}/views/{:controller}/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/{:controller}/{:template}.{:type}.php'
-            )
-        );
-        
-        $this->assertEqual($paths_for_pages_index, $result);
+        $this->assertTrue(count($result['layout'] == 3) && count($result['template'] == 3));
         
         // Test for an admin request
         $this->request->params = array(
@@ -64,23 +48,7 @@ class ThemeTest extends \lithium\test\Unit {
         );
         
         $result = Theme::setRenderPaths($this->request);
-        
-        $paths_for_pages_admin_index = array(
-            'layout' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//_admin/layouts/{:layout}.{:type}.php', 
-                LITHIUM_APP_PATH . '/views/minerva/_admin/layouts/{:layout}.{:type}.php',
-                '{:library}/views/_admin/layouts/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/{:layout}.{:type}.php'
-            ),
-            'template' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//_admin/{:controller}/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/_admin/{:controller}/{:template}.{:type}.php',
-                '{:library}/views/_admin/{:controller}/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/{:template}.{:type}.php'
-            )
-        );
-        
-        $this->assertEqual($paths_for_pages_admin_index, $result);
+        $this->assertEqual(LITHIUM_APP_PATH . '/views/minerva/_admin/layouts/{:layout}.{:type}.php', $result['layout'][0]);
         
         // Test for static render paths
         $this->request->params = array(
@@ -90,23 +58,7 @@ class ThemeTest extends \lithium\test\Unit {
         );
         
         $result = Theme::setRenderPaths($this->request);
-        
-        $paths_for_static_pages = array(
-            'layout' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//layouts/static/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/layouts/static/{:layout}.{:type}.php',
-                '{:library}/views/layouts/static/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/static/{:layout}.{:type}.php'
-            ),
-            'template' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//{:controller}/static/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/{:controller}/static/{:template}.{:type}.php',
-                '{:library}/views/{:controller}/static/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/{:controller}/static/{:template}.{:type}.php'
-            )
-        );
-        
-        $this->assertEqual($paths_for_static_pages, $result);
+        $this->assertEqual(LITHIUM_APP_PATH . '/views/minerva/layouts/static/{:layout}.{:type}.php', $result['layout'][0]);
         
         // Test for admin static render paths
         $this->request->params = array(
@@ -117,23 +69,7 @@ class ThemeTest extends \lithium\test\Unit {
         );
         
         $result = Theme::setRenderPaths($this->request);
-        
-        $paths_for_admin_static_pages = array(
-            'layout' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//_admin/layouts/static/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/_admin/layouts/static/{:layout}.{:type}.php',
-                '{:library}/views/_admin/layouts/static/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/layouts/static/{:layout}.{:type}.php'
-            ),
-            'template' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin//_admin/{:controller}/static/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/_admin/{:controller}/static/{:template}.{:type}.php',
-                '{:library}/views/_admin/{:controller}/static/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/{:controller}/static/{:template}.{:type}.php'
-            )
-        );
-        
-        $this->assertEqual($paths_for_admin_static_pages, $result);
+        $this->assertEqual(LITHIUM_APP_PATH . '/views/minerva/_admin/layouts/static/{:layout}.{:type}.php', $result['layout'][0]);
         
         // Test with plugin for render paths
         $this->request->params = array(
@@ -144,24 +80,18 @@ class ThemeTest extends \lithium\test\Unit {
         );
         
         $result = Theme::setRenderPaths($this->request);
+        $this->assertEqual(LITHIUM_APP_PATH . '/views/minerva/_plugin/minerva_blog/layouts/{:layout}.{:type}.php', $result['layout'][0]);
         
-        $paths_for_plugin = array(
-            'layout' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin/minerva_blog/layouts/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/layouts/{:layout}.{:type}.php',
-                '{:library}/views/layouts/{:layout}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/{:layout}.{:type}.php'
-            ),
-            'template' => array(
-                LITHIUM_APP_PATH . '/views/minerva/_plugin/minerva_blog/{:controller}/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/views/minerva/{:controller}/{:template}.{:type}.php',
-                '{:library}/views/{:controller}/{:template}.{:type}.php',
-                LITHIUM_APP_PATH . '/libraries/minerva/views/{:controller}/{:template}.{:type}.php'
-            )
+        // Test with plugin for static render paths
+        $this->request->params = array(
+            'library' => 'minerva',
+            'controller' => 'pages',
+            'action' => 'view',
+            'plugin' => 'minerva_blog'
         );
         
-        $this->assertEqual($paths_for_plugin, $result);
-        
+        $result = Theme::setRenderPaths($this->request);
+        $this->assertEqual(LITHIUM_APP_PATH . '/views/minerva/_plugin/minerva_blog/layouts/static/{:layout}.{:type}.php', $result['layout'][0]);        
     }
     
 }
