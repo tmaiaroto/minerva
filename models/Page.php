@@ -66,7 +66,8 @@ class Page extends \minerva\models\MinervaModel {
     */
     protected $_schema = array(
 		'title' => array('type' => 'string', 'form' => array('label' => 'Title', 'wrap' => array('class' => 'minerva_title_input'))),
-		'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this page (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
+		'body' => array('type' => 'string', 'form' => array('type' => 'textarea', 'class' => 'tinymce')),
+        'url' => array('type' => 'string', 'form' => array('label' => 'Pretty URL', 'help_text' => 'Set a specific pretty URL for this page (optionally overrides the default set from the title).', 'wrap' => array('class' => 'minerva_url_input'), 'position' => 'options')),
 		'published' => array('type' => 'boolean', 'form' => array('type' => 'checkbox', 'position' => 'options')),
 		'owner_id' => array('type' => 'string', 'form' => array('type' => 'hidden', 'label' => false))
 		// add options field?? to all models?? libraries can store various data within this options field that contains array data.
