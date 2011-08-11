@@ -39,8 +39,12 @@ class MinervaMenu extends Block {
 		if(empty($template)) {
 			return '';
 		}
-		$options = array('library' => $library, 'template' => $template, 'controller' => 'menus', 'admin' => 'admin');
-		return $this->render($options);
+		
+		// temporary - TODO: fix
+		return $this->static_menu('admin', array('menu_class' => 'nav main')); 
+		
+		//$options = array('library' => $library, 'template' => $template, 'controller' => 'menus', 'admin' => 'admin');
+		//return $this->render($options);
     }
     
     /**
