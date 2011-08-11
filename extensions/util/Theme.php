@@ -89,7 +89,10 @@ class Theme extends \lithium\core\StaticObject {
             $plugin = (isset($request->params['plugin'])) ? $request->params['plugin']:false;
             $use_minerva = (isset($request->params['library']) && $request->params['library'] == 'minerva') ? true:false;
             $admin = (isset($request->params['admin']) && !empty($request->params['admin'])) ? true:false;
-            $lib_config = ($plugin) ? Libraries::get($plugin):Libraries::get('minerva');
+            
+            // $lib_config = ($plugin) ? Libraries::get($plugin):Libraries::get('minerva');
+            
+            $lib_config = (isset($request->params['library']) && !empty($request->params['library'])) ? Libraries::get($request->params['library']):Libraries::get('minerva');
             // If the library serves as a Minerva plugin, it should specify that it is by specifying 
             // a "minerva_plugin" setting as true.
             // It doesn't need to. If the route has a "plugin" key in it, then it will still check
@@ -97,7 +100,16 @@ class Theme extends \lithium\core\StaticObject {
             // use the following render paths, yet use a route that does not include a "plugin" key.
             // This allows normal libraries and the main application to have render paths which 
             // remain unchanged so they continue to function normally.
-            $use_minerva = ($use_minerva === false && isset($lib_conig['minerva_plugin']) && $lib_config['minerva_plugin'] === true) ? true:$use_minerva;
+            // So look for that "minerva_plugin" key if $use_minerva is false.
+            $library_as_plugin = (isset($lib_config['minerva_plugin'])) ? $lib_config['minerva_plugin']:false;
+            $use_minerva = ($use_minerva === false && isset($lib_config['minerva_plugin']) && $lib_config['minerva_plugin'] === true) ? true:$use_minerva;
+            
+            // The plugin is the library. Routes in the plugin need not use the 'plugin' parameter if the 
+            // library was added with Libraries::add('lib', array('use_minerva' => true)) ... It's assumed
+            // that the library is a Minerva plugin and we want to go through with the render paths below.
+            // If the library doesn't use Minerva, then it won't be added with "use_minerva" and even if
+            // it was, the default render paths for the library will be checked.
+            $plugin = ($library_as_plugin === true) ? $request->params['library']:$plugin;
             
             if($use_minerva) {
                 $paths = array('layout' => null, 'template' => null);
@@ -139,7 +151,6 @@ class Theme extends \lithium\core\StaticObject {
                 // up to date should Minerva's admin templates change in the future), you can simply
                 // use those templates. This is automatic and if you do not put templates in any of
                 // the first few locations, then these core templates will be used.
-                
                 $admin_dir = ($admin === true) ? '_admin/':'';
                 
                 $paths['layout'] = array(
@@ -202,6 +213,20 @@ class Theme extends \lithium\core\StaticObject {
                     
                 }
                 
+                // Default Lithium render paths are also appended when a library is using the 
+                // Minerva template system but is not technically or solely a Minerva plugin.
+                // Meaning its routes don't include a "plugin" key at all and it was build without
+                // Minerva in mind, but it was added to the application with the "use_minerva" key
+                // set true. This allows the library to work like normal provided it doesn't catch
+                // a template in one of the paths before. It provides a way to override templates 
+                // for any library really. 
+                // WARNING: Trouble would arrise if that library used a controller with the same 
+                // name as a Minerva core controller or a Minerva plugin controller that also had 
+                // override templates within one of the render paths checked before these defaults.
+                if($library_as_plugin) {
+                    $paths['layout'][] = '{:library}/views/layouts/{:layout}.{type}.php';
+                    $paths['template'][] = '{:library}/views/{:controller}/{:template}.{type}.php';
+                }
             }
             
             // var_dump($paths);

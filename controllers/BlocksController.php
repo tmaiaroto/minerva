@@ -47,7 +47,8 @@ class BlocksController extends \minerva\controllers\MinervaController {
     public function read($url=null) {
 		// get the page record (also within this record contains the library used, which is important)
 		// TODO: make read conditions??
-		return Block::find('first', array('conditions' => array('url' => $url, 'published' => true)));
+		$document = Block::find('first', array('conditions' => array('url' => $url, 'published' => true)));
+        $this->set(compact('document'));
     }
     
     public function index($document_type=null) {

@@ -1,6 +1,9 @@
 <div class="grid_16">
     <h2 id="page-heading">Block Content</h2>
-    <p>From here you should be able to manage all of the dynamic (served from the database) blocks on your site.</p>
+    <p>
+        From here you should be able to manage all of the dynamic (served from the database) blocks on your site.<br />
+        Blocks are useful showing bits of content throughout several pages of your site.
+    </p>
 </div>
 
 <div class="clear"></div>
@@ -20,7 +23,7 @@
         <?php foreach($documents as $block) { ?>
         <tr>
             <td>
-                <?=$block->title; ?>
+                <?=$this->html->link($block->title, array('admin' => $this->minervaHtml->admin_prefix, 'library' => 'minerva', 'controller' => 'blocks', 'action' => 'read', 'args' => array($block->url))); ?>
             </td>
             <td>
                 <?php if(!empty($block->document_type)) {
@@ -30,7 +33,7 @@
                 } ?>
             </td>
             <td>
-                <?=$block->ownder_id; ?>
+                <?=$this->minervaHtml->owner_name($block); ?>
             </td>
             <td>
                 <?=$this->minervaHtml->date($block->modified->sec); ?>
