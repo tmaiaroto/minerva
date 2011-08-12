@@ -154,7 +154,7 @@ foreach ($sanityChecks as $checkName => $check) {
 	To change Minerva's
 	<em><a href="http://lithify.me/en/docs/lithium/template">layout</a></em> (the file containing
 	the header, footer and default styles), edit the file
-	<code><?php echo realpath(LITHIUM_APP_PATH . '/libraries/minerva/views/layouts/default.html.php'); ?></code>.
+	<code><?php echo realpath(LITHIUM_APP_PATH . '/views/minerva/layouts/default.html.php'); ?></code>.
 </p>
 
 <h4>Routing</h4>
@@ -172,17 +172,23 @@ foreach ($sanityChecks as $checkName => $check) {
 
 <h4>Admin Templates</h4>
 <p>
-	All admin templates are located under an "_admin" directory by Minerva convention. Unlike the admin prefix, you can't change this. For example core Minerva _admin templates are located at<br />
-	<code><?php echo realpath(LITHIUM_APP_PATH . '/libraries/minerva/views/_admin/'); ?></code>.
+	All admin templates are located under an "_admin" directory by Minerva convention. Unlike the admin prefix, you can't change this directory name.<br />
+	<code><?php echo realpath(LITHIUM_APP_PATH . '/views/minerva/_admin/'); ?></code>.<br />
+	So if you wanted to override the default admin template for Pages::index(), you would add this file:<br />
+	<code><?php echo realpath(LITHIUM_APP_PATH . '/views/minerva/_admin/pages/index.html.php'); ?></code>
 </p>
 
 <h4>Even More on Templates</h4>
 <p>
-	Minerva checks various paths for templates, which creatse a fallback system. For example, if the admin template was missing, Minerva would look for the non-admin version of that template to render. If you like the convention Minerva uses to build it's render paths. Your own libraries can use Minerva's template conventions by setting the option when including them. For example:<br />
-	<code>Libraries::add('example', array('use_minerva_templates' => true));</code>
+	Minerva checks various paths for templates, which creates a fallback system. For example, if you did not put an admin template for Pages::index() in your app's views directory, Minerva would use it's own template. If you like the convention Minerva uses to build it's render paths, your own libraries can use Minerva's template conventions by specifying that they are a Minerva plugin (even if they aren't). For example:<br />
+	<code>Libraries::add('example', array('minerva_plugin' => true));</code>
 </p>
 <p>
-	Minerva's core models and controllers can be utilized in your own libraries. This is how you might create a "blog" page for example. When you create a library that does extend Minerva's features, your library's view folder should contain (in this case) a "pages" directory. You will need to define a route as well, but so long as Minerva is using your new library for pages, it will use your library's page templates if provided. Again, Minerva uses several render paths, so if you did not create a "read.html.php" page template, it will use the default template from the "minerva" library directory. You can also override the admin templates for our own library this way. This is how you could alter the admin interface, in case the default index table listing didn't suit your needs, without destroying core functionality.
+	Minerva's core models and controllers can be utilized in your own libraries when this config value is set true. This is how you might create a "blog" page for example. When you create a library that does extend Minerva's features, a "Minerva plugin," your library's views directory should contain (in this case) a "pages" directory. You will need to define a route as well, but so long as Minerva is using your new library for pages, it will use your library's page templates if provided. Again, Minerva uses several render paths, so if you did not create a "read.html.php" page template, it will use the default template from the "minerva" library directory, but only first checking your app/views/minerva directory. You can also override the admin templates for our own library. This is how you could alter the admin interface, in case the default index table listing didn't suit your needs, without destroying core functionality.
+</p>
+<p>
+	You may wish to preserve a 3rd party plugin's templates, but still have a few changes for your own personal needs. This would allow you to easily keep up to date without worrying about your changes. Again, in your app's "views/minerva" directory you can override plugin templates as well. For example a blog plugin's front-end index listing page:<br />
+	<code><?php echo realpath(LITHIUM_APP_PATH . '/views/minerva/_plugin/blog/pages/index.html.php'); ?></code>
 </p>
 
 <h4>Utilizing Minerva's Core in Your Libraries</h4>
@@ -190,7 +196,7 @@ foreach ($sanityChecks as $checkName => $check) {
 	The pages is just one Minerva model that can be extended by your library. You can in fact extend <strong>pages</strong>, <strong>users</strong>, and <strong>blocks</strong> in your library so that you can enhance their functionality, add new fields (remember Minerva uses MongoDB which is schemaless), and provide new templates. All this, without touching any of the core code.
 </p>
 <p>
-	Each Minerva model has a <a href="#">"document_type"</a> that is a reference to a library name. Minerva registers a new class type with Lithium called "minerva_models" and they sit in a new "minerva/models" directory within your library. This keeps them separate from your normal library's models to avoid any conflicts and for organizational reasons.
+	Each Minerva model has a <a href="#">"document_type"</a> that is a reference to a library name. Minerva registers a new class type with Lithium called "minerva_models" and they sit in a new "minerva/models" directory within your library. This keeps them separate from your normal library's models to avoid any conflicts and for organizational reasons. This helps you hook into Minerva with an existing library that may have been built without Minerva in mind.
 </p>
 <p>
 	Your library is able to completely do its own thing and then simply define a model within<br />
@@ -200,11 +206,11 @@ foreach ($sanityChecks as $checkName => $check) {
 	This will then allow you define a few properties on this new Minerva model class that will extend the schema, validation rules, and access. Note that from here, you could also apply filters to this new model or Minerva's core model. Always try to extend classes when you can (and you could even create a new PagesController in your library that extends Minerva's) but, when you have no other choice, Lithium's filters could be a great way to avoid altering core Minerva code. This is important if you wish to easily update Minerva in the future.
 </p>
 <p>
-	Of course your library can easily change the default templates for the Minerva model by adding the appropriate directories under the views directory for the library. For example:<br />
+	Of course your library can easily change the default templates for the Minerva model by adding the appropriate directories under the views directory for the library. Here's some template paths for example:<br />
 	<code><?php echo realpath(LITHIUM_APP_PATH ); ?>/libraries/your_library/views/pages/read.html.php</code><br />
 	<code><?php echo realpath(LITHIUM_APP_PATH ); ?>/libraries/your_library/views/pages/index.html.php</code><br />
 	<code><?php echo realpath(LITHIUM_APP_PATH ); ?>/libraries/your_library/views/users/read.html.php</code><br />
-	...and so on.
+	...and so on. <em>Note: This does mean if your library had it's own users/read action that had nothing to do with Minerva, there would be a conflict. A fight for template usage. You could not use that library as a plugin or you would need to choose to use the library's action and template or Minerva's.</em>
 </p>
 
 <h4>General Philosophy</h4>
