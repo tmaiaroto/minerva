@@ -23,8 +23,8 @@ use \Exception;
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
     
-    $params['options']['render']['paths'] = Theme::setRenderPaths($params['request']);
-    
+	$params['options']['render']['paths'] = Theme::setRenderPaths($params['request']);
+	
     return $chain->next($self, $params, $chain);
 });
 ?>
