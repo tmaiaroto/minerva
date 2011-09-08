@@ -17,10 +17,10 @@ use li3_flash_message\extensions\storage\FlashMessage;
 class MinervaController extends \lithium\action\Controller {
   
     // Tricky little properties that help us pass the calling (child) class and method
-    var $calling_class = __CLASS__;
-    var $calling_method = __METHOD__;
+    public $calling_class = __CLASS__;
+    public $calling_method = __METHOD__;
     
-    var $minerva_config = array();
+    public $minerva_config = array();
    
     static $access = array();
     
