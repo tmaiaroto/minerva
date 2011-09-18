@@ -142,8 +142,8 @@ class Thumbnail extends \lithium\template\Helper {
 		$x_mid = ceil($new_width/2);  //horizontal middle // TODO: possibly add options to change where the crop is from
 		$y_mid = ceil($new_height/2); //vertical middle			
 				
-		// If the thumbnail is square		
-		if($thumbSize[0] == $thumbSize[1]) {
+		// If the thumbnail is square and we're cropping (otherwise it won't just be square, but it'll be cropped too if the source isn't already a square image)	
+		if($thumbSize[0] == $thumbSize[1] && $options['crop'] === true) {
 			if($width > $height) {
 				$x = ceil(($width - $height) / 2 );
 				$width = $height;

@@ -9,6 +9,14 @@
 use \lithium\net\http\Router;
 use \lithium\core\Environment;
 use lithium\action\Response;
+use lithium\core\Libraries;
+
+/**
+ * Set the environment from Minerva's config.
+ */
+$minerva_config = Libraries::get('minerva');
+$environment = isset($config['environment']) ? $config['environment'] : 'production';
+Environment::set($environment);
 
 /**
  * Uncomment the line below to enable routing for admin actions.
