@@ -601,32 +601,28 @@ class MinervaController extends \lithium\action\Controller {
      * reference for which extended class called this delete() method. We need that in order to
      * get the proper records and access.
     */
-    public function delete() {
+    public function delete($url=null) {
         // first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
         extract($this->minerva_config);
         
         $conditions = array();
-        if(isset($this->request->params['id'])) {
-            $conditions = array('id' => $this->request->params['id']);
-        }
-        if(isset($this->request->params['url'])) {
-            $conditions = array('url' => $this->request->params['url']);
+        if(!empty($url)) {
+            $conditions = array('url' => $url);
         }
         
-        if(empty($conditions)) {
-            $this->redirect(array('controller' => $this->request->params['controller'], 'action' => 'index'));
-        }
-        
-        $document = $this->getDocument(array(
-            'action' => __METHOD__,
-            'request' => $this->request,
-            'find_type' => 'first',
-            'conditions' => $conditions
-        ));
-        
-        // called after $this->getDocument() so the proper $ModelClass is used
+		// called after $this->getDocument() so the proper $ModelClass is used
         $action_redirects = $this->getRedirects();
-        
+		
+		$document = null;
+        if(!empty($conditions)) {
+			$document = $this->getDocument(array(
+				'action' => __METHOD__,
+				'request' => $this->request,
+				'find_type' => 'first',
+				'conditions' => $conditions
+			));
+        }
+		
         if(!empty($document)) {
             if($document->delete()) {
                 FlashMessage::write('The content has been deleted.', array(), 'minerva_admin');
