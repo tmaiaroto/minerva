@@ -28,6 +28,15 @@ ul.pagination_actions li {
 	margin: 0px 5px 0px 0px;
 }
 
+/* jQuery Tagger */
+.tagger { float:left; }
+.tagAdd { margin:0 0 0 0px; float: left; display: block; height: 24px; margin-top: 1px }
+input.tagger { width: 110px; margin-right: 5px; }
+ .tagList { list-style:none; padding:0; margin:0; clear:both; border-left:3px solid #ccc; padding-left:4px; float:left; margin:5px 10px; margin-left: 1px;} 
+.tagList li { margin-left: 0; }
+.tagName { cursor:pointer; float:left; clear:both; padding:0.1em 1.5em 0.1em 0.4em;}
+.tagName:hover { background:#efefef url(../img/bullet_toggle_minus.png) right 2px no-repeat; -moz-border-radius:4px; }
+
 /* jQuery UI Stuff */
 #ui-datepicker-div {
 	background: #fff;
