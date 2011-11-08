@@ -14,6 +14,14 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+	This is a modified version of Tagger, for use with Minerva CMS.
+	The edits shouldn't change how Tagger works, but it enhances it with some
+	sanity checking and appends the inputs directly to the form element instead
+	of to the .data('list') where the tags are added visually (with removal option).
+	This was the only way the form data seemed to see the fields in my experience.
+	I'm not sure how it worked before. It could be the positioning of the form
+	within the layout or something weird. This makes it all work though.
 */
 
 (function($){
@@ -33,15 +41,38 @@
 				})
 				.data('hidden',i);
 			var l = $(this).data('list');
-			$(l).append(t).append(i);
+			// Originally, it appended both label and input field
+			//$(l).append(t).append(i);
+			//
+			// Append the tag (and remove option) to the list of tags visually, but not the hidden input
+			$(l).append(t);
+			
+			// Must append the input to the form! It's not being seen otherwise.
+			var elem = $(this);
+			var form = elem.length > 0 ? $(elem[0].form) : $();
+			$(form).append(i);
 		}
 		return this;
 	};
-	
+		
 })(jQuery);
 
-jQuery(function(){
+jQuery(function(){	
+	// This ensures that the tagger text input field is disabled upon submit.
+	// Otherwise, we're saving empty values in a tag array in the database.
+	var input = $('.tagger');
+	var form = input.length > 0 ? $(input[0].form) : $();
+	$(form).bind('submit', function() { 
+		$(input).attr('disabled', true);
+	});
+	
 	$('.tagger').each(function(i){
+		// Make the input a multiple (array) input if it isn't already
+		var n = $(this).attr('name');
+		if(n.substr(-2) != '[]') {
+			$(this).attr('name', n + '[]');
+		}
+		
 		$(this).data('name', $(this).attr('name'));		
 		var b = $('<button type="button" />').html('Add').addClass('tagAdd')
 			.click(function(){

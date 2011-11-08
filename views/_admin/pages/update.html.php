@@ -1,3 +1,6 @@
+<?php
+$tagger_javascript = '';
+?>
 <div class="grid_16">
 	<h2 id="page-heading">Update <?=$display_name; ?></h2>  
 </div>
@@ -11,9 +14,28 @@
 	    <?php
 		foreach($fields as $k => $v) {
 			if(!isset($v['form']['position']) || $v['form']['position'] != 'options') {
-		?>	    
-		<?=$this->form->field($k, $v['form']);?>
-		<?php
+				//if(!isset($v['type']) || $v['type'] != 'array') {
+				if(!isset($v['form']['class']) || $v['form']['class'] != 'tagger') {
+					echo $this->form->field($k, $v['form']);
+				} else {
+					// For tags... it's an array of values, so it breaks the form->field() helper method
+					if(isset($v['form']['class']) && $v['form']['class'] == 'tagger') {
+						// So capture its value and we'll use it to add the tags with the jQuery plugin
+						if(is_object($document) && isset($document->$k)) {
+							$v['value'] = $document->$k->data();
+						} else {
+							$v['value'] = array();
+						}
+						$v['form']['id'] = ucfirst($k);
+						$tagger_javascript .= '$("#' . ucfirst($k) . '").addTag("' . implode(',', $v['value']) . '");';
+						unset($document->$k);
+						echo $this->form->field($k, $v['form']);
+						if(isset($v['form']['help_text'])) {
+							echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
+						}
+					}
+				}
+				
 			} 
 	    }
 		?>
@@ -30,14 +52,31 @@
 			<?php
 			foreach($fields as $k => $v) {
 				if(isset($v['form']['position']) && $v['form']['position'] == 'options') {
-			?>	    
-			<?=$this->form->field($k, $v['form']);?>
-			
-			<?php
-					if(isset($v['form']['help_text'])) {
-						echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
+					// if(!isset($v['type']) || $v['type'] != 'array') {
+					if(!isset($v['form']['class']) || $v['form']['class'] != 'tagger') {
+						echo $this->form->field($k, $v['form']);
+						if(isset($v['form']['help_text'])) {
+							echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
+						}
+					} else {
+						// For tags... it's an array of values, so it breaks the form->field() helper method
+						if(isset($v['form']['class']) && $v['form']['class'] == 'tagger') {
+							// So capture its value and we'll use it to add the tags with the jQuery plugin
+							if(is_object($document) && isset($document->$k)) {
+								$v['value'] = $document->$k->data();
+							} else {
+								$v['value'] = array();
+							}
+							$v['form']['id'] = ucfirst($k);
+							$tagger_javascript .= '$("#' . ucfirst($k) . '").addTag("' . implode(',', $v['value']) . '");';
+							unset($document->$k);
+							echo $this->form->field($k, $v['form']);
+							if(isset($v['form']['help_text'])) {
+								echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
+							}
+						}
 					}
-				} 
+				}				
 			}
 			?>
 			</fieldset>
@@ -47,3 +86,8 @@
 
 <?=$this->form->end(); ?>
 <div class="clear"></div>
+<script type="text/javascript">
+$(document).ready(function() {
+	<?php echo $tagger_javascript; ?>
+});
+</script>
