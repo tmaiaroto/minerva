@@ -18,8 +18,8 @@ $tagger_javascript = '';
 	    <?php
 		foreach($fields as $k => $v) {
 			if(!isset($v['form']['position']) || $v['form']['position'] != 'options') {
-				// if(!isset($v['type']) || $v['type'] != 'array') {
-				if(!isset($v['form']['class']) || $v['form']['class'] != 'tagger') {
+				if(!isset($v['type']) || $v['type'] != 'array') {
+				//if(!isset($v['form']['class']) || $v['form']['class'] != 'tagger') {
 					echo $this->form->field($k, $v['form']);
 				} else {
 					// For tags... it's an array of values, so it breaks the form->field() helper method
@@ -56,8 +56,8 @@ $tagger_javascript = '';
 			foreach($fields as $k => $v) {
 				if(isset($v['form'])) {
 					if(isset($v['form']['position']) && $v['form']['position'] == 'options') {
-						// if(!isset($v['type']) || $v['type'] != 'array') {
-						if(!isset($v['form']['class']) || $v['form']['class'] != 'tagger') {
+						if(!isset($v['type']) || $v['type'] != 'array') {
+						// if(!isset($v['form']['class']) || $v['form']['class'] != 'tagger') {
 							echo $this->form->field($k, $v['form']);
 							if(isset($v['form']['help_text'])) {
 								echo '<div class="help_text">' . $v['form']['help_text'] . '</div>';
