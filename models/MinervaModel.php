@@ -102,11 +102,18 @@ class MinervaModel extends \lithium\data\Model {
      * @return String
     */
     public static function displayName($name=null) {
+		/*
+		 * TODO: revisit this... not sure we should set display names anywhere except the model file
+		 * either way, this wasn't working by returning $class::_object()->display_name
+		 * returning self::_object... did work.
+		 * tests should be put on the MinervaHtml helper to catch this... link_types() method.
 		$class =  __CLASS__;
         if(!empty($name) && is_string($name)) {
             $class::_object()->display_name = $name;
         }
 		return $class::_object()->display_name;
+		*/
+		return self::_object()->display_name;
     }
     
 	/**

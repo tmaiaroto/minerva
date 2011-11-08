@@ -201,7 +201,10 @@ class MinervaHtml extends \lithium\template\helper\Html {
         $output = '';
 		
 		$model_class_name = Inflector::classify($model_name);
-		$models = Libraries::locate('minerva_models', $model_class_name);
+		// $models = Libraries::locate('minerva_models', $model_class_name);
+		// TODO: The above was not working...See why.
+		// For now, just get all minerva models and forget the $type
+		$models = Libraries::locate('minerva_models');
 		
 		//$controller = $options['library'] . '.' . strtolower(Inflector::pluralize($model_name));
 		// no longer using library.controller syntax... see how that works
@@ -226,11 +229,14 @@ class MinervaHtml extends \lithium\template\helper\Html {
 			foreach($models as $model) {
 				$class_pieces = explode('\\', $model);
 				$type = $class_pieces[0];
-				if(class_exists($model)) {
+				$minerva_model_name = end($class_pieces);
+				if(class_exists($model) && $minerva_model_name == $model_class_name) {
 					$display_name = $model::displayName();
 					// if the model doesn't have a display_name property, it'll pick it up from either the base minerva model (Page, Block, or User) or the MinervaModel class...in this case, use the document type
 					$display_name = ($display_name == 'Model' || empty($display_name) || in_array($display_name, $this->core_minerva_models)) ? Inflector::humanize($type . ' ' . $model_name):$display_name;
-					$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'args' => $type), $options['link_options']) . '</li>';
+					//$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'args' => $type), $options['link_options']) . '</li>';
+					// Now have a plugin key to use...
+					$output .= '<li>' . $this->link($display_name, array('admin' => $options['admin'], 'plugin' => $type, 'library' => $options['library'], 'controller' => $controller, 'action' => $action, 'args' => $type), $options['link_options']) . '</li>';
 				}
 			}
 		} else {
