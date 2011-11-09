@@ -19,12 +19,20 @@
 */
 use lithium\action\Dispatcher;
 use minerva\extensions\util\Theme;
+use minerva\extensions\util\Util;
 use \Exception;
 
 Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
-    
+
     $params['options']['render']['paths'] = Theme::setRenderPaths($params['request']);
     
+	// If the plugin's controller is not a Minerva controller, then we need to change the library.
+	// Otherwise, it's going to look for the controller in the Minerva library and it won't be found.
+	if(!Util::isMinervaController($params['request']->params['controller'])) {
+		$params['request']->params['library'] = $params['request']->params['plugin'];
+		//unset($params['request']->params['plugin']);
+	}
+	
     return $chain->next($self, $params, $chain);
 });
 ?>

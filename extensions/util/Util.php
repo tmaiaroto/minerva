@@ -195,5 +195,25 @@ class Util {
         return array();
     }
     
+	/**
+	 * Determines if the passed controller name is a Minerva controller.
+	 * This is so a list of controllers does not need to be maintained.
+	 * 
+	 * @param $name The controller name to test/check for
+	 * @return boolean
+	*/
+	public static function isMinervaController($name=null) {
+		$is_minerva_controller = false;
+		$minerva_controllers = Libraries::locate('controllers', null, array('library' => 'minerva'));
+		foreach($minerva_controllers as $controller) {
+			$controller_pieces = explode('\\', $controller);
+			$controller_name = substr(end($controller_pieces), 0, -10);
+
+			if(Inflector::camelize($name) == $controller_name) {
+				$is_minerva_controller = true;
+			}
+		}
+		return $is_minerva_controller;
+	}
 }
 ?>
