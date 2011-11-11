@@ -29,7 +29,9 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 	// If the plugin's controller is not a Minerva controller, then we need to change the library.
 	// Otherwise, it's going to look for the controller in the Minerva library and it won't be found.
 	if(!Util::isMinervaController($params['request']->params['controller'])) {
-		$params['request']->params['library'] = $params['request']->params['plugin'];
+		if(isset($params['request']->params['plugin'])) {
+			$params['request']->params['library'] = $params['request']->params['plugin'];
+		}
 		//unset($params['request']->params['plugin']);
 	}
 	
