@@ -16,13 +16,17 @@ class Asset extends \lithium\data\Model {
     protected $_meta = array("source" => "fs.files");
     
     // I get appended to with the plugin's Asset model (a good way to add extra meta data).
-    public static $fields = array(
-	// 'url' => array('label' => 'URL'),  ?? pretty urls for download?
-	'file_name' => array('type' => 'hidden'),
-	'file' => array('label' => 'Profile Image', 'type' => 'file'),
-	'created' => array('type' => 'hidden', 'label' => false), 
-	'modified' => array('type' => 'hidden', 'label' => false)
-    );
+	public static $fields = array(
+		// 'url' => array('label' => 'URL'),  ?? pretty urls for download?
+		'file_name' => array('type' => 'hidden'),
+		// Content-type:
+		'type' => array('type' => 'string'),
+		// This represents the 'type' of asset, or what it's associated to:
+		'ref' => array('type' => 'string'),
+		'file' => array('label' => 'Profile Image', 'type' => 'file'),
+		'created' => array('type' => 'hidden', 'label' => false),
+		'modified' => array('type' => 'hidden', 'label' => false)
+	);
     
     public static $validate = array(        
     );
