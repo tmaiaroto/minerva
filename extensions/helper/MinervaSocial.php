@@ -24,13 +24,12 @@ class MinervaSocial extends MinervaHtml {
         parent::_init();
         
         // Default
-        $this->facebook = null;
+        $this->facebook = (object) array();
 		$this->facebook->app_id = false;
 		$this->facebook->locale = 'en_US';
-        
+
         // If using Facebook
-        $facebook_config = Libraries::get('li3_facebook');
-        if(isset($facebook_config)) {
+        if ($facebook_config = Libraries::get('li3_facebook')) {
             $this->facebook->login_url = FacebookProxy::getLoginUrl(array('next' => $facebook_config['login_url']));
 			$this->facebook->logout_url = FacebookProxy::getLogoutUrl(array('next' => $facebook_config['logout_url']));
             $this->facebook->app_id = $facebook_config['appId'];
