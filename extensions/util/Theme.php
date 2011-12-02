@@ -224,7 +224,7 @@ class Theme extends \lithium\core\StaticObject {
                 // name as a Minerva core controller or a Minerva plugin controller that also had 
                 // override templates within one of the render paths checked before these defaults.
                 if($library_as_plugin) {
-                    $paths['layout'][] = '{:library}/views/layouts/{:layout}.{type}.php';
+                    $paths['layout'][] = '{:library}/views/layouts/{:layout}.{:type}.php';
                     $paths['template'][] = '{:library}/views/{:controller}/{:template}.{type}.php';
                 }
             }
