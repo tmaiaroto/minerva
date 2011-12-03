@@ -225,7 +225,7 @@ class Theme extends \lithium\core\StaticObject {
                 // override templates within one of the render paths checked before these defaults.
                 if($library_as_plugin) {
                     $paths['layout'][] = '{:library}/views/layouts/{:layout}.{:type}.php';
-                    $paths['template'][] = '{:library}/views/{:controller}/{:template}.{type}.php';
+                    $paths['template'][] = '{:library}/views/{:controller}/{:template}.{:type}.php';
                 }
             }
             
