@@ -6,7 +6,7 @@
  * do so by configuring it here.
  *
 */
-use \lithium\security\Auth;
+use lithium\security\Auth;
 
 Auth::config(array(
 	'minerva_user' => array(
