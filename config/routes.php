@@ -6,13 +6,14 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-use \lithium\net\http\Router;
-use \lithium\core\Environment;
+use lithium\net\http\Router;
+use lithium\core\Environment;
 use lithium\action\Response;
 use lithium\core\Libraries;
 
 /**
  * Set the environment from Minerva's config.
+ * @todo: check usage of $minerva_config vs. $config!
  */
 $minerva_config = Libraries::get('minerva');
 $environment = isset($config['environment']) ? $config['environment'] : 'production';
@@ -111,4 +112,5 @@ Router::connect("{$base}/{:controller}/{:action}/{:url}", array(
 //	Router::connect('/test', array('controller' => '\lithium\test\Controller'));
 ////}
 //*/
+
 ?>
