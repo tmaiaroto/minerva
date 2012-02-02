@@ -113,7 +113,7 @@ class Thumbnail extends \lithium\template\Helper {
 		}
 
 		// First make sure it's an image that we can use (bmp support isn't added, but could be)
-		switch (strtolower($this->ext)):
+		switch (strtolower($this->ext)) {
 			case 'jpg':
 			case 'jpeg':
 			case 'gif':
@@ -122,7 +122,7 @@ class Thumbnail extends \lithium\template\Helper {
 			default:
 				return false;
 				break;
-		endswitch;
+		}
 
 		// Then see if the size version already exists and if so, is it older than our source image?
 		if (file_exists($this->destination)) {
@@ -139,8 +139,8 @@ class Thumbnail extends \lithium\template\Helper {
 		list($width, $height) = getimagesize($this->source);
 
 		// $x and $y here are the image source offsets
-		$x = NULL;
-		$y = NULL;
+		$x = null;
+		$y = null;
 		$dx = $dy = 0;
 
 		if (($thumb_size_x > $width) && ($thumb_size_y > $height)) {
@@ -415,7 +415,10 @@ class Thumbnail extends \lithium\template\Helper {
 	/**
 	 * Computes for sharpening the image.
 	 *
-	 * function from Ryan Rud (http://adryrun.com)
+	 * @author Ryan Rud (http://adryrun.com)
+	 *
+	 * @param float $orig
+	 * @param float $final
 	 */
 	private function _findSharp($orig, $final) {
 		$final = $final * (750.0 / $orig);
