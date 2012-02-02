@@ -56,8 +56,9 @@ use lithium\core\Libraries;
 
 ErrorHandler::apply('lithium\action\Dispatcher::run', array(), function($info, $params) {
 	$response = new Response(array('request' => $params['request']));
+	$request = $params['request'];
 
-	if (isset($params['request']->params['library']) && $params['request']->params['library'] == 'minerva') {
+	if (isset($request->params['library']) && $request->params['library'] == 'minerva') {
 		// the config set with Libraries::add('minerva') can turn off and on
 		// errors (in addition to Environment) and set the library to render error templates from
 		$config = Libraries::get('minerva');
@@ -79,7 +80,7 @@ ErrorHandler::apply('lithium\action\Dispatcher::run', array(), function($info, $
 				'controller' => '_errors',
 				'template' => $errors_template,
 				'layout' => $errors_layout,
-				'request' => $params['request']
+				'request' => $request
 			));
 		}
 	}

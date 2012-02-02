@@ -45,8 +45,7 @@ Dispatcher::applyFilter('run', function($self, $params, $chain) {
 		}
 
 		if (!empty($missing_deps)) {
-
-            // Borrow the ErrorHanlder's layout and 
+            // Borrow the ErrorHanlder's layout and
             // use a new "dependencies" template in the _errors folder.
             $view = new View(array(
                 'paths' => array(
