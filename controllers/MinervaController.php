@@ -39,7 +39,8 @@ class MinervaController extends \lithium\action\Controller {
 	protected function _init() {
 		$this->request = $this->request ? : $this->_config['request'];
 
-		// The only time I can think that there wouldn't be $this->request is from requestAction() on the Block helper.
+		// The only time I can think that there wouldn't be $this->request is from requestAction()
+		// on the Block helper.
 		// TODO: Ensure that all this is not required by that helper's method.
 		// For now this if() will prevent some errors.
 		if (!empty($this->request)) {
@@ -54,17 +55,21 @@ class MinervaController extends \lithium\action\Controller {
 
 			$plugin = (isset($this->request->params['plugin']) && !empty($this->request->params['plugin'])) ? $this->request->params['plugin'] : false;
 
-			// set the ModelClass again now based on the $document_type, which in most cases, matches the library (minerva plugin) name
+			// set the ModelClass again now based on the $document_type, which in most cases,
+			// matches the library (minerva plugin) name
 			// ignore and empty $document_type, that just means the base model class anyway
 			if ($plugin) {
 				$ModelClass = $ModelClass::getMinervaModel($model, $plugin);
-				// $document_type is ALWAYS the name of the plugin (library folder) because it's always unique.
-				// Can't have multiple plugins...This means library directory names for plugins likely should
-				// not be something generic, like "blog" ... "minerva_blog" is better. Or "shift8creative_com_blog"
+				// $document_type is ALWAYS the name of the plugin (library folder) because
+				// it's always unique.
+				// Can't have multiple plugins...This means library directory names for plugins
+				// likely should not be something generic, like "blog" ... "minerva_blog"
+				// is better. Or "shift8creative_com_blog"
 				$document_type = $plugin;
 			}
 
-			// Now the following will use the proper ModelClass to get the properties that we need in the controller.
+			// Now the following will use the proper ModelClass to get the properties that we need
+			// in the controller.
 			$this->minerva_config['ModelClass'] = $ModelClass;
 			$this->minerva_config['display_name'] = $ModelClass::displayName();
 			$this->minerva_config['library_name'] = $ModelClass::libraryName();
@@ -80,7 +85,7 @@ class MinervaController extends \lithium\action\Controller {
 					'users.logout',
 					'users.register',
 					'users.is_email_in_use',
-					'users.register',
+					'users.register'
 				);
 				if (!in_array($relative_controller . '.' . $this->request->params['action'], $controller_action_whitelist)) {
 					Session::write('beforeAuthURL', '/' . $this->request->url, array('name' => 'minerva_cookie', 'expires' => '+1 hour'));
@@ -161,17 +166,30 @@ class MinervaController extends \lithium\action\Controller {
 	 * The purpose of this method is to reduce duplicate code and any unnecessary database queries.
 	 * Secondarily, it's a convenient method to bundle all of these processes into one method.
 	 *
-	 * @param $action string The calling controller action (should be passed as __METHOD__ so the controller is also passed, ex. minerva\controllers\PagesController::read)
-	 * @param $request object The request object
-	 * @param $find_type string The find type (all, first, etc. if false then no find will be performed) default: false
-	 * @param $conditions array The find conditions
-	 * @param $limit int The limit (for pagination)
-	 * @param $offset int The offset (for pagination)
-	 * @param $order array The order
+	 * @param array $options Available options are:
+	 *         - `'action'`: string The calling controller action
+	 *           (should be passed as __METHOD__ so the controller is also passed,
+	 *           ex. minerva\controllers\PagesController::read)
+	 *         - `'request'`:  object The request object
+	 *         - `'find_type'`:  string The find type (all, first, etc.
+	 *           if false then no find will be performed)
+	 *           default: false
+	 *         - `'conditions'`:  array The find conditions
+	 *         - `'limit'`:  integer The limit (for pagination)
+	 *         - `'offset'`:  integer The offset (for pagination)
+	 *         - `'order'`:  array The order
 	 * @return mixed The find() results, true, or false (also redirects on access restrictions)
 	 */
-	public function getDocument($options=array()) {
-		$defaults = array('action' => null, 'request' => null, 'find_type' => false, 'conditions' => array(), 'limit' => null, 'offset' => 0, 'order' => 'created.desc');
+	public function getDocument($options = array()) {
+		$defaults = array(
+			'action' => null,
+			'request' => null,
+			'find_type' => false,
+			'conditions' => array(),
+			'limit' => null,
+			'offset' => 0,
+			'order' => 'created.desc'
+		);
 		$options += $defaults;
 		extract($options);
 
@@ -305,8 +323,10 @@ class MinervaController extends \lithium\action\Controller {
 	 * The trick here is that $this->calling_class and $this->calling_method will hold a string
 	 * reference for which extended class called this index() method. We need that in order to
 	 * get the proper records and access.
+	 *
+	 * @param mixed $document_type
 	 */
-	public function index($document_type=null) {
+	public function index($document_type = null) {
 		// first, get all the data we need. this will set $document_type, $type, $modelClass, and $display_name
 		extract($this->minerva_config);
 
@@ -329,12 +349,15 @@ class MinervaController extends \lithium\action\Controller {
 			$conditions = array();
 		}
 
-		// If a search query was provided, search all "searchable" fields (any field in the model's $search_schema property)
-		// NOTE: the values within this array for "search" include things like "weight" etc. and are not yet fully implemented...But will become more robust and useful.
+		// If a search query was provided, search all "searchable" fields
+		// (any field in the model's $search_schema property)
+		// NOTE: the values within this array for "search" include things like "weight" etc.
+		// and are not yet fully implemented...But will become more robust and useful.
 		// Possible integration with Solr/Lucene, etc.
 		if ((isset($this->request->query['q'])) && (!empty($this->request->query['q']))) {
 			$search_schema = $ModelClass::searchSchema();
-			// If the "document_type" is set to "*" then we want to get all the model content_type's schemas, merge them into $schema
+			// If the "document_type" is set to "*" then we want to get all the model
+			// content_type's schemas, merge them into $schema
 			if ($document_type == '*') {
 				foreach (Util::listTypes($model, array('exclude_minerva' => true)) as $library) {
 					$extendedModelClass = 'minerva\libraries\\' . $library;
@@ -345,7 +368,9 @@ class MinervaController extends \lithium\action\Controller {
 			$search_conditions = array();
 			// For each searchable field, adjust the conditions to include a regex
 			foreach ($search_schema as $k => $v) {
-				// TODO: possibly factor in the weighting later. also maybe note the "type" to ensure our regex is going to work or if it has to be adjusted (string data types, etc.)
+				// TODO: possibly factor in the weighting later. also maybe note the "type" to
+				// ensure our regex is going to work or if it has to be adjusted
+				// (string data types, etc.)
 				//var_dump($k);
 				$search_regex = new \MongoRegex('/' . $this->request->query['q'] . '/i');
 				$conditions['$or'][] = array($k => $search_regex);
@@ -357,8 +382,8 @@ class MinervaController extends \lithium\action\Controller {
 			'request' => $this->request,
 			'find_type' => 'all',
 			'conditions' => $conditions,
-			'limit' => (int) $limit,
-			'offset' => ((int) $page - 1) * (int) $limit,
+			'limit' => (integer) $limit,
+			'offset' => ((integer) $page - 1) * (integer) $limit,
 			'order' => $params['order']
 				));
 
@@ -372,7 +397,9 @@ class MinervaController extends \lithium\action\Controller {
 
 			// Make ONE query PER find() for the index listing
 			if (!empty($owner_ids)) {
-				$owner_documents = User::find('all', array('conditions' => array('_id' => $owner_ids)));
+				$owner_documents = User::find('all', array(
+					'conditions' => array('_id' => $owner_ids)
+				));
 				$owners = array();
 				if (is_object($owner_documents)) {
 					foreach ($owner_documents as $user) {
@@ -402,11 +429,12 @@ class MinervaController extends \lithium\action\Controller {
 			'conditions' => $conditions
 				));
 
-		$page_number = (int) $page;
-		$total_pages = ((int) $limit > 0) ? ceil($total / $limit) : 0;
+		$page_number = (integer) $page;
+		$total_pages = ((integer) $limit > 0) ? ceil($total / $limit) : 0;
 
 		// Set data for the view template
-		$this->set(compact('documents', 'limit', 'display_name', 'page_number', 'total_pages', 'total'));
+		$this->set(compact('documents', 'limit', 'total'));
+		$this->set(compact('display_name', 'page_number', 'total_pages'));
 	}
 
 	/**
@@ -414,13 +442,23 @@ class MinervaController extends \lithium\action\Controller {
 	 * The trick here is that $this->calling_class and $this->calling_method will hold a string
 	 * reference for which extended class called this create() method. We need that in order to
 	 * get the proper records and access.
+	 *
+	 * @param mixed $document_type
 	 */
-	public function create($document_type=null) {
-		// first, get all the data we need. this will set $document_type, $type, $modelClass, and $display_name
+	public function create($document_type = null) {
+		// first, get all the data we need.
+		// this will set $document_type, $type, $modelClass, and $display_name
 		extract($this->minerva_config);
 
-		$this->getDocument(array('action' => $this->calling_method, 'conditions' => array('document_type' => $document_type), 'request' => $this->request, 'find_type' => false));
-		// get the redirects; important to call this AFTER $this->getDocument() because the proper $ModelClass will be set (it will have changed based on the document from the database)
+		$this->getDocument(array(
+			'action' => $this->calling_method,
+			'conditions' => array('document_type' => $document_type),
+			'request' => $this->request,
+			'find_type' => false
+		));
+		// get the redirects; important to call this AFTER $this->getDocument() because
+		// the proper $ModelClass will be set (it will have changed based on the document
+		//from the database)
 		$action_redirects = $this->getRedirects();
 
 		// Get the fields so the view template can iterate through them and build the form
@@ -431,7 +469,8 @@ class MinervaController extends \lithium\action\Controller {
 
 		// If data was passed, set some more data and save
 		if ($this->request->data) {
-			// We need to get the validation rules unfortunately because they may need to change based on what's going on
+			// We need to get the validation rules unfortunately because they may need to change
+			// based on what's going on
 			$validation_rules = $ModelClass::validationRules();
 
 			$document = $ModelClass::create();
@@ -463,7 +502,8 @@ class MinervaController extends \lithium\action\Controller {
 				$url = 'document';
 			}
 
-			// Then get a unique URL from the desired URL (numbers will be appended if URL is duplicate) this also ensures the URLs are lowercase
+			// Then get a unique URL from the desired URL (numbers will be appended if URL
+			// is duplicate) this also ensures the URLs are lowercase
 			$this->request->data['url'] = Util::uniqueUrl(array(
 						'url' => $url,
 						'model' => $ModelClass
@@ -474,7 +514,8 @@ class MinervaController extends \lithium\action\Controller {
 			if ($user) {
 				$this->request->data['owner_id'] = $user['_id'];
 			} else {
-				// TODO: possible for anonymous users to create things? do we need to put in any value here?
+				// TODO: possible for anonymous users to create things?
+				// TODO: do we need to put in any value here?
 				$this->request->data['owner_id'] = '';
 			}
 
@@ -510,8 +551,10 @@ class MinervaController extends \lithium\action\Controller {
 	 * The trick here is that $this->calling_class and $this->calling_method will hold a string
 	 * reference for which extended class called this update() method. We need that in order to
 	 * get the proper records and access.
+	 *
+	 * @param string $url
 	 */
-	public function update($url=null) {
+	public function update($url = null) {
 
 		$conditions = array('url' => $url);
 
@@ -520,17 +563,20 @@ class MinervaController extends \lithium\action\Controller {
 			$conditions = array('url' => $this->request->params['url']);
 		}
 
-		// ...But if the id was provided, use that (for example; UsersController will be using the id)
+		// ...But if the id was provided, use that
+		// (for example; UsersController will be using the id)
 		if (isset($this->request->params['id'])) {
 			$conditions = array('_id' => $this->request->params['id']);
 		}
 
 		// Get the document
 		$document = $this->getDocument(array('action' => $this->calling_method, 'request' => $this->request, 'find_type' => 'first', 'conditions' => $conditions));
-		// get the redirects (again, call AFTER $this->getDocument() because the $ModelClass will have changed)
+		// get the redirects (again, call AFTER $this->getDocument() because the $ModelClass
+		// will have changed)
 		$action_redirects = $this->getRedirects();
 
-		// NOW get all the data we need from minerva_config for this method because $this->getDocument() will have changed it for read/update/delete
+		// NOW get all the data we need from minerva_config for this method
+		// because $this->getDocument() will have changed it for read/update/delete
 		extract($this->minerva_config);
 
 		// Get the fields so the view template can build the form
@@ -540,14 +586,22 @@ class MinervaController extends \lithium\action\Controller {
 		if ($this->request->params['controller'] == 'users') {
 			unset($fields['password']);
 			// unset password and add a "new_password" field for UsersController
-			$fields['new_password'] = array('type' => 'string', 'form' => array('label' => 'New Password', 'type' => 'password', 'autocomplete' => 'off'));
+			$fields['new_password'] = array(
+				'type' => 'string',
+				'form' => array(
+					'label' => 'New Password',
+					'type' => 'password',
+					'autocomplete' => 'off'
+				)
+			);
 		}
 		// If a document_type isn't empty, set it in the form
 		$fields['document_type']['form']['value'] = (!empty($document_type)) ? $document_type : null;
 
 		// Update the record
 		if ($this->request->data) {
-			// We need to get the validation rules unfortunately because they may need to change based on what's going on
+			// We need to get the validation rules unfortunately because they may need to change
+			// based on what's going on
 			$validation_rules = $ModelClass::validationRules();
 
 			// Set some data
@@ -593,8 +647,10 @@ class MinervaController extends \lithium\action\Controller {
 	 * The trick here is that $this->calling_class and $this->calling_method will hold a string
 	 * reference for which extended class called this delete() method. We need that in order to
 	 * get the proper records and access.
+	 *
+	 * @param string $url
 	 */
-	public function delete($url=null) {
+	public function delete($url = null) {
 		// first, get all the data we need. this will set $x_type, $type, $modelClass, and $display_name
 		extract($this->minerva_config);
 
