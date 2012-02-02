@@ -84,7 +84,7 @@ class Paginator extends \al13_helpers\extensions\helper\Lists {
         }
         $ret .= '</li></ul>';
         return $ret;
-     }
-    
+     } 
 }
+
 ?>

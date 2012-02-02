@@ -440,6 +440,6 @@ class Thumbnail extends \lithium\template\Helper {
 	    $r = hexdec($r); $g = hexdec($g); $b = hexdec($b);
 	    return array($r, $g, $b);
 	}
-
 }
+
 ?>

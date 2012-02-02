@@ -312,7 +312,7 @@ class MinervaTime extends \lithium\template\helper\Html {
 			$keys['d'] -= ($keys['w'] * 7);
 		}
 		return $keys;
-	}
-    
+	} 
 }
+
 ?>

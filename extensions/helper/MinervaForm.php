@@ -121,6 +121,6 @@ class MinervaForm extends \lithium\template\helper\Form {
         return $output;
 		
 	}
-	
 }
+
 ?>

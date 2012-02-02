@@ -285,7 +285,7 @@ class MinervaHtml extends \lithium\template\helper\Html {
         
         
         return $output;
-    }
-    
+    }    
 }
+
 ?>

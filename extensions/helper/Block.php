@@ -238,7 +238,7 @@ class Block extends \lithium\template\Helper {
 			$data = $block->data();
 		}
 		return $data;
-	}
-	
+	}	
 }
+
 ?>

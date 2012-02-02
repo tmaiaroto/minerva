@@ -160,6 +160,6 @@ class MinervaMenu extends Block {
 		
 		return $string;
 	}
-    
 }
+
 ?>

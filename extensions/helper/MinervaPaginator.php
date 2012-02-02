@@ -119,7 +119,7 @@ class MinervaPaginator extends \lithium\template\Helper {
 			$content .= $this->next($page, $total, $limit, $options);
 		}
 		return $this->_render(__METHOD__, $options['pagingWrapper'], compact('content'), array('escape' => false));
-	}
-    
+	}  
 }
+
 ?>
