@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Thumbnail Helper
  *
@@ -12,16 +11,16 @@
 
 namespace minerva\extensions\helper;
 
-use \SplFileInfo;
+use SplFileInfo;
 
 defined('DS') ? null : define('DS', DIRECTORY_SEPARATOR);
 
 class Thumbnail extends \lithium\template\Helper {
 
-	var $ext;
-	var $source;
-	var $destination;
-	var $webroot;
+	public $ext;
+	public $source;
+	public $destination;
+	public $webroot;
 
 
 	/* public function _init() {
@@ -32,20 +31,38 @@ class Thumbnail extends \lithium\template\Helper {
 	  } */
 
 	/**
-	 * @param $source String[required] Location of the source image
-	 * @param $options Array[required] Options that change the size and cropping method of the image
-	 * 		- size Array[optional] Size of the thumbnail. Default: 75x75
-	 * 		- quality Int[optional] Quality of the thumbnail. Default: 85
-	 * 		- crop Boolean[optional] Whether to crop the image (when one dimension is larger than specified $size)
-	 * 		- letterbox Mixed[optional] If defined, it needs to be an array that defines the RGB background color to use. So when crop is set to false, this will fill in the rest of the image with a background color. Note: Transparent images will have a transparent letterbox unless forced.
-	 * 		- force_letterbox_color Boolean[optional] Whether or not to force the letterbox color on images with transparency (gif and png images). Default: false (false meaning their letterboxes will be transparent, true meaning they get a colored letterbox which also floods behind any transparent/translucent areas of the image).
-	 * 		- sharpen Boolean[optional] Whether to sharpen the image version or not. Default: true (note: png and gif images are not sharpened because of possible problems with transparency).
+	 * @param string $source Location of the source image
+	 * @param array $options Options that change the size and cropping method of the image
+	 *              - `'size'` Array[optional] Size of the thumbnail. Default: 75x75
+	 *              - `'quality'` Int[optional] Quality of the thumbnail. Default: 85
+	 *              - `'crop'` Boolean[optional] Whether to crop the image
+	 *                (when one dimension is larger than specified $size)
+	 *              - `'letterbox'` Mixed[optional] If defined, it needs to be an array that
+	 *                defines the RGB background color to use. So when crop is set to false,
+	 *                this will fill in the rest of the image with a background color.
+	 *                Note: Transparent images will have a transparent letterbox unless forced.
+	 *              - `'force_letterbox_color'` Boolean[optional] Whether or not to force the
+	 *                letterbox color on images with transparency (gif and png images).
+	 *                Default: false (false meaning their letterboxes will be transparent,
+	 *                true meaning they get a colored letterbox which also floods behind any
+	 *                transparent/translucent areas of the image).
+	 *              - `'sharpen'` Boolean[optional] Whether to sharpen the image version or not.
+	 *                Default: true (note: png and gif images are not sharpened because of possible
+	 *                problems with transparency).
 	 *
 	 * @param $htmlOptions Array[optional] Options to pass to the Html helper's image() method
 	 * @return String Html code to embed image returned from the Html helper's image() method
 	 */
-	public function image($source=null, $options = array('size' => array(75, 75), 'quality' => 85, 'crop' => false, 'letterbox' => null, 'force_letterbox_color' => false, 'sharpen' => true), $htmlOptions = array()) {
-		$defaults = array('size' => array(75, 75), 'quality' => 85, 'crop' => false, 'letterbox' => null, 'sharpen' => true, 'force_letterbox_color' => false);
+	public function image($source = null, $options = array(), $htmlOptions = array()) {
+		$defaults = array(
+			'size' => array(75, 75),
+			'quality' => 85,
+			'crop' => false,
+			'letterbox' => null,
+			'force_letterbox_color' => false,
+			'sharpen' => true
+		);
+
 		$options += $defaults;
 		if (is_string($options['letterbox'])) {
 			$options['letterbox'] = $this->_html2rgb($options['letterbox']);
@@ -82,11 +99,14 @@ class Thumbnail extends \lithium\template\Helper {
 			return false;
 		}
 
-		// Create the path // TODO: Abstract to possibly allow saving to mongodb...or amazon s3, etc.
-		$this->_createPath($source_info->getPath() . DS . $options['size'][0] . 'x' . $options['size'][1]);
+		// Create the path // TODO: Abstract to possibly allow saving to mongodb...
+		// or amazon s3, etc.
+		$path = $source_info->getPath() . DS . $options['size'][0] . 'x' . $options['size'][1];
+		$this->_createPath();
 
 		// get the destination where the new file will be saved (including file name)
-		$this->destination = $source_info->getPath() . DS . $thumb_size_x . 'x' . $thumb_size_y . DS . $source_info->getFilename();
+		$this->destination = $source_info->getPath() . DS . $thumb_size_x . 'x';
+		$this->destination .= $thumb_size_y . DS . $source_info->getFilename();
 
 		if (preg_match('/([^\.]+$)/', $source, $matches)) {
 			$this->ext = $matches[0];
@@ -108,7 +128,8 @@ class Thumbnail extends \lithium\template\Helper {
 		if (file_exists($this->destination)) {
 			$existingFile = new SplFileInfo($this->destination);
 			if ($existingFile->getMTime() > $source_info->getMTime()) {
-				// if it's newer than the source, return the path. the source hasn't updated, so we don't need a new thumbnail.
+				// if it's newer than the source, return the path. the source hasn't updated,
+				// so we don't need a new thumbnail.
 				//return substr($this->destination, strlen($this->webroot));
 				return $this->_context->helper('Html')->image(substr($this->destination, strlen($this->webroot)), $htmlOptions);
 			}
@@ -143,13 +164,17 @@ class Thumbnail extends \lithium\template\Helper {
 			$thumb_size_y = $height;
 		}
 
-		// set some default values for other variables we set differently based on options like letterboxing, etc.
+		// set some default values for other variables we set differently based on options like
+		// letterboxing, etc.
 		// TODO: clean this up and consolidate variables so the image creation process is shorter and nicer
 		$new_width = $thumb_size_x;
 		$new_height = $thumb_size_y;
-		$x_mid = ceil($new_width / 2);  //horizontal middle // TODO: possibly add options to change where the crop is from
+		$x_mid = ceil($new_width / 2);  //horizontal middle
+		// TODO: possibly add options to change where the crop is from
+
 		$y_mid = ceil($new_height / 2); //vertical middle
-		// If the thumbnail is square and we're cropping (otherwise it won't just be square, but it'll be cropped too if the source isn't already a square image)
+		// If the thumbnail is square and we're cropping (otherwise it won't just be square,
+		// but it'll be cropped too if the source isn't already a square image)
 		if ($thumbSize[0] == $thumbSize[1] && $options['crop'] === true) {
 			if ($width > $height) {
 				$x = ceil(($width - $height) / 2);
@@ -160,7 +185,8 @@ class Thumbnail extends \lithium\template\Helper {
 			}
 			// else if the thumbnail is rectangular, don't stretch it
 		} else {
-			// if we aren't cropping then keep aspect ratio and contain image within the specified size
+			// if we aren't cropping then keep aspect ratio and contain image within
+			// the specified size
 			if ($crop === false) {
 				$ratio_orig = $width / $height;
 				if ($thumb_size_x / $thumb_size_y > $ratio_orig) {
@@ -179,13 +205,33 @@ class Thumbnail extends \lithium\template\Helper {
 					$new_width = ceil($thumb_size_y * $ratio_orig);
 					$new_height = $thumb_size_y;
 				}
-				$x_mid = ceil($new_width / 2);  //horizontal middle // TODO: possibly add options to change where the crop is from
+				$x_mid = ceil($new_width / 2);  //horizontal middle
+				// TODO: possibly add options to change where the crop is from
 				$y_mid = ceil($new_height / 2); //vertical middle
 			}
 		}
 
 		// Generate the new image
-		$new_im = $this->_generateImage(array('dx' => $dx, 'dy' => $dy, 'x' => $x, 'y' => $y, 'xmid' => $x_mid, 'y_mid' => $y_mid, 'new_width' => $new_width, 'new_height' => $new_height, 'original_thumb_size_x' => $original_thumb_size_x, 'original_thumb_size_y' => $original_thumb_size_y, 'thumb_size_x' => $thumb_size_x, 'thumb_size_y' => $thumb_size_y, 'height' => $height, 'width' => $width, 'letterbox' => $letterbox, 'crop' => $crop, 'sharpen' => $sharpen, 'force_letterbox_color' => $force_letterbox_color));
+		$new_im = $this->_generateImage(array(
+			'dx' => $dx,
+			'dy' => $dy,
+			'x' => $x,
+			'y' => $y,
+			'xmid' => $x_mid,
+			'y_mid' => $y_mid,
+			'new_width' => $new_width,
+			'new_height' => $new_height,
+			'original_thumb_size_x' => $original_thumb_size_x,
+			'original_thumb_size_y' => $original_thumb_size_y,
+			'thumb_size_x' => $thumb_size_x,
+			'thumb_size_y' => $thumb_size_y,
+			'height' => $height,
+			'width' => $width,
+			'letterbox' => $letterbox,
+			'crop' => $crop,
+			'sharpen' => $sharpen,
+			'force_letterbox_color' => $force_letterbox_color
+		));
 
 		// Save to disk
 		switch (strtolower($this->ext)) {
@@ -221,7 +267,29 @@ class Thumbnail extends \lithium\template\Helper {
 	 * @param $options Array[required] The options to create and transform the image
 	 * @return GD image object
 	 */
-	private function _generateImage($options = array('dx' => null, 'dy' => null, 'x' => null, 'y' => null, 'x_mid' => null, 'y_mid' => null, 'new_width' => null, 'new_height' => null, 'original_thumb_size_x' => null, 'original_thumb_size_y' => null, 'thumb_size_x' => null, 'thumb_size_y' => null, 'height' => null, 'width' => null, 'letterbox' => null, 'crop' => null, 'sharpen' => null, 'force_letterbox_color' => null)) {
+	private function _generateImage($options = array()) {
+		$defaults =  array(
+			'dx' => null,
+			'dy' => null,
+			'x' => null,
+			'y' => null,
+			'x_mid' => null,
+			'y_mid' => null,
+			'new_width' => null,
+			'new_height' => null,
+			'original_thumb_size_x' => null,
+			'original_thumb_size_y' => null,
+			'thumb_size_x' => null,
+			'thumb_size_y' => null,
+			'height' => null,
+			'width' => null,
+			'letterbox' => null,
+			'crop' => null,
+			'sharpen' => null,
+			'force_letterbox_color' => null
+		);
+		$options += $defaults;
+
 		$type = strtolower($this->ext);
 		switch ($type) {
 			case 'jpg':
@@ -242,7 +310,8 @@ class Thumbnail extends \lithium\template\Helper {
 
 		// CREATE THE NEW IMAGE
 		if (!empty($options['letterbox'])) {
-			// if letterbox, use the originally passed dimensions (keeping the final image size to whatever was requested, fitting the other image inside this box)
+			// if letterbox, use the originally passed dimensions (keeping the final image size
+			// to whatever was requested, fitting the other image inside this box)
 			$new_im = ImageCreatetruecolor($options['original_thumb_size_x'], $options['original_thumb_size_y']);
 			// We want to now set the destination coordinates so we center the image (take overal "box" size and divide in half and subtract by final resized image size divided in half)
 			$options['dx'] = ceil(($options['original_thumb_size_x'] / 2) - ($options['thumb_size_x'] / 2));
@@ -364,15 +433,16 @@ class Thumbnail extends \lithium\template\Helper {
 	 * a profile photo...well, we might want to run this to clean out the old versions right?
 	 * Or when a record was deleted containing an image that has a version...afterDelete()...
 	 *
-	 * @param $source String[required] Location of a source image.
-	 * @param $thumbSize Array[optional] Size of the thumbnail. Default: 75x75
-	 * @param $clearAll Boolean[optional] Clear all the thumbnails in the same directory. Default: false
+	 * @param string $source  Location of a source image.
+	 * @param array $thumbSize Size of the thumbnail. Default: 75x75
+	 * @param boolean $clearAll Clear all the thumbnails in the same directory. Default: false
 	 *
 	 * @return
 	 */
-	public function clearCache($source=null, $thumbSize=array(75, 75), $clearAll=false) {
-		if ((is_null($source)) || (!is_string($source))): return false;
-		endif;
+	public function clearCache($source = null, $thumbSize = array(75, 75), $clearAll = false) {
+		if ((is_null($source)) || (!is_string($source))) {
+			return false;
+		}
 		$webroot = LITHIUM_APP_PATH . DS . 'webroot';
 		// take off any beginning slashes (webroot has a trailing one)
 		if (substr($source, 0, 1) == '/') {
@@ -418,7 +488,8 @@ class Thumbnail extends \lithium\template\Helper {
 		} else {
 			// Initialize root to empty string on *nix platforms
 			$root = '';
-			// looks to see if a slash was included in the path to begin with and if so it removes it
+			// looks to see if a slash was included in the path to begin with and
+			// if so it removes it
 			if ($directories[0] == '') {
 				array_shift($directories);
 			}
@@ -441,17 +512,28 @@ class Thumbnail extends \lithium\template\Helper {
 	 * @return array The rgb array
 	 */
 	private function _html2rgb($color) {
-		if ($color[0] == '#')
+		if ($color[0] == '#') {
 			$color = substr($color, 1);
-		if (strlen($color) == 6)
-			list($r, $g, $b) = array($color[0] . $color[1], $color[2] . $color[3], $color[4] . $color[5]);
-		elseif (strlen($color) == 3)
-			list($r, $g, $b) = array($color[0] . $color[0], $color[1] . $color[1], $color[2] . $color[2]);
-		else
+		}
+		if (strlen($color) == 6) {
+			list($r, $g, $b) = array(
+				$color[0] . $color[1],
+				$color[2] . $color[3],
+				$color[4] . $color[5]
+			);
+		} elseif (strlen($color) == 3) {
+			list($r, $g, $b) = array(
+				$color[0] . $color[0],
+				$color[1] . $color[1],
+				$color[2] . $color[2]
+			);
+		} else {
 			return false;
+		}
 		$r = hexdec($r);
 		$g = hexdec($g);
 		$b = hexdec($b);
+
 		return array($r, $g, $b);
 	}
 }

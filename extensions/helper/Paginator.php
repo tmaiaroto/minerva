@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Minerva's Paginator Helper
  *
@@ -12,22 +11,31 @@
 
 namespace minerva\extensions\helper;
 
-use minerva\libraries\util\Util;
-use lithium\util\Inflector;
+//use minerva\libraries\util\Util;
+//use lithium\util\Inflector;
 
 class Paginator extends \al13_helpers\extensions\helper\Lists {
 
 	/**
 	 * Generate a list of links for pagination
 	 *
-	 * @param int $total The total number of pages
-	 * @param int $limit The limit per page
-	 * @param int $page The current page number
-	 * @param array $options An array of options for how the links are styled and also for any args that need to be passed to the linked URLs
+	 * @param integer $total The total number of pages
+	 * @param integer $limit The limit per page
+	 * @param integer $page The current page number
+	 * @param array $options An array of options for how the links are styled and also for any args
+	 * that need to be passed to the linked URLs
 	 * @return string Generated HTML
 	 */
-	public function pagination($total=false, $limit=false, $page=false, $options=array()) {
-		$options += array('args' => array(), 'ul_class' => 'pagination_actions', 'next_text' => 'Next', 'first_text' => 'First', 'previous_text' => 'Previous', 'last_text' => 'Last');
+	public function pagination($total = false, $limit = false, $page = false, $options = array()) {
+		$options += array(
+			'args' => array(),
+			'ul_class' => 'pagination_actions',
+			'next_text' => 'Next',
+			'first_text' => 'First',
+			'previous_text' => 'Previous',
+			'last_text' => 'Last'
+		);
+
 		if (!$total || !$limit || !$page) {
 			return '';
 		}
