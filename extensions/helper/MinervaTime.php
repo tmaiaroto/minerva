@@ -1,10 +1,10 @@
 <?php
-
 /**
  * Minerva's Time Helper
  * Formats dates, provides date choosers, and other date and time related functions.
  *
- * Greatly in part by: https://github.com/alkemann/AL13/blob/master/al13_helpers/extensions/helper/Time.php
+ * Greatly in part by:
+ * @see https://github.com/alkemann/AL13/blob/master/al13_helpers/extensions/helper/Time.php
  * With some additional methods specifically geared toward Minerva.
  * The main reason why Minerva simply doesn't use the al13_helpers is because of the desire
  * to reduce the number of dependencies. However, those are some great helpers to use in your app!
@@ -13,7 +13,7 @@
 
 namespace minerva\extensions\helper;
 
-use lithium\util\Inflector;
+//use lithium\util\Inflector;
 use Exception;
 use DateTime;
 use DateInterval;
@@ -35,7 +35,7 @@ class MinervaTime extends \lithium\template\helper\Html {
 	 *  - leap year
 	 *
 	 * @param string $question
-	 * @param mixed $date string|int|null
+	 * @param mixed $date string|integer|null
 	 * @param array $options
 	 * @return boolean
 	 */
@@ -65,7 +65,7 @@ class MinervaTime extends \lithium\template\helper\Html {
 	 *  - cookie
 	 *
 	 * @param string $type
-	 * @param mixed $date string|int|null
+	 * @param mixed $date string|integer|null
 	 * @param array $options
 	 * @return string
 	 */
@@ -99,8 +99,9 @@ class MinervaTime extends \lithium\template\helper\Html {
 				$offset = (isset($options['offset'])) ? $options['offset'] : 0;
 				return $this->_short($date, $offset);
 			case 'unix' : case 'Unix' : case 'UNIX' :
-				if ($date == null)
+				if ($date == null) {
 					return time();
+				}
 				$date = $date ? : date('Y-m-d H:i:s');
 				$date = (is_object($date)) ? $date->sec : $date;
 				$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
@@ -131,7 +132,7 @@ class MinervaTime extends \lithium\template\helper\Html {
 	 * Format a date using the DateTime native PHP class
 	 *
 	 * @param string $format
-	 * @param mixed $data string|int|null
+	 * @param mixed $date string|integer|null
 	 * @return string
 	 */
 	public function format($format, $date = null) {
@@ -176,10 +177,11 @@ class MinervaTime extends \lithium\template\helper\Html {
 	 * Format date to 'D, M jS Y, H:i'
 	 *
 	 * @param mixed $date
-	 * @param int $offset hours
+	 * @param integer $offset hours
+	 * @param string $date_format
 	 * @return string
 	 */
-	private function _nice($date, $offset = 0, $date_format='D, M jS Y, H:i') {
+	private function _nice($date, $offset = 0, $date_format = 'D, M jS Y, H:i') {
 		$date = $date ? : date($format);
 		// for MongoDate objects that were not passed using 'sec'
 		$date = (is_object($date)) ? $date->sec : $date;
@@ -195,11 +197,11 @@ class MinervaTime extends \lithium\template\helper\Html {
 	 * Format date to "M jS y, H:i", or 'Today, H:i' or similar
 	 *
 	 * @param mixed $date
-	 * @param int $offset hours
+	 * @param integer $offset hours
 	 * @param boolean $meridem (uses 12hr format with meridem and no trailing 0's)
 	 * @return string
 	 */
-	private function _short($date = null, $offset = 0, $meridem=false) {
+	private function _short($date = null, $offset = 0, $meridem = false) {
 		$now = new DateTime();
 		$date = $date ? : date('Y-m-d H:i:s');
 		// for MongoDate objects that were not passed using 'sec'

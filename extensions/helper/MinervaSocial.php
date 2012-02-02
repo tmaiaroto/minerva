@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Minerva: a CMS based on the Lithium PHP framework
  *
@@ -15,7 +14,7 @@
 
 namespace minerva\extensions\helper;
 
-use lithium\storage\Session;
+//use lithium\storage\Session;
 use lithium\core\Libraries;
 use li3_facebook\extensions\FacebookProxy;
 
@@ -31,10 +30,16 @@ class MinervaSocial extends MinervaHtml {
 
 		// If using Facebook
 		if ($facebook_config = Libraries::get('li3_facebook')) {
-			$this->facebook->login_url = FacebookProxy::getLoginUrl(array('next' => $facebook_config['login_url']));
-			$this->facebook->logout_url = FacebookProxy::getLogoutUrl(array('next' => $facebook_config['logout_url']));
+			$this->facebook->login_url = FacebookProxy::getLoginUrl(array(
+				'next' => $facebook_config['login_url']
+			));
+			$this->facebook->logout_url = FacebookProxy::getLogoutUrl(array(
+				'next' => $facebook_config['logout_url'])
+			);
 			$this->facebook->app_id = $facebook_config['appId'];
-			$this->facebook->locale = (isset($facebook_config['locale'])) ? $facebook_config['locale'] : $this->facebook->locale;
+			$this->facebook->locale = (
+					isset($facebook_config['locale'])
+				) ? $facebook_config['locale'] : $this->facebook->locale;
 		}
 	}
 
@@ -60,7 +65,9 @@ class MinervaSocial extends MinervaHtml {
 			if ($options['div'] !== false) {
 				$output .= '<div id="' . $options['div'] . '">' . $options['additional_copy'];
 			}
-			$output .= $this->_context->html->link('<img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] . '" />', $this->facebook->login_url, $options['link_options']);
+			//@todo: use image helper?
+			$img = '<img src="' . $options['button_image'] . '" alt="' . $options['button_alt'] . '" />';
+			$output .= $this->_context->html->link($img, $this->facebook->login_url, $options['link_options']);
 
 			if ($options['div'] !== false) {
 				$output .= '</div>';
@@ -99,10 +106,26 @@ class MinervaSocial extends MinervaHtml {
 		if (!$this->facebook->app_id) {
 			return '';
 		}
+
+		$html =  "<div id=\"fb-root\"></div>";
 		if ($async) {
-			return "<div id=\"fb-root\"></div><script>window.fbAsyncInit = function() { FB.init({appId: '" . $this->facebook->app_id . "', status: true, cookie: true, xfbml: true}); }; (function() { var e = document.createElement('script'); e.async = true; e.src = document.location.protocol + '//connect.facebook.net/" . $this->facebook->locale . "/" . $script . "'; document.getElementById('fb-root').appendChild(e); }());</script>";
+
+			$html .= "<script>window.fbAsyncInit = function() { ";
+			$html .= "FB.init({appId: '" . $this->facebook->app_id;
+			$html .= "', status: true, cookie: true, xfbml: true}); }; ";
+			$html .= "(function() { var e = document.createElement('script'); ";
+			$html .= "e.async = true; ";
+			$html .= "e.src = document.location.protocol + '//connect.facebook.net/";
+			$html .= $this->facebook->locale . "/" . $script . "'; ";
+			$html .= "document.getElementById('fb-root').appendChild(e); }());</script>";
+			return $html;
 		}
-		return "<div id=\"fb-root\"></div><script src=\"http://connect.facebook.net/" . $this->facebook->locale . "/" . $fb_script . "\"></script><script>FB.init({ appId  : '" . $this->facebook->app_id . "', status : true, cookie : true, xfbml : true });</script>";
+
+		$html .= "<script src=\"http://connect.facebook.net/" . $this->facebook->locale;
+		$html .= "/" . $fb_script . "\"></script><script>FB.init({ appId  : '";
+		$html .= $this->facebook->app_id . "', status : true, cookie : true, xfbml : true });";
+		$html .= "</script>";
+		return $html;
 	}
 }
 
