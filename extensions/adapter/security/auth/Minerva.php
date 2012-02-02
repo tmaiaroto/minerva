@@ -11,9 +11,9 @@ namespace minerva\extensions\adapter\security\auth;
 use lithium\security\Auth;
 use lithium\core\Libraries;
 use li3_facebook\extensions\FacebookProxy;
-use lithium\storage\Session;
+//use lithium\storage\Session;
 use minerva\models\User;
-use \Exception;
+use Exception;
 
 /**
  * Extends Lithium's Form auth adapter and adds a tiny little
@@ -44,8 +44,10 @@ class Minerva extends \lithium\security\auth\adapter\Form {
 		if (!$user) {
 			$minerva_config = Libraries::get('minerva');
 
-			// IF we are using Facebook, then let's try to get the Facebook session information and save it to our Minerva session.
-			// Also, if this is the Facebook user's first time to the site, let's put them into Minerva's system as a user.
+			// IF we are using Facebook, then let's try to get the Facebook session information
+			// and save it to our Minerva session.
+			// Also, if this is the Facebook user's first time to the site, let's put them into
+			// Minerva's system as a user.
 			if (isset($minerva_config['facebook'])) {
 				$facebook_config = Libraries::get('li3_facebook');
 				if ($facebook_config) {
