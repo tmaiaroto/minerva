@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Lithium: the most rad php framework
  *
@@ -46,7 +45,10 @@ class MinervaPaginator extends \lithium\template\Helper {
 			$url = $this->_render(__METHOD__, $options['pagingUrl'], $options, array('escape' => false));
 			return $this->_context->html->link($options['nextText'], $url, array('class' => $options['nextClass']));
 		}
-		return '<div class="next ' . $options['disabledClass'] . '">' . $options['nextTextDisabled'] . '</div>';
+
+		$div = '<div class="next ' . $options['disabledClass'] . '">';
+		$div .= $options['nextTextDisabled'] . '</div>';
+		return $div;
 	}
 
 	public function numbers($page, $total, $limit, array $options) {
@@ -56,7 +58,7 @@ class MinervaPaginator extends \lithium\template\Helper {
 
 		$start = ($page - 4);
 		$end = floor(($total / $limit));
-		$end = ($end < 1) ? (int) $end + 1 : (int) $end;
+		$end = ($end < 1) ? (integer) $end + 1 : (integer) $end;
 		if ($page <= 4) {
 			$start = 1;
 		}
@@ -68,7 +70,9 @@ class MinervaPaginator extends \lithium\template\Helper {
 			$options['page'] = $i;
 			$url = $this->_render(__METHOD__, $options['pagingUrl'], $options, array('escape' => false));
 			if ($page == $i) {
-				$buffer .= $options['separator'] . $this->_context->html->link($i, $url, array('class' => $options['activePageClass']));
+				$linkOptions = array('class' => $options['activePageClass']);
+				$buffer .= $options['separator'];
+				$buffer .= $this->_context->html->link($i, $url, $linkOptions);
 			} else {
 				$buffer .= $options['separator'] . $this->_context->html->link($i, $url);
 			}
@@ -99,13 +103,16 @@ class MinervaPaginator extends \lithium\template\Helper {
 		);
 		$options += $defaults;
 		$options['limit'] = $limit;
-		$options['pagingWrapper'] = '<div class="' . $options['paginationClass'] . '">{:content}</div>';
+		$options['pagingWrapper'] = '<div class="' . $options['paginationClass'] . '">';
+		$options['pagingWrapper'] .= '{:content}</div>';
 
-		// Set the pagingUrl in a more universal way ... this also takes into account querystring for search
+		// Set the pagingUrl in a more universal way ... this also takes into account
+		// querystring for search
+		$options['pagingUrl'] =  '/';
+		$options['pagingUrl'] .=  $this->_context->minervaHtml->here(false, false, false);
+		$options['pagingUrl'] .=  '/page:{:page}/limit:{:limit}';
 		if (isset($_GET['q']) && !empty($_GET['q'])) {
-			$options['pagingUrl'] = '/' . $this->_context->minervaHtml->here(false, false, false) . '/page:{:page}/limit:{:limit}?q=' . $_GET['q'];
-		} else {
-			$options['pagingUrl'] = '/' . $this->_context->minervaHtml->here(false, false, false) . '/page:{:page}/limit:{:limit}';
+			$options['pagingUrl'] .= '?q=' . $_GET['q'];
 		}
 
 		$content = "";
