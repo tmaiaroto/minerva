@@ -26,39 +26,38 @@ use li3_access\security\Access;
 
 Access::config(array(
 	'minerva_access' => array(
-            'adapter' => 'Rules',
-            // optional filters applied for each configuration
-            'filters' => array(
-                /*function($self, $params, $chain) {
-                    // Any config can have filters that get applied
-                    var_dump('filter on check, applied from Access::confg() in minerva_boostrap.php');
-                    exit();
-                    return $chain->next($self, $params, $chain);
-                }*/
-            )
+		'adapter' => 'Rules',
+		// optional filters applied for each configuration
+		'filters' => array(
+//			function($self, $params, $chain) {
+//				// Any config can have filters that get applied
+//				var_dump('filter on check, applied from Access::confg() in minerva_boostrap.php');
+//				exit();
+//				return $chain->next($self, $params, $chain);
+//			}
+		)
 	)
 ));
 
 // Set some rules to be used from anywhere
-
 // Allow access for users with a role of "administrator" or "content_editor"
 Access::adapter('minerva_access')->add('allowManagers', function($user, $request, $options) {
-   if (($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor')) {
-	  return true;
-   }
-   return false;
+	if (($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor')) {
+		return true;
+	}
+	return false;
 });
 
 // Restrict access to documents that have a published field marked as true
 // (except for users with a role of "administrator" or "content_editor")
 Access::adapter('minerva_access')->add('allowIfPublished', function($user, $request, $options) {
-   if (isset($options['document']['published']) && $options['document']['published'] === true) {
-	  return true;
-   }
-   if (($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor')) {
-	  return true;
-   }
-   return false;
+	if (isset($options['document']['published']) && $options['document']['published'] === true) {
+		return true;
+	}
+	if (($user) && ($user['role'] == 'administrator' || $user['role'] == 'content_editor')) {
+		return true;
+	}
+	return false;
 });
 
 ?>
