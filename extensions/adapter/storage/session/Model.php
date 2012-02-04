@@ -10,7 +10,7 @@ namespace minerva\extensions\adapter\storage\session;
 
 use lithium\data\Entity;
 use lithium\core\Libraries;
-use lithium\data\Connections;
+//use lithium\data\Connections;
 use lithium\core\ConfigException;
 use IDlib\util\Logger;
 

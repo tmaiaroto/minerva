@@ -4,31 +4,25 @@
  * The blocks controller responsible for rendering both "static" and "dynamic" block content.
  * While the block helper could be used to render view templates from the /views folder, or any
  * folder underneath...For conventional and organizational reasons, "static" block templates should
- * live under the /views/blocks/static folder. 
+ * live under the /views/blocks/static folder.
  *
  * All block data for front-end use is accessed using the block helper.
  * (except when using the "ajax" method of the block helper and accessing the view method here)
  *
  * @author Tom Maiaroto
  * @website http://www.shift8creative.com
- * @modified 2010-06-10 15:13:50 
- * @created 2010-06-10 15:13:50 
+ * @modified 2010-06-10 15:13:50
+ * @created 2010-06-10 15:13:50
  */
+
 namespace minerva\controllers;
 
 use minerva\models\Block;
-use li3_flash_message\extensions\storage\FlashMessage;
-use li3_access\security\Access;
-use lithium\security\Auth;
-use lithium\storage\Session;
-use lithium\util\Set;
-use minerva\libraries\util\Util;
-use lithium\util\Inflector;
 
 class BlocksController extends \minerva\controllers\MinervaController {
 
 	public function view() {
-		$path = func_get_args() ?: array('example');
+		$path = func_get_args() ? : array('example');
 
 		// this doesn't get any documents, it just checks access. the false "find_type"
 		// key is preventing a db query
@@ -36,7 +30,8 @@ class BlocksController extends \minerva\controllers\MinervaController {
 			'action' => __METHOD__, 'request' => $this->request, 'find_type' => false
 		));
 
-		// getDocument() will return true or false depending on access rules. and it could redirect as well.
+		// getDocument() will return true or false depending on access rules.
+		// And it could redirect as well.
 		if ($document) {
 			return $this->render(array('template' => join('/', $path), 'layout' => 'blank'));
 		}
@@ -89,6 +84,8 @@ class BlocksController extends \minerva\controllers\MinervaController {
 	 * didn't have the fields they needed on the block record. Again, this is where the power and
 	 * flexibility shine with MongoDB. Of course don't forget Lithium's filter system or the way
 	 * Minerva is setup, they all have to work together to pull off this flexibility.
+	 *
+	 * @param mixed $document_type
 	 */
 	public function create($document_type = null) {
 		$this->calling_class = __CLASS__;
@@ -98,6 +95,8 @@ class BlocksController extends \minerva\controllers\MinervaController {
 
 	/**
 	 * Update a block record.
+	 *
+	 * @param string $url
 	 */
 	public function update($url = null) {
 		$this->calling_class = __CLASS__;
@@ -109,6 +108,8 @@ class BlocksController extends \minerva\controllers\MinervaController {
 	 *  Delete a block record.
 	 *  Plugins can apply filters within their Block model class in order to run filters
 	 * for the delete.
+	 *
+	 * @param string $url
 	 */
 	public function delete($url = null) {
 		$this->calling_class = __CLASS__;

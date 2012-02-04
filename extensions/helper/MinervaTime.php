@@ -2,24 +2,24 @@
 /**
  * Minerva's Time Helper
  * Formats dates, provides date choosers, and other date and time related functions.
- * 
- * Greatly in part by: https://github.com/alkemann/AL13/blob/master/al13_helpers/extensions/helper/Time.php
+ *
+ * Greatly in part by:
+ * @see https://github.com/alkemann/AL13/blob/master/al13_helpers/extensions/helper/Time.php
  * With some additional methods specifically geared toward Minerva.
- * The main reason why Minerva simply doesn't use the al13_helpers is because of the desire 
+ * The main reason why Minerva simply doesn't use the al13_helpers is because of the desire
  * to reduce the number of dependencies. However, those are some great helpers to use in your app!
- * 
-*/
+ *
+ */
+
 namespace minerva\extensions\helper;
 
-use lithium\util\Inflector;
-
+//use lithium\util\Inflector;
 use Exception;
 use DateTime;
 use DateInterval;
 
 class MinervaTime extends \lithium\template\helper\Html {
-
-    const DAY = 86400;
+	const DAY = 86400;
 	const HOUR = 3600;
 
 	/**
@@ -35,18 +35,18 @@ class MinervaTime extends \lithium\template\helper\Html {
 	 *  - leap year
 	 *
 	 * @param string $question
-	 * @param mixed $date string|int|null
+	 * @param mixed $date string|integer|null
 	 * @param array $options
 	 * @return boolean
 	 */
-	public function is($question, $date = null, array $options = array()) {	
+	public function is($question, $date = null, array $options = array()) {
 		switch ($question) {
-			case 'leap year' :	
-				$date = $date ?: date('Y-m-d H:i:s');
-                // for MongoDate objects that were not passed using 'sec'
-                $date = (is_object($date)) ? $date->sec:$date; 
+			case 'leap year' :
+				$date = $date ? : date('Y-m-d H:i:s');
+				// for MongoDate objects that were not passed using 'sec'
+				$date = (is_object($date)) ? $date->sec : $date;
 				$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
-				return $date->format('L');				
+				return $date->format('L');
 			default:
 				return $this->_relativeCheck($question, $date, $options);
 		}
@@ -65,9 +65,9 @@ class MinervaTime extends \lithium\template\helper\Html {
 	 *  - cookie
 	 *
 	 * @param string $type
-	 * @param mixed $date string|int|null
+	 * @param mixed $date string|integer|null
 	 * @param array $options
-	 * @return string 
+	 * @return string
 	 */
 	public function to($type, $date = null, array $options = array()) {
 		$defaults = array('format' => 'j/n/y');
@@ -75,68 +75,70 @@ class MinervaTime extends \lithium\template\helper\Html {
 
 		switch (strtolower($type)) {
 			case 'format':
-                // for MongoDate objects that were not passed using 'sec'
-                $date = (is_object($date)) ? $date->sec:$date; 
+				// for MongoDate objects that were not passed using 'sec'
+				$date = (is_object($date)) ? $date->sec : $date;
 				return $this->format($options['format'], $date);
 			case 'nice':
 				$offset = (isset($options['offset'])) ? $options['offset'] : 0;
 				return $this->_nice($date, $offset);
 			case 'nice_meridiem_short':
-            case 'nicemeridiemshort':
-            case 'short_meridiem':
+			case 'nicemeridiemshort':
+			case 'short_meridiem':
 			case 'shortmeridiem':
-            case 'meridiemshort':
-            case 'meridiem_short':
-                $offset = (isset($options['offset'])) ? $options['offset'] : 0;
+			case 'meridiemshort':
+			case 'meridiem_short':
+				$offset = (isset($options['offset'])) ? $options['offset'] : 0;
 				return $this->_short($date, $offset, true);
-            case 'nice_meridiem':
-            case 'nicemeridiem':
-            case 'meridiem':
-                $offset = (isset($options['offset'])) ? $options['offset'] : 0;
+			case 'nice_meridiem':
+			case 'nicemeridiem':
+			case 'meridiem':
+				$offset = (isset($options['offset'])) ? $options['offset'] : 0;
 				return $this->_nice($date, $offset, 'l, F jS Y, g:ia');
-            case 'niceshort':
+			case 'niceshort':
 			case 'short':
 				$offset = (isset($options['offset'])) ? $options['offset'] : 0;
 				return $this->_short($date, $offset);
 			case 'unix' : case 'Unix' : case 'UNIX' :
-				if ($date == null) return time();
-				$date = $date ?: date('Y-m-d H:i:s');
-                $date = (is_object($date)) ? $date->sec:$date;
+				if ($date == null) {
+					return time();
+				}
+				$date = $date ? : date('Y-m-d H:i:s');
+				$date = (is_object($date)) ? $date->sec : $date;
 				$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 				return $date->format('U');
 			case 'rss':
-				$date = $date ?: date('Y-m-d H:i:s');
-                $date = (is_object($date)) ? $date->sec:$date;
+				$date = $date ? : date('Y-m-d H:i:s');
+				$date = (is_object($date)) ? $date->sec : $date;
 				$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 				return $date->format(DateTime::RSS);
 			case 'atom':
-				$date = $date ?: date('Y-m-d H:i:s');
-                $date = (is_object($date)) ? $date->sec:$date;
+				$date = $date ? : date('Y-m-d H:i:s');
+				$date = (is_object($date)) ? $date->sec : $date;
 				$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 				return $date->format(DateTime::ATOM);
 			case 'cookie':
-				$date = $date ?: date('Y-m-d H:i:s');
-                $date = (is_object($date)) ? $date->sec:$date;
+				$date = $date ? : date('Y-m-d H:i:s');
+				$date = (is_object($date)) ? $date->sec : $date;
 				$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 				return $date->format(DateTime::COOKIE);
 			case 'words':
 			case 'relative':
 			default:
 				return $this->_words($date, $options);
-		}	
+		}
 	}
-		
+
 	/**
 	 * Format a date using the DateTime native PHP class
 	 *
 	 * @param string $format
-	 * @param mixed $data string|int|null
+	 * @param mixed $date string|integer|null
 	 * @return string
 	 */
-	public function format($format, $date = null) {		
-		$date = $date ?: date('Y-m-d H:i:s');
-        // for MongoDate objects that were not passed using 'sec'
-        $date = (is_object($date)) ? $date->sec:$date; 
+	public function format($format, $date = null) {
+		$date = $date ? : date('Y-m-d H:i:s');
+		// for MongoDate objects that were not passed using 'sec'
+		$date = (is_object($date)) ? $date->sec : $date;
 		$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 		return $date->format($format);
 	}
@@ -145,19 +147,19 @@ class MinervaTime extends \lithium\template\helper\Html {
 		$defaults = array('offset' => 0, 'now' => date('Y-m-d H:i:s'));
 		$options += $defaults;
 		$now = $options['now'];
-		$date = $date ?: date('Y-m-d H:i:s');
-        // for MongoDate objects that were not passed using 'sec'
-        $date = (is_object($date)) ? $date->sec:$date; 
+		$date = $date ? : date('Y-m-d H:i:s');
+		// for MongoDate objects that were not passed using 'sec'
+		$date = (is_object($date)) ? $date->sec : $date;
 		$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 		$now = new DateTime(is_int($now) ? date('Y-m-d H:i:s', $now) : $now);
 
 		switch ($question) {
 			case 'today' :
 				return $date->format('dmy') == $now->format('dmy');
-			case 'tomorrow' :	
+			case 'tomorrow' :
 				$now->add(DateInterval::createFromDateString('1 day'));
 				return $date->format('dmy') == $now->format('dmy');
-			case 'yesterday' :	
+			case 'yesterday' :
 				$now->add(DateInterval::createFromDateString('-1 day'));
 				return $date->format('dmy') == $now->format('dmy');
 			case 'this week' :
@@ -166,45 +168,46 @@ class MinervaTime extends \lithium\template\helper\Html {
 				return $date->format('my') == $now->format('my');
 			case 'this year' :
 				return $date->format('y') == $now->format('y');
-		}	
+		}
 		throw new Exception('Illegal $question parameter');
 		return null;
 	}
-	
+
 	/**
 	 * Format date to 'D, M jS Y, H:i'
 	 *
 	 * @param mixed $date
-	 * @param int $offset hours
+	 * @param integer $offset hours
+	 * @param string $date_format
 	 * @return string
 	 */
-	private function _nice($date, $offset = 0, $date_format='D, M jS Y, H:i') {
-		$date = $date ?: date($format);
-        // for MongoDate objects that were not passed using 'sec'
-        $date = (is_object($date)) ? $date->sec:$date; 
-        $date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
+	private function _nice($date, $offset = 0, $date_format = 'D, M jS Y, H:i') {
+		$date = $date ? : date($format);
+		// for MongoDate objects that were not passed using 'sec'
+		$date = (is_object($date)) ? $date->sec : $date;
+		$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 
 		if ($offset) {
 			$date->add(DateInterval::createFromDateString("{$offset} hours"));
 		}
 		return $date->format($date_format);
 	}
-		
+
 	/**
 	 * Format date to "M jS y, H:i", or 'Today, H:i' or similar
 	 *
 	 * @param mixed $date
-	 * @param int $offset hours
+	 * @param integer $offset hours
 	 * @param boolean $meridem (uses 12hr format with meridem and no trailing 0's)
 	 * @return string
 	 */
-	private function _short($date = null, $offset = 0, $meridem=false) {
+	private function _short($date = null, $offset = 0, $meridem = false) {
 		$now = new DateTime();
-		$date = $date ?: date('Y-m-d H:i:s');
-        // for MongoDate objects that were not passed using 'sec'
-        $date = (is_object($date)) ? $date->sec:$date; 
+		$date = $date ? : date('Y-m-d H:i:s');
+		// for MongoDate objects that were not passed using 'sec'
+		$date = (is_object($date)) ? $date->sec : $date;
 		$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
-	
+
 		if ($offset) {
 			$date->add(DateInterval::createFromDateString("{$offset} hours"));
 		}
@@ -216,25 +219,25 @@ class MinervaTime extends \lithium\template\helper\Html {
 		switch (true) {
 			case ($diff->d == 0 && $onlyDay) :
 				$text = 'Today, %s';
-				$format = ($meridem) ? 'g:ia':'H:i';
-			break;
+				$format = ($meridem) ? 'g:ia' : 'H:i';
+				break;
 			case ($diff->d == 1 && $dayDirection == '+' && $onlyDay) :
 				$text = 'Yesterday, %s';
-				$format = ($meridem) ? 'g:ia':'H:i';
-			break;
+				$format = ($meridem) ? 'g:ia' : 'H:i';
+				break;
 			case ($diff->d == 1 && $dayDirection == '-' && $onlyDay) :
 				$text = 'Tomorrow, %s';
-				$format = ($meridem) ? 'g:ia':'H:i';
-			break;
-			default : 
+				$format = ($meridem) ? 'g:ia' : 'H:i';
+				break;
+			default :
 				$text = null;
-				$format = ($meridem) ? "M jS{$y}, g:ia":"M jS{$y}, H:i";
+				$format = ($meridem) ? "M jS{$y}, g:ia" : "M jS{$y}, H:i";
 		}
 		$ret = $date->format($format);
 
 		return ($text) ? sprintf($text, $ret) : $ret;
 	}
-	
+
 	/**
 	 * Convert date to relative worded string like "1 week, 2 days ago"
 	 *
@@ -251,9 +254,9 @@ class MinervaTime extends \lithium\template\helper\Html {
 		$now = $options['now'];
 		$now = new DateTime(is_int($now) ? date('Y-m-d H:i:s', $now) : $now);
 
-		$date = $date ?: date('Y-m-d H:i:s');
-        // for MongoDate objects that were not passed using 'sec'
-        $date = (is_object($date)) ? $date->sec:$date; 
+		$date = $date ? : date('Y-m-d H:i:s');
+		// for MongoDate objects that were not passed using 'sec'
+		$date = (is_object($date)) ? $date->sec : $date;
 		$date = new DateTime(is_int($date) ? date('Y-m-d H:i:s', $date) : $date);
 		$keys = $this->diff($date, compact('now') + $options);
 
@@ -313,6 +316,6 @@ class MinervaTime extends \lithium\template\helper\Html {
 		}
 		return $keys;
 	}
-    
 }
+
 ?>

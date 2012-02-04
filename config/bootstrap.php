@@ -43,6 +43,9 @@ require __DIR__ . '/bootstrap/auth.php';
  * upon 3rd party access control. At that point, in order to protect core actions, filters
  * would be the logical step to take.
  *
+ * @todo: rewrite minervas config access System!
+ * something like: MinervaConfig::assertIdentical('use_minerva_access')
+ *
  * NOTE: Minerva's core access system is basic, but can be extended by additional access rules.
  * In the very least, it could be used for a "super administrator" role only and an additional
  * access system for every other type of user and need could be put into place.

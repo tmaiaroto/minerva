@@ -9,30 +9,37 @@
  *
  * @author Tom Maiaroto
  * @website http://www.shift8creative.com
- * @modified 2010-11-20 15:13:50 
- * @created 2010-11-20 15:13:50 
+ * @modified 2010-11-20 15:13:50
+ * @created 2010-11-20 15:13:50
  *
  */
+
 namespace minerva\controllers;
+
 use minerva\models\Block;
-use \lithium\util\Set;
 
 class MenusController extends BlocksController {
-    
-    // TODO: add caching
-    public function read($url=null) {
-        $record = Block::find('first', array('conditions' => array('url' => $url, 'options.is_menu' => true)));	  	
-        // Return an array. No rendering.
-        return array('record' => $record);
-    }
-    
-    // We just need to pass along "is_menu" with the data... TODO: Maybe a filter even? this works though very nicely/easily
-    public function create($library=null) {        
-        if ($this->request->data) {
-	    $this->request->data['options']['is_menu'] = true;
-        }
-        parent::create($library);
-    }
-    
+
+	// TODO: add caching
+	public function read($url = null) {
+		$record = Block::find('first', array(
+			'conditions' => array(
+				'url' => $url,
+				'options.is_menu' => true
+			)
+		));
+		// Return an array. No rendering.
+		return array('record' => $record);
+	}
+
+	// We just need to pass along "is_menu" with the data...
+	// TODO: Maybe a filter even? this works though very nicely/easily
+	public function create($library = null) {
+		if ($this->request->data) {
+			$this->request->data['options']['is_menu'] = true;
+		}
+		parent::create($library);
+	}
 }
+
 ?>

@@ -11,8 +11,8 @@ namespace minerva\extensions\helper;
 class MinervaPaginator extends \lithium\template\Helper {
 
 	protected $_strings = array(
-		'pagingWrapper'	=> '<div>{:content}</div>',
-		'pagingUrl'			=> '/{:controller}/{:template}/page:{:page}/limit:{limit}'
+		'pagingWrapper' => '<div>{:content}</div>',
+		'pagingUrl' => '/{:controller}/{:template}/page:{:page}/limit:{limit}'
 	);
 
 	public function config($page, array $options) {
@@ -24,52 +24,57 @@ class MinervaPaginator extends \lithium\template\Helper {
 
 	public function prev($page, array $options) {
 		$this->config($page, $options);
-        $defaults = array('pagingUrl' => 'pagingUrl');
-        $options += $defaults;
-        
+		$defaults = array('pagingUrl' => 'pagingUrl');
+		$options += $defaults;
+
 		if ($page > 1) {
 			$options['page'] = --$page;
 			$url = $this->_render(__METHOD__, $options['pagingUrl'], $options, array('escape' => false));
 			return $this->_context->html->link($options['prevText'], $url, array('class' => $options['prevClass']));
 		}
-		return '<div class="prev '.$options['disabledClass'].'">'.$options['prevTextDisabled'].'</div>';
+		return '<div class="prev ' . $options['disabledClass'] . '">' . $options['prevTextDisabled'] . '</div>';
 	}
 
 	public function next($page, $total, $limit, array $options) {
 		$this->config($page, $options);
-        $defaults = array('pagingUrl' => 'pagingUrl');
-        $options += $defaults;
-        
+		$defaults = array('pagingUrl' => 'pagingUrl');
+		$options += $defaults;
+
 		if ($total > ($limit * $page)) {
 			$options['page'] = ++$page;
 			$url = $this->_render(__METHOD__, $options['pagingUrl'], $options, array('escape' => false));
 			return $this->_context->html->link($options['nextText'], $url, array('class' => $options['nextClass']));
 		}
-		return '<div class="next '.$options['disabledClass'].'">'.$options['nextTextDisabled'].'</div>';
+
+		$div = '<div class="next ' . $options['disabledClass'] . '">';
+		$div .= $options['nextTextDisabled'] . '</div>';
+		return $div;
 	}
 
 	public function numbers($page, $total, $limit, array $options) {
 		$this->config($page, $options);
-        $defaults = array('pagingUrl' => 'pagingUrl');
-        $options += $defaults;
-        
+		$defaults = array('pagingUrl' => 'pagingUrl');
+		$options += $defaults;
+
 		$start = ($page - 4);
 		$end = floor(($total / $limit));
-        $end = ($end < 1) ? (int)$end+1:(int)$end;
+		$end = ($end < 1) ? (integer) $end + 1 : (integer) $end;
 		if ($page <= 4) {
 			$start = 1;
 		}
 		if (($page + 4) < $end) {
 			$end = ($page + 4);
 		}
-		$buffer = '<div class="'.$options['numbersClass'].'">';
+		$buffer = '<div class="' . $options['numbersClass'] . '">';
 		for ($i = $start; $i <= $end; $i++) {
 			$options['page'] = $i;
 			$url = $this->_render(__METHOD__, $options['pagingUrl'], $options, array('escape' => false));
 			if ($page == $i) {
-				$buffer .= $options['separator'].$this->_context->html->link($i, $url, array('class' => $options['activePageClass']));
+				$linkOptions = array('class' => $options['activePageClass']);
+				$buffer .= $options['separator'];
+				$buffer .= $this->_context->html->link($i, $url, $linkOptions);
 			} else {
-				$buffer .= $options['separator'].$this->_context->html->link($i, $url);
+				$buffer .= $options['separator'] . $this->_context->html->link($i, $url);
 			}
 		}
 		$buffer .= $options['separator'];
@@ -87,26 +92,29 @@ class MinervaPaginator extends \lithium\template\Helper {
 			'nextTextDisabled' => "Next >",
 			'separator' => " | ",
 			'activePageClass' => 'current',
-            'paginationClass' => 'pagination',
+			'paginationClass' => 'pagination',
 			'numbersClass' => 'numbers',
 			'nextClass' => 'next',
 			'prevClass' => 'prev',
 			'disabledClass' => 'disabled',
 			'controller' => $this->_context->_config['controller'],
 			'template' => $this->_context->_config['template'],
-            //'pagingWrapper' => 'pagingWrapper'
+				//'pagingWrapper' => 'pagingWrapper'
 		);
 		$options += $defaults;
-        $options['limit'] = $limit;
-        $options['pagingWrapper'] = '<div class="'.$options['paginationClass'].'">{:content}</div>';
-        
-        // Set the pagingUrl in a more universal way ... this also takes into account querystring for search
-        if(isset($_GET['q']) && !empty($_GET['q'])) {
-            $options['pagingUrl'] = '/'.$this->_context->minervaHtml->here(false, false, false).'/page:{:page}/limit:{:limit}?q=' . $_GET['q'];
-        } else {
-            $options['pagingUrl'] = '/'.$this->_context->minervaHtml->here(false, false, false).'/page:{:page}/limit:{:limit}';
-        }
-        
+		$options['limit'] = $limit;
+		$options['pagingWrapper'] = '<div class="' . $options['paginationClass'] . '">';
+		$options['pagingWrapper'] .= '{:content}</div>';
+
+		// Set the pagingUrl in a more universal way ... this also takes into account
+		// querystring for search
+		$options['pagingUrl'] =  '/';
+		$options['pagingUrl'] .=  $this->_context->minervaHtml->here(false, false, false);
+		$options['pagingUrl'] .=  '/page:{:page}/limit:{:limit}';
+		if (isset($_GET['q']) && !empty($_GET['q'])) {
+			$options['pagingUrl'] .= '?q=' . $_GET['q'];
+		}
+
 		$content = "";
 		if ($options["showPrevNext"]) {
 			$content .= $this->prev($page, $options);
@@ -120,6 +128,6 @@ class MinervaPaginator extends \lithium\template\Helper {
 		}
 		return $this->_render(__METHOD__, $options['pagingWrapper'], compact('content'), array('escape' => false));
 	}
-    
 }
+
 ?>

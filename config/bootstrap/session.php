@@ -15,16 +15,13 @@ use lithium\storage\Session;
 Session::config(array(
 	'minerva_cookie' => array('adapter' => 'Cookie'),
 	'default' => array('adapter' => 'Php'),
-    'minerva_default' => array('adapter' => 'Model', 'model' => 'minerva\models\Session'),
-    'flash_message' => array('adapter' => 'Php')
+	'minerva_default' => array('adapter' => 'Model', 'model' => 'minerva\models\Session'),
+	'flash_message' => array('adapter' => 'Php')
 ));
 
-/**
- * Session::config(array(
- * 	'default' => array('adapter' => 'Model', 'model' => 'Session')
- * ));
- *
-*/
+//Session::config(array(
+//	'default' => array('adapter' => 'Model', 'model' => 'Session')
+//));
 
 /**
  * Uncomment this to enable forms-based authentication. The configuration below will attempt to
@@ -44,7 +41,6 @@ Session::config(array(
  * @see lithium\security\Auth
  */
 // use lithium\security\Auth;
-
 // Auth::config(array(
 // 	'default' => array(
 // 		'adapter' => 'Form',
