@@ -8,7 +8,7 @@ namespace minerva\extensions\util;
 
 use RecursiveIteratorIterator;
 use RecursiveArrayIterator;
-//use lithium\core\Libraries;
+use lithium\core\Libraries;
 use lithium\util\Set;
 use lithium\util\Inflector;
 
