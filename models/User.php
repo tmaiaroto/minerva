@@ -542,39 +542,50 @@ User::applyFilter('save', function($self, $params, $chain) {
 
 		/* if(!empty($params['data']['profile_pic'])) {
 		  $asset = Asset::create();
-		  // Technically the 'model' field is not required because ids are universally unique,but it's easier for to code if we know which model
+		  // Technically the 'model' field is not required because ids are universally unique, but it's easier for to code if we know which model
 		  $asset->save(array('file' => $params['data']['profile_pic'], 'model' => 'User', 'parent_id' => $params['data']['_id']));
 		  $asset_data = $asset->data();
 		  $params['data']['profile_pics'][] = $asset_data['_id'];
 		  } */
-
+		$data = $params['data'];
 		// Set created, modified, and pretty url (slug)
 		if (!$params['entity']->exists()) {
-			if (Validator::rule('moreThanFive', $params['data']['password']) === true) {
+			if (Validator::rule('moreThanFive', $data['password']) === true) {
 				// will be sha512
-				$params['data']['password'] = Password::hash($params['data']['password']);
+				$data['password'] = Password::hash($data['password']);
 			}
 			// Unique E-mail validation ONLY upon new record creation
-			if (Validator::rule('uniqueEmail', $params['data']['email']) === false) {
-				$params['data']['email'] = '';
+			if (Validator::rule('uniqueEmail', $data['email']) === false) {
+				$data['email'] = '';
 			}
 		} else {
-			// If the fields password and password_confirm both exist, then validate the password field too
-			if ((isset($params['data']['password'])) && (isset($params['data']['password_confirm']))) {
-				if (Validator::rule('moreThanFive', $params['data']['password']) === true) {
-					$params['data']['password'] = Password::hash($params['data']['password']); // will be sha512
+			// If the fields password and password_confirm both exist, then validate
+			// the password field too
+			if ((isset($data['password'])) && (isset($data['password_confirm']))) {
+				if (Validator::rule('moreThanFive', $data['password']) === true) {
+					$data['password'] = Password::hash($data['password']); // will be sha512
 				}
 			}
 
-			// If the new_email field was passed, the user is requesting to update their e-mail, we will set it and send an email to allow them to confirm, once confirmed it will be changed
-			if (isset($params['data']['new_email'])) {
+			// If the new_email field was passed, the user is requesting to update their e-mail,
+			// we will set it and send an email to allow them to confirm, once confirmed
+			// it will be changed
+			if (isset($data['new_email'])) {
 				// Unique E-mail validation
-				if ((Validator::rule('uniqueEmail', $params['data']['new_email']) === false) || (Validator::isEmail($params['data']['new_email']) === false)) {
+				if (
+					(Validator::rule('uniqueEmail', $data['new_email']) === false) ||
+					(Validator::isEmail($data['new_email']) === false)
+				) {
 					// Invalidate
-					$params['data']['new_email'] = '';
+					$data['new_email'] = '';
 				} else {
-					$params['data']['approval_code'] = Util::uniqueString(array('hash' => 'md5'));
-					Email::changeUserEmail(array('first_name' => $params['data']['first_name'], 'last_name' => $params['data']['last_name'], 'to' => $params['data']['new_email'], 'approval_code' => $params['data']['approval_code']));
+					$data['approval_code'] = Util::uniqueString(array('hash' => 'md5'));
+					Email::changeUserEmail(array(
+						'first_name' => $data['first_name'],
+						'last_name' => $data['last_name'],
+						'to' => $data['new_email'],
+						'approval_code' => $data['approval_code']
+					));
 				}
 			}
 		}
