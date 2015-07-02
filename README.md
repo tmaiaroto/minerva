@@ -1,4 +1,4 @@
-** NOTE: ** This project is no longer maintained or worked on. Please see Blackprint: https://github.com/tmaiaroto/blackprint
+### ***NOTE:*** This project is no longer maintained or worked on. Please see Blackprint: https://github.com/tmaiaroto/blackprint
 
 
 
